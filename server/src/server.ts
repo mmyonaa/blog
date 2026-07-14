@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerPublishPost, registerSuggestTopic } from "./tools.js";
 import { registerPostsResource } from "./resources.js";
+import { registerWriteDailyPostPrompt } from "./prompts.js";
 
 export const SERVER_NAME = "blog-mcp";
 export const SERVER_VERSION = "0.0.0";
@@ -22,7 +23,7 @@ export function createServer(): McpServer {
   registerPublishPost(server);
   registerSuggestTopic(server);
   registerPostsResource(server);
-  // TODO(#6): registerWriteDailyPostPrompt(server)
+  registerWriteDailyPostPrompt(server);
 
   return server;
 }
