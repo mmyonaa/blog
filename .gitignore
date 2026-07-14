@@ -1,12 +1,14 @@
 # 설계/작업용 문서 (로컬 전용, plan.md만 예외로 추적)
 docs/
 
-# Node
+# Node / TypeScript
 node_modules/
 dist/
+*.tsbuildinfo
 *.log
 .env
 .env.*
+.pnpm-store/
 
 # Claude Code 로컬 설정 (개인용)
 .claude/settings.local.json

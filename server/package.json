@@ -1,0 +1,29 @@
+{
+  "name": "@blog-mcp/server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "블로그 발행용 MCP 서버 (stdio). suggest_topic / publish_post 도구, blog://posts 리소스 제공",
+  "type": "module",
+  "bin": {
+    "blog-mcp-server": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  }
+}
