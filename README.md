@@ -32,10 +32,6 @@ Phase 2까지는 API 키 없이 전부 무료로 진행한다.
 - **블로그 렌더링**: [Astro](https://astro.build) SSG → GitHub Pages
 - **트리거**: GitHub Actions cron (Phase 3)
 
-## 문서
-
-전체 설계·아키텍처·비용·함정 정리는 [docs/plan.md](docs/plan.md) 참고.
-
 ## 상태
 
 🚧 Phase 1 준비 중.
