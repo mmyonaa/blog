@@ -1,0 +1,15 @@
+# 설계/작업용 문서 (로컬 전용, plan.md만 예외로 추적)
+docs/
+
+# Node
+node_modules/
+dist/
+*.log
+.env
+.env.*
+
+# Claude Code 로컬 설정 (개인용)
+.claude/settings.local.json
+
+# OS
+.DS_Store
