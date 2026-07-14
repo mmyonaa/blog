@@ -1,10 +1,22 @@
 #!/usr/bin/env node
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { createServer, SERVER_NAME, SERVER_VERSION } from "./server.js";
+
 /**
- * blog-mcp 서버 진입점 (Phase 1 스캐폴딩 placeholder).
+ * blog-mcp 서버 진입점.
+ * stdio transport로 MCP 서버를 띄운다. CI cron·로컬 테스트 양쪽에서
+ * 서브프로세스로 spawn되어 오케스트레이터(또는 Claude Code)가 붙는다.
  *
- * 이 파일은 스캐폴딩이 빌드되는지 확인하기 위한 최소 스텁이다.
- * 실제 stdio MCP 서버 부트스트랩(@modelcontextprotocol/sdk 연결,
- * suggest_topic / publish_post 도구, blog://posts 리소스)은
- * 다음 일감 "[P1] stdio MCP 서버 부트스트랩"에서 구현한다.
+ * ⚠️ stdout은 MCP JSON-RPC 프로토콜 전용이다. 사람이 볼 로그는 반드시 stderr로 보낸다.
  */
-console.error("[blog-mcp] scaffold placeholder — 서버 부트스트랩 미구현");
+async function main(): Promise<void> {
+  const server = createServer();
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error(`[${SERVER_NAME}] v${SERVER_VERSION} stdio 서버 시작`);
+}
+
+main().catch((err: unknown) => {
+  console.error("[blog-mcp] 치명적 오류:", err);
+  process.exit(1);
+});
