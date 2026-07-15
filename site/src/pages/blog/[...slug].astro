@@ -1,43 +1,190 @@
 ---
-import { getCollection, render } from "astro:content";
+import { getCollection, render, type CollectionEntry } from "astro:content";
 import Base from "../../layouts/Base.astro";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("blog");
-  return posts.map((post) => ({
+  const posts = (await getCollection("blog")).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+  );
+  return posts.map((post, i) => ({
     params: { slug: post.id },
-    props: { post },
+    props: {
+      post,
+      newer: posts[i - 1] ?? null,
+      older: posts[i + 1] ?? null,
+    },
   }));
 }
 
-const { post } = Astro.props;
+type Entry = CollectionEntry<"blog">;
+interface Props {
+  post: Entry;
+  newer: Entry | null;
+  older: Entry | null;
+}
+
+const { post, newer, older } = Astro.props as Props;
 const { Content } = await render(post);
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const href = (id: string) => `${base}/blog/${id}/`;
+const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
+
+// 대략적인 읽기 시간: 한국어 ~500자/분 기준
+const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
 ---
 
 <Base title={post.data.title} description={post.data.description}>
-  <article>
-    <h1>{post.data.title}</h1>
-    <p class="muted">
-      {post.data.pubDate.toISOString().slice(0, 10)}
-      {post.data.tags.length > 0 && (
-        <span class="tags">
-          {post.data.tags.map((tag) => <span class="pill">{tag}</span>)}
-        </span>
-      )}
-    </p>
+  <article class="prose">
+    <header class="post-header">
+      <h1>{post.data.title}</h1>
+      <div class="meta">
+        <span>{fmtDate(post.data.pubDate)}</span>
+        <span aria-hidden="true">·</span>
+        <span>{readingMin}분 읽기</span>
+        {post.data.tags.length > 0 && (
+          <span class="tags">
+            {post.data.tags.map((t) => <span class="pill">{t}</span>)}
+          </span>
+        )}
+      </div>
+    </header>
     <hr />
     <Content />
   </article>
+
+  {
+    (older || newer) && (
+      <nav class="postnav">
+        {older ? (
+          <a class="postnav-item" href={href(older.id)}>
+            <span class="postnav-label">← 이전 글</span>
+            <span class="postnav-title">{older.data.title}</span>
+          </a>
+        ) : (
+          <span />
+        )}
+        {newer ? (
+          <a class="postnav-item postnav-next" href={href(newer.id)}>
+            <span class="postnav-label">다음 글 →</span>
+            <span class="postnav-title">{newer.data.title}</span>
+          </a>
+        ) : (
+          <span />
+        )}
+      </nav>
+    )
+  }
 </Base>
 
 <style>
+  .post-header h1 {
+    font-size: clamp(1.9rem, 5vw, var(--fs-3xl));
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    color: var(--c-muted);
+    font-size: var(--fs-sm);
+  }
   .tags {
     display: inline-flex;
     gap: var(--space-2);
     margin-left: var(--space-2);
   }
-  article :global(h2),
-  article :global(h3) {
-    scroll-margin-top: var(--space-6);
+
+  /* 본문 프로즈 타이포그래피 */
+  .prose :global(h2) {
+    margin-top: var(--space-8);
+    padding-top: var(--space-2);
+  }
+  .prose :global(h3) {
+    margin-top: var(--space-6);
+  }
+  .prose :global(p),
+  .prose :global(li) {
+    line-height: var(--lh-normal);
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.4em;
+    margin: 0 0 var(--space-4);
+  }
+  .prose :global(li) {
+    margin: var(--space-1) 0;
+  }
+  .prose :global(li)::marker {
+    color: var(--c-accent);
+  }
+  .prose :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose :global(blockquote) {
+    margin: var(--space-5) 0;
+    padding: var(--space-2) var(--space-5);
+    border-left: 3px solid var(--c-accent);
+    background: var(--c-surface);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--c-muted);
+  }
+  .prose :global(img) {
+    border-radius: var(--radius-md);
+    margin: var(--space-5) 0;
+  }
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--space-5) 0;
+    font-size: var(--fs-sm);
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    border: 1px solid var(--c-border);
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+  }
+  .prose :global(th) {
+    background: var(--c-surface);
+  }
+
+  /* 이전/다음 글 네비 */
+  .postnav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-top: var(--space-10);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--c-border);
+  }
+  .postnav-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    background: var(--c-surface);
+    color: var(--c-text);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .postnav-item:hover {
+    border-color: var(--c-accent);
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+  .postnav-next {
+    text-align: right;
+  }
+  .postnav-label {
+    color: var(--c-accent);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+  }
+  .postnav-title {
+    font-weight: 600;
+    font-size: var(--fs-sm);
   }
 </style>
