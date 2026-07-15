@@ -69,6 +69,7 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         lengthLine,
         "   - 심화도 티어(참고):",
         depthTable,
+        "     (분량은 공백 포함 글자 수 기준. 하한에 걸치지 말고 밴드 중간값을 목표로 한다.)",
         "   - 대상: 개발을 배우는 독자",
         "   - 형식: 마크다운. 적절한 소제목과, 가능하면 코드 예제 1개 이상 포함",
         "   - 톤: 군더더기 없이 명확하게. 과장·클리셰 지양",
