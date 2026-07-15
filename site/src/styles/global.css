@@ -226,13 +226,12 @@ img {
 }
 
 /* ── 공통 유틸 ── */
+/* 페이지 폭은 --page-max로 통일(레이아웃에서 페이지별로 주입).
+   헤더/본문/푸터가 항상 같은 폭에 정렬된다. */
 .container {
-  max-width: var(--content-width);
+  max-width: var(--page-max, var(--content-width));
   margin: 0 auto;
   padding: var(--space-6) var(--space-5) var(--space-10);
-}
-.container--wide {
-  max-width: var(--wide-width);
 }
 
 .muted {
