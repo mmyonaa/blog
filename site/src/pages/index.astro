@@ -13,7 +13,7 @@ const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 const [featured, ...rest] = posts;
 ---
 
-<Base title="blog-mcp" description="MCP를 직접 만들어 배우고, 그 과정을 자동으로 기록하는 블로그">
+<Base title="blog-mcp" description="MCP를 직접 만들어 배우고, 그 과정을 자동으로 기록하는 블로그" wide>
   <section class="hero">
     <h1 class="hero-title">blog-mcp</h1>
     <p class="hero-sub">
@@ -26,29 +26,45 @@ const [featured, ...rest] = posts;
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
       <>
-        <a class="featured" href={href(featured.id)}>
+        <article class="featured">
           <span class="featured-label">FEATURED · {fmtDate(featured.data.pubDate)}</span>
-          <h2 class="featured-title">{featured.data.title}</h2>
+          <h2 class="featured-title">
+            <a href={href(featured.id)}>{featured.data.title}</a>
+          </h2>
           {featured.data.description && <p class="featured-desc">{featured.data.description}</p>}
-          <div class="tags">
-            {featured.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
-          </div>
           <span class="read">읽기 →</span>
-        </a>
+          {featured.data.tags.length > 0 && (
+            <div class="tags">
+              {featured.data.tags.map((t) => (
+                <a class="pill" href={tagHref(base, t)}>
+                  {t}
+                </a>
+              ))}
+            </div>
+          )}
+        </article>
 
         {rest.length > 0 && (
           <>
             <h2 class="section-title">최근 글</h2>
             <div class="grid">
               {rest.map((post) => (
-                <a class="card" href={href(post.id)}>
+                <article class="card">
                   <div class="muted card-meta">{fmtDate(post.data.pubDate)}</div>
-                  <h3 class="card-title">{post.data.title}</h3>
+                  <h3 class="card-title">
+                    <a href={href(post.id)}>{post.data.title}</a>
+                  </h3>
                   {post.data.description && <p class="card-desc">{post.data.description}</p>}
-                  <div class="tags">
-                    {post.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
-                  </div>
-                </a>
+                  {post.data.tags.length > 0 && (
+                    <div class="tags">
+                      {post.data.tags.map((t) => (
+                        <a class="pill" href={tagHref(base, t)}>
+                          {t}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </article>
               ))}
             </div>
           </>
@@ -73,20 +89,47 @@ const [featured, ...rest] = posts;
     margin: 0;
   }
 
-  .featured {
-    display: block;
-    padding: var(--space-6);
+  /* stretched-link 패턴: 카드는 div, 제목 링크가 카드 전체를 덮고,
+     태그 링크는 그 위(z-index)로 올려 별도 클릭 가능하게 유지 */
+  .featured,
+  .card {
+    position: relative;
     border: 1px solid var(--c-border);
     border-radius: var(--radius-lg);
-    background: var(--c-accent-soft);
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.15s ease, transform 0.15s ease;
-    color: var(--c-text);
+    transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
   }
-  .featured:hover {
+  .featured:hover,
+  .card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
+  }
+  .featured-title a,
+  .card-title a {
+    color: inherit;
     text-decoration: none;
+  }
+  .featured-title a::after,
+  .card-title a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .tags {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .featured {
+    padding: var(--space-6);
+    background: var(--c-accent-soft);
+    box-shadow: var(--shadow-sm);
+  }
+  .featured:hover {
+    border-color: var(--c-accent);
   }
   .featured-label {
     color: var(--c-accent);
@@ -104,9 +147,9 @@ const [featured, ...rest] = posts;
   }
   .read {
     display: inline-block;
-    margin-top: var(--space-4);
     color: var(--c-accent);
     font-weight: 700;
+    margin-bottom: var(--space-4);
   }
 
   .section-title {
@@ -119,33 +162,22 @@ const [featured, ...rest] = posts;
     gap: var(--space-4);
   }
   .card {
-    display: block;
     padding: var(--space-5);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-lg);
     background: var(--c-surface);
-    color: var(--c-text);
-    transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
   }
   .card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
     border-color: var(--c-accent);
-    text-decoration: none;
   }
   .card-title {
     font-size: var(--fs-lg);
     margin: var(--space-1) 0 var(--space-2);
   }
+  .card-title a:hover {
+    color: var(--c-accent);
+  }
   .card-desc {
     color: var(--c-muted);
     font-size: var(--fs-sm);
     margin: 0 0 var(--space-3);
-  }
-
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
   }
 </style>
