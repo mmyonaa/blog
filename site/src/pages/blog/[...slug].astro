@@ -17,11 +17,27 @@ const { Content } = await render(post);
 <Base title={post.data.title} description={post.data.description}>
   <article>
     <h1>{post.data.title}</h1>
-    <p class="meta">
+    <p class="muted">
       {post.data.pubDate.toISOString().slice(0, 10)}
-      {post.data.tags.length > 0 && <> · {post.data.tags.join(", ")}</>}
+      {post.data.tags.length > 0 && (
+        <span class="tags">
+          {post.data.tags.map((tag) => <span class="pill">{tag}</span>)}
+        </span>
+      )}
     </p>
     <hr />
     <Content />
   </article>
 </Base>
+
+<style>
+  .tags {
+    display: inline-flex;
+    gap: var(--space-2);
+    margin-left: var(--space-2);
+  }
+  article :global(h2),
+  article :global(h3) {
+    scroll-margin-top: var(--space-6);
+  }
+</style>

@@ -1,0 +1,225 @@
+/*
+ * blog-mcp 디자인 시스템 (#21)
+ * 하이브리드: 깔끔한 에디토리얼 + 개성(굵은 디스플레이 제목, 액센트 1색, 태그 pill)
+ *
+ * 토큰은 CSS 변수로 정의하고, 라이트/다크를 함께 지원한다.
+ * 다크 전환은 prefers-color-scheme 기본 + [data-theme] 오버라이드(추후 토글 대비).
+ */
+
+:root {
+  /* ── 색상: 뉴트럴 베이스 ── */
+  --c-bg: #ffffff;
+  --c-surface: #f6f6f8;
+  --c-surface-2: #eeeef1;
+  --c-border: #e4e4e8;
+  --c-text: #18181b;
+  --c-muted: #6b7280;
+
+  /* ── 색상: 액센트 1색 (violet) ── */
+  --c-accent: #6d28d9;
+  --c-accent-hover: #5b21b6;
+  --c-accent-contrast: #ffffff;
+  --c-accent-soft: #f3edff;
+
+  /* ── 코드 ── */
+  --c-code-bg: #0d1117;
+  --c-code-text: #e6edf3;
+
+  /* ── 타이포 ── */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard",
+    Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", ui-monospace,
+    Menlo, Consolas, monospace;
+
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.9375rem;
+  --fs-base: 1.0625rem;
+  --fs-lg: 1.1875rem;
+  --fs-xl: 1.5rem;
+  --fs-2xl: 2rem;
+  --fs-3xl: 2.75rem;
+
+  --lh-tight: 1.2;
+  --lh-snug: 1.4;
+  --lh-normal: 1.75;
+
+  /* ── 간격 ── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+  --space-10: 4.5rem;
+
+  /* ── 반경 ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* ── 그림자 ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+  /* ── 레이아웃 ── */
+  --content-width: 720px;
+  --wide-width: 1080px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg: #0b0b0f;
+    --c-surface: #16161d;
+    --c-surface-2: #1f1f28;
+    --c-border: #2a2a34;
+    --c-text: #ededf0;
+    --c-muted: #a1a1aa;
+
+    --c-accent: #a78bfa;
+    --c-accent-hover: #c4b5fd;
+    --c-accent-contrast: #14101f;
+    --c-accent-soft: #211a33;
+
+    --c-code-bg: #14141b;
+    --c-code-text: #e6edf3;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* 명시적 토글 오버라이드(추후 테마 토글용) */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg: #0b0b0f;
+  --c-surface: #16161d;
+  --c-surface-2: #1f1f28;
+  --c-border: #2a2a34;
+  --c-text: #ededf0;
+  --c-muted: #a1a1aa;
+  --c-accent: #a78bfa;
+  --c-accent-hover: #c4b5fd;
+  --c-accent-contrast: #14101f;
+  --c-accent-soft: #211a33;
+  --c-code-bg: #14141b;
+  --c-code-text: #e6edf3;
+}
+
+/* ── 리셋 & 베이스 ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  margin: 0 0 var(--space-4);
+}
+
+h1 { font-size: var(--fs-3xl); }
+h2 { font-size: var(--fs-xl); margin-top: var(--space-8); }
+h3 { font-size: var(--fs-lg); margin-top: var(--space-6); }
+
+p { margin: 0 0 var(--space-4); }
+
+a {
+  color: var(--c-accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--c-accent-hover);
+  text-decoration: underline;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--c-border);
+  margin: var(--space-6) 0;
+}
+
+/* ── 코드 ── */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--c-surface-2);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+}
+
+pre {
+  background: var(--c-code-bg);
+  color: var(--c-code-text);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── 공통 유틸 ── */
+.container {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-10);
+}
+.container--wide {
+  max-width: var(--wide-width);
+}
+
+.muted {
+  color: var(--c-muted);
+  font-size: var(--fs-sm);
+}
+
+/* 태그 pill */
+.pill {
+  display: inline-block;
+  padding: 0.2em 0.75em;
+  border-radius: var(--radius-pill);
+  background: var(--c-surface-2);
+  color: var(--c-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+a.pill:hover {
+  background: var(--c-accent-soft);
+  color: var(--c-accent);
+  text-decoration: none;
+}
