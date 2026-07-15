@@ -21,7 +21,7 @@ const href = (id: string) => `${base}/blog/${id}/`;
 const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 ---
 
-<Base title={`#${tag} — blog-mcp`} description={`${tag} 태그가 달린 글 목록`}>
+<Base title={`#${tag} — blog`} description={`${tag} 태그가 달린 글 목록`}>
   <p class="muted"><a href={`${base}/tags/`}>← 전체 태그</a></p>
   <h1>#{tag}</h1>
   <p class="muted">{posts.length}개의 글</p>
