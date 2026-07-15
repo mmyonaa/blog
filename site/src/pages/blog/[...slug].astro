@@ -56,7 +56,7 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
 <Base title={post.data.title} description={post.data.description} ogType="article">
   <div class="article-shell">
     <aside class="side side-left" aria-label="글 목록">
-      <p class="side-title">글 목록</p>
+      <a class="side-title side-title-link" href={`${base}/blog/`}>글 목록 →</a>
       <ul class="postlist">
         {
           allPosts.map((p) => (
@@ -206,12 +206,17 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
     line-height: var(--lh-snug);
   }
   .side-title {
+    display: block;
     font-size: var(--fs-xs);
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--c-muted);
     margin: 0 0 var(--space-3);
+  }
+  a.side-title-link:hover {
+    color: var(--c-accent);
+    text-decoration: none;
   }
   .side ul {
     list-style: none;
