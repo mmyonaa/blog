@@ -1,0 +1,43 @@
+---
+import Base from "../../layouts/Base.astro";
+import { getTagCounts, tagHref } from "../../lib/tags.ts";
+
+const tags = await getTagCounts();
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Base title="태그 — blog-mcp" description="태그별로 글을 모아봅니다">
+  <h1>태그</h1>
+  <p class="muted">태그를 눌러 관련 글을 모아볼 수 있습니다.</p>
+  <hr />
+  {
+    tags.length === 0 ? (
+      <p class="muted">아직 태그가 없습니다.</p>
+    ) : (
+      <div class="taglist">
+        {tags.map(({ tag, count }) => (
+          <a class="pill tag-pill" href={tagHref(base, tag)}>
+            #{tag} <span class="count">{count}</span>
+          </a>
+        ))}
+      </div>
+    )
+  }
+</Base>
+
+<style>
+  .taglist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .tag-pill {
+    font-size: var(--fs-sm);
+    padding: 0.35em 0.9em;
+  }
+  .count {
+    color: var(--c-accent);
+    font-weight: 700;
+    margin-left: 0.15em;
+  }
+</style>

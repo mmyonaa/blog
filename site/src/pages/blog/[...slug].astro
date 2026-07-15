@@ -1,6 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from "astro:content";
 import Base from "../../layouts/Base.astro";
+import { tagHref } from "../../lib/tags.ts";
 
 export async function getStaticPaths() {
   const posts = (await getCollection("blog")).sort(
@@ -44,7 +45,7 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
         <span>{readingMin}분 읽기</span>
         {post.data.tags.length > 0 && (
           <span class="tags">
-            {post.data.tags.map((t) => <span class="pill">{t}</span>)}
+            {post.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
           </span>
         )}
       </div>

@@ -2,6 +2,7 @@
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const pathname = Astro.url.pathname.replace(/\/$/, "");
 const isHome = pathname === base || pathname === "";
+const isTags = pathname.startsWith(`${base}/tags`);
 const repo = "https://github.com/mmyonaa/mcp";
 ---
 
@@ -10,6 +11,7 @@ const repo = "https://github.com/mmyonaa/mcp";
     <a href={`${base}/`} class="brand">blog-mcp</a>
     <nav class="nav">
       <a href={`${base}/`} class:list={["pill", { active: isHome }]}>홈</a>
+      <a href={`${base}/tags/`} class:list={["pill", { active: isTags }]}>태그</a>
       <a href={repo} class="pill" target="_blank" rel="noopener">GitHub ↗</a>
     </nav>
   </div>

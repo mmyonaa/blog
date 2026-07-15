@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
+import { tagHref } from "../lib/tags.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -30,7 +31,7 @@ const [featured, ...rest] = posts;
           <h2 class="featured-title">{featured.data.title}</h2>
           {featured.data.description && <p class="featured-desc">{featured.data.description}</p>}
           <div class="tags">
-            {featured.data.tags.map((t) => <span class="pill">{t}</span>)}
+            {featured.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
           </div>
           <span class="read">읽기 →</span>
         </a>
@@ -45,7 +46,7 @@ const [featured, ...rest] = posts;
                   <h3 class="card-title">{post.data.title}</h3>
                   {post.data.description && <p class="card-desc">{post.data.description}</p>}
                   <div class="tags">
-                    {post.data.tags.map((t) => <span class="pill">{t}</span>)}
+                    {post.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
                   </div>
                 </a>
               ))}

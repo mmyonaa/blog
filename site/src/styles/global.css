@@ -133,6 +133,9 @@ body {
   line-height: var(--lh-normal);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* 한국어: 단어(어절) 중간에서 줄바꿈 금지. 긴 URL 등만 강제 분리. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 main {
