@@ -109,6 +109,14 @@ const ogImage = Astro.site
             : "light";
         };
 
+        // View Transitions로 문서를 교체하면 <html>의 data-theme가 사라지므로
+        // 스왑 직후 localStorage 값으로 다시 적용한다(깜빡임 방지: 페인트 전).
+        document.addEventListener("astro:after-swap", () => {
+          try {
+            applyTheme(localStorage.getItem("theme"));
+          } catch {}
+        });
+
         document.addEventListener("click", async (e) => {
           const target = e.target as HTMLElement;
           if (target.closest("[data-theme-toggle]")) {
