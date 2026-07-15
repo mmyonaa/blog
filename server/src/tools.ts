@@ -42,6 +42,7 @@ interface Frontmatter {
   title: string;
   pubDate: string;
   tags: string[];
+  topicId?: string | undefined;
   description?: string | undefined;
 }
 
@@ -53,6 +54,7 @@ function buildFrontmatter(fm: Frontmatter): string {
     `pubDate: ${fm.pubDate}`,
     `tags: [${fm.tags.map(yamlString).join(", ")}]`,
   ];
+  if (fm.topicId) lines.push(`topicId: ${yamlString(fm.topicId)}`);
   if (fm.description) lines.push(`description: ${yamlString(fm.description)}`);
   lines.push("---");
   return lines.join("\n");
@@ -81,10 +83,16 @@ export function registerPublishPost(server: McpServer): void {
           .describe(
             "URL 슬러그. 공유 시 깨지지 않도록 짧은 영문(kebab-case) 권장. 예: 'mcp-3-primitives'. 미지정 시 제목에서 생성(한글 그대로).",
           ),
+        topicId: z
+          .string()
+          .optional()
+          .describe(
+            "이 글이 어떤 시드 주제(suggest_topic의 id)를 다뤘는지. 지정하면 그 주제는 다시 제안되지 않는다. 시드 밖 주제면 생략.",
+          ),
         description: z.string().optional().describe("요약(메타 설명)"),
       },
     },
-    async ({ title, body, tags, date, slug, description }) => {
+    async ({ title, body, tags, date, slug, topicId, description }) => {
       // 본문을 가볍게 검증한다. 문제가 있으면 파일을 쓰지 않고 이유를 돌려준다.
       const problems = validateBody(body);
       if (problems.length > 0) {
@@ -118,7 +126,7 @@ export function registerPublishPost(server: McpServer): void {
         };
       }
 
-      const frontmatter = buildFrontmatter({ title, pubDate, tags, description });
+      const frontmatter = buildFrontmatter({ title, pubDate, tags, topicId, description });
       await writeFile(filePath, `${frontmatter}\n\n${body.trimEnd()}\n`, "utf8");
 
       return {
@@ -155,8 +163,9 @@ export function registerSuggestTopic(server: McpServer): void {
     },
     async ({ count }) => {
       const posts = await listPosts();
-      const usedSlugs = new Set(posts.map((p) => p.topicSlug));
-      const available = SEED_TOPICS.filter((t) => !usedSlugs.has(slugify(t.title)));
+      // 발행 글에 기록된 topicId로 중복을 판정한다(제목·슬러그가 바뀌어도 안정적).
+      const usedIds = new Set(posts.map((p) => p.topicId).filter((id): id is string => !!id));
+      const available = SEED_TOPICS.filter((t) => !usedIds.has(t.id));
 
       const recent = posts.slice(0, 5);
       const recentText = recent.length
@@ -176,14 +185,14 @@ export function registerSuggestTopic(server: McpServer): void {
 
       const suggestions = available
         .slice(0, count)
-        .map((t, i) => `${i + 1}. ${t.title}  [${t.tags.join(", ")}]`)
+        .map((t, i) => `${i + 1}. [id: ${t.id}] ${t.title}  [${t.tags.join(", ")}]`)
         .join("\n");
 
       return {
         content: [
           {
             type: "text" as const,
-            text: `안 겹치는 후보 주제 (${available.length}개 중 ${Math.min(count, available.length)}개):\n${suggestions}\n\n최근 발행 글(중복 회피 참고):\n${recentText}`,
+            text: `안 겹치는 후보 주제 (${available.length}개 중 ${Math.min(count, available.length)}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로 넘기면 다음부터 중복 제안되지 않습니다.\n\n최근 발행 글(참고):\n${recentText}`,
           },
         ],
       };

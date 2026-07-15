@@ -6,8 +6,10 @@ import { getContentDir } from "./config.js";
 export interface PostSummary {
   /** 파일명에서 확장자를 뺀 값 (`2026-07-14-첫-글`). */
   slug: string;
-  /** 날짜 접두어를 뗀 주제 슬러그 (`첫-글`). 중복 판정에 사용. */
+  /** 날짜 접두어를 뗀 주제 슬러그 (`첫-글`). */
   topicSlug: string;
+  /** 시드 주제 식별자(SEED_TOPICS[].id). 중복 판정의 안정적 키. 없을 수 있음. */
+  topicId?: string | undefined;
   title: string;
   pubDate: string;
   tags: string[];
@@ -34,6 +36,7 @@ function toSummary(fileName: string, raw: string): Post {
   return {
     slug,
     topicSlug: slug.replace(DATE_PREFIX, ""),
+    topicId: typeof data.topicId === "string" ? data.topicId : undefined,
     title: typeof data.title === "string" ? data.title : slug,
     pubDate: normalizeDate(data.pubDate, slug.slice(0, 10)),
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],

@@ -54,8 +54,8 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         .map((k) => `     · ${DEPTH_BANDS[k].label}: ${DEPTH_BANDS[k].range} (${DEPTH_BANDS[k].hint})`)
         .join("\n");
       const topicLine = topic && topic.trim() !== ""
-        ? `4. 주제는 "${topic}"으로 한다.`
-        : `4. \`suggest_topic\` 도구를 호출해 안 겹치는 후보를 받고, 그중 하나를 고른다.`;
+        ? `4. 주제는 "${topic}"으로 한다. (시드 밖 주제이므로 topicId는 없다)`
+        : `4. \`suggest_topic\` 도구를 호출해 안 겹치는 후보를 받고, 그중 하나를 고른다. 각 후보의 \`[id: ...]\`를 기억해 둔다.`;
 
       const text = [
         "당신은 이 블로그의 정기 필자다. 아래 순서로 오늘의 글 한 편을 작성하고 발행하라.",
@@ -73,6 +73,7 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         "   - 형식: 마크다운. 적절한 소제목과, 가능하면 코드 예제 1개 이상 포함",
         "   - 톤: 군더더기 없이 명확하게. 과장·클리셰 지양",
         "6. `publish_post` 도구로 발행한다. `title`, `body`(프론트매터 제외한 본문), `tags`, 필요시 `description`을 채운다. `date`는 생략하면 오늘로 설정된다.",
+        "   - suggest_topic 후보에서 고른 주제라면 그 후보의 `id`를 `topicId`로 꼭 넘긴다(중복 재제안 방지). 시드 밖 주제면 생략한다.",
         "7. 발행 결과(파일명)를 사람에게 한 줄로 보고한다.",
       ].join("\n");
 
