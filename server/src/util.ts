@@ -16,6 +16,11 @@ export function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** 현재 시각을 초까지 포함한 ISO 8601(UTC). 예: `2026-07-15T05:03:22Z` */
+export function nowIso(): string {
+  return `${new Date().toISOString().slice(0, 19)}Z`;
+}
+
 /** YAML 프론트매터에 안전하게 넣기 위한 큰따옴표 문자열. */
 export function yamlString(value: string): string {
   return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;

@@ -5,7 +5,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getContentDir } from "./config.js";
 import { listPosts } from "./posts.js";
 import { SEED_TOPICS } from "./topics.js";
-import { slugify, today, yamlString } from "./util.js";
+import { nowIso, slugify, yamlString } from "./util.js";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -45,14 +45,17 @@ export function registerPublishPost(server: McpServer): void {
           .string()
           .regex(DATE_RE, "YYYY-MM-DD 형식")
           .optional()
-          .describe("발행일 YYYY-MM-DD (기본: 오늘 UTC)"),
+          .describe("발행일 YYYY-MM-DD (기본: 현재). 시각은 자동으로 현재 시:분:초가 기록됨"),
         slug: z.string().optional().describe("URL 슬러그 (기본: 제목에서 생성)"),
         description: z.string().optional().describe("요약(메타 설명)"),
       },
     },
     async ({ title, body, tags, date, slug, description }) => {
-      const pubDate = date ?? today();
-      const fileName = `${pubDate}-${slugify(slug ?? title)}.md`;
+      // pubDate는 초까지 기록. date 지정 시 그 날짜 + 현재 시각, 미지정 시 현재 시각.
+      const iso = nowIso();
+      const pubDate = date ? `${date}T${iso.slice(11)}` : iso;
+      const datePart = pubDate.slice(0, 10);
+      const fileName = `${datePart}-${slugify(slug ?? title)}.md`;
       const dir = getContentDir();
       const filePath = join(dir, fileName);
 

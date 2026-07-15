@@ -29,7 +29,13 @@ const { Content } = await render(post);
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (id: string) => `${base}/blog/${id}/`;
-const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
+
+// 발행 시각을 KST로 표기. 시:분:초가 있는 글만 시각까지, 없으면 날짜만.
+function fmtStamp(d: Date): string {
+  const hasTime = d.getUTCHours() || d.getUTCMinutes() || d.getUTCSeconds();
+  const kst = new Date(d.getTime() + 9 * 3600 * 1000).toISOString();
+  return hasTime ? `${kst.slice(0, 10)} ${kst.slice(11, 19)} KST` : kst.slice(0, 10);
+}
 
 // 대략적인 읽기 시간: 한국어 ~500자/분 기준
 const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
@@ -40,7 +46,7 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
     <header class="post-header">
       <h1>{post.data.title}</h1>
       <div class="meta">
-        <span>{fmtDate(post.data.pubDate)}</span>
+        <span>{fmtStamp(post.data.pubDate)}</span>
         <span aria-hidden="true">·</span>
         <span>{readingMin}분 읽기</span>
         {post.data.tags.length > 0 && (
