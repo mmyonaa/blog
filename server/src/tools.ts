@@ -177,7 +177,7 @@ export function registerSuggestTopic(server: McpServer): void {
           content: [
             {
               type: "text" as const,
-              text: `시드 풀의 모든 주제(${SEED_TOPICS.length}개)가 이미 발행되었습니다. topics.ts에 새 주제를 추가하세요.\n\n최근 발행:\n${recentText}`,
+              text: `시드 풀의 모든 주제(${SEED_TOPICS.length}개)가 이미 발행되었습니다.\n\n두 가지 선택지가 있습니다:\n1. 시드 밖 **자유 주제**로 바로 씁니다 — publish_post에 topicId 없이 발행하면 됩니다.\n2. 앞으로도 겹침 회피를 받고 싶은 주제라면 topics.ts에 새 시드로 추가하세요.\n\n최근 발행:\n${recentText}`,
             },
           ],
         };
@@ -220,7 +220,7 @@ export function registerSuggestTopic(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: `안 겹치는 후보 주제 (영역 섞음, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로 넘기면 다음부터 중복 제안되지 않습니다.\n\n최근 발행 글(참고):\n${recentText}`,
+            text: `안 겹치는 후보 주제 (영역 섞음, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로 넘기면 다음부터 중복 제안되지 않습니다.\n이 후보가 마음에 안 들면 시드 밖 자유 주제로 써도 됩니다(topicId 생략).\n\n최근 발행 글(참고):\n${recentText}`,
           },
         ],
       };
