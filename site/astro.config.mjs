@@ -5,4 +5,13 @@ import { defineConfig } from "astro/config";
 export default defineConfig({
   site: "https://mmyonaa.github.io",
   base: "/mcp",
+  markdown: {
+    // 코드블록 라이트/다크 이중 테마(#25). 전환 CSS는 global.css의 .astro-code 규칙.
+    shikiConfig: {
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
+    },
+  },
 });
