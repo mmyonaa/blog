@@ -2,6 +2,7 @@
 title: "MCP란 무엇인가 — LLM에게 도구를 쥐여주는 프로토콜"
 pubDate: 2026-07-15T03:43:32Z
 tags: ["mcp", "개념"]
+topicId: "what-is-mcp"
 description: "LLM은 혼자 외부 세계를 만지지 못한다. MCP가 그 연결을 어떻게 표준화하는지, 클라이언트·서버 구조와 도구 정의를 통해 살펴본다."
 ---
 

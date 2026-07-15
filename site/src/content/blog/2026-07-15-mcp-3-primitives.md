@@ -2,6 +2,7 @@
 title: "MCP의 3대 primitive — Tools, Resources, Prompts"
 pubDate: 2026-07-15T03:48:33Z
 tags: ["mcp", "개념"]
+topicId: "three-primitives"
 description: "MCP 서버가 LLM에게 노출하는 세 가지 기본 요소 Tools·Resources·Prompts를 각각 언제 쓰는지 구분한다."
 ---
 

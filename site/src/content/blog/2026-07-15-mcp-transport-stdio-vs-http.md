@@ -2,6 +2,7 @@
 title: "stdio vs HTTP — MCP transport 고르기"
 pubDate: 2026-07-15T08:02:23Z
 tags: ["mcp", "transport"]
+topicId: "transport-stdio-vs-http"
 description: "MCP 클라이언트와 서버는 stdio 또는 HTTP로 연결된다. 두 transport의 동작 방식과 언제 무엇을 골라야 하는지 정리한다."
 ---
 
