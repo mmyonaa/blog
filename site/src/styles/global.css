@@ -66,6 +66,8 @@
   /* ── 레이아웃 ── */
   --content-width: 720px;
   --wide-width: 1080px;
+  /* 사이드바 포함 3단 셸의 바깥 폭(글목록 + 본문720 + 목차) */
+  --shell-width: 1240px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -233,6 +235,21 @@ img {
   max-width: var(--page-max, var(--content-width));
   margin: 0 auto;
   padding: var(--space-6) var(--space-5);
+}
+
+/*
+ * 사이트 프레임 폭.
+ * 넓은 화면: 사이드바를 포함한 셸 폭(--shell-width).
+ * 좁은 화면(≤980): 사이드바를 접고 읽기 폭(720)으로 통일 → 헤더·본문·푸터 정렬 일치.
+ * 헤더/컨테이너/푸터가 모두 --page-max를 따르므로 한 곳에서 제어된다.
+ */
+body.shell {
+  --page-max: var(--shell-width);
+}
+@media (max-width: 980px) {
+  body.shell {
+    --page-max: var(--content-width);
+  }
 }
 
 .muted {

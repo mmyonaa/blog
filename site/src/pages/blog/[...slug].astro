@@ -25,7 +25,15 @@ interface Props {
 }
 
 const { post, newer, older } = Astro.props as Props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+
+// 좌측 사이드바용 전체 글 목록(최신순)
+const allPosts = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+// 우측 목차: 본문의 h2/h3만 사용 (h1은 제목이라 제외)
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (id: string) => `${base}/blog/${id}/`;
@@ -36,64 +44,239 @@ function fmtStamp(d: Date): string {
   const kst = new Date(d.getTime() + 9 * 3600 * 1000).toISOString();
   return hasTime ? `${kst.slice(0, 10)} ${kst.slice(11, 19)} KST` : kst.slice(0, 10);
 }
+const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 
 // 대략적인 읽기 시간: 한국어 ~500자/분 기준
 const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
 ---
 
 <Base title={post.data.title} description={post.data.description} ogType="article">
-  <div class="reading">
-  <article class="prose">
-    <header class="post-header">
-      <h1>{post.data.title}</h1>
-      <div class="meta">
-        <span>{fmtStamp(post.data.pubDate)}</span>
-        <span aria-hidden="true">·</span>
-        <span>{readingMin}분 읽기</span>
-        {post.data.tags.length > 0 && (
-          <span class="tags">
-            {post.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
-          </span>
-        )}
-      </div>
-    </header>
-    <hr />
-    <Content />
-  </article>
+  <div class="article-shell">
+    <aside class="side side-left" aria-label="글 목록">
+      <p class="side-title">글 목록</p>
+      <ul class="postlist">
+        {
+          allPosts.map((p) => (
+            <li>
+              <a
+                href={href(p.id)}
+                class:list={["postlist-link", { current: p.id === post.id }]}
+                aria-current={p.id === post.id ? "page" : undefined}
+              >
+                <span class="postlist-date">{fmtDate(p.data.pubDate)}</span>
+                <span class="postlist-title">{p.data.title}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </aside>
 
-  {
-    (older || newer) && (
-      <nav class="postnav">
-        {older ? (
-          <a class="postnav-item" href={href(older.id)}>
-            <span class="postnav-label">← 이전 글</span>
-            <span class="postnav-title">{older.data.title}</span>
-          </a>
-        ) : (
-          <span />
-        )}
-        {newer ? (
-          <a class="postnav-item postnav-next" href={href(newer.id)}>
-            <span class="postnav-label">다음 글 →</span>
-            <span class="postnav-title">{newer.data.title}</span>
-          </a>
-        ) : (
-          <span />
-        )}
-      </nav>
-    )
-  }
+    <div class="reading">
+      <article class="prose">
+        <header class="post-header">
+          <h1>{post.data.title}</h1>
+          <div class="meta">
+            <span>{fmtStamp(post.data.pubDate)}</span>
+            <span aria-hidden="true">·</span>
+            <span>{readingMin}분 읽기</span>
+            {post.data.tags.length > 0 && (
+              <span class="tags">
+                {post.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
+              </span>
+            )}
+          </div>
+        </header>
+        <hr />
+        <Content />
+      </article>
+
+      {
+        (older || newer) && (
+          <nav class="postnav">
+            {older ? (
+              <a class="postnav-item" href={href(older.id)}>
+                <span class="postnav-label">← 이전 글</span>
+                <span class="postnav-title">{older.data.title}</span>
+              </a>
+            ) : (
+              <span />
+            )}
+            {newer ? (
+              <a class="postnav-item postnav-next" href={href(newer.id)}>
+                <span class="postnav-label">다음 글 →</span>
+                <span class="postnav-title">{newer.data.title}</span>
+              </a>
+            ) : (
+              <span />
+            )}
+          </nav>
+        )
+      }
+    </div>
+
+    {
+      toc.length > 0 && (
+        <aside class="side side-toc" aria-label="목차">
+          <p class="side-title">목차</p>
+          <nav class="toc">
+            <ul>
+              {toc.map((h) => (
+                <li class:list={[`toc-h${h.depth}`]}>
+                  <a href={`#${h.slug}`} data-slug={h.slug}>
+                    {h.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
+      )
+    }
   </div>
 </Base>
 
+<script>
+  // 스크롤 스파이: 현재 화면 상단에 있는 섹션을 목차에서 강조
+  const links = Array.from(
+    document.querySelectorAll<HTMLAnchorElement>(".toc a[data-slug]"),
+  );
+  if (links.length) {
+    const bySlug = new Map(links.map((a) => [a.dataset.slug, a]));
+    const headings = document.querySelectorAll<HTMLElement>(
+      ".prose h2[id], .prose h3[id]",
+    );
+    let current: HTMLAnchorElement | null = null;
+    const setActive = (el: HTMLAnchorElement | undefined) => {
+      if (!el || el === current) return;
+      current?.classList.remove("active");
+      el.classList.add("active");
+      current = el;
+    };
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setActive(bySlug.get(e.target.id));
+        }
+      },
+      { rootMargin: "0px 0px -75% 0px", threshold: 0 },
+    );
+    headings.forEach((h) => obs.observe(h));
+  }
+</script>
+
 <style>
-  /* 본문은 읽기 좋은 폭으로 중앙 정렬 → 좌우 여백이 대칭 */
+  /*
+   * 3단 셸: [글 목록] [본문 720] [목차]
+   * 본문은 항상 읽기 폭(720)으로 고정, 사이드바가 남는 폭을 채워 헤더와 정렬.
+   * 넓은 화면=3단 → 태블릿=본문+목차 2단 → 좁은 화면=본문 단독(720 중앙).
+   */
+  .article-shell {
+    display: grid;
+    grid-template-columns:
+      minmax(180px, 1fr)
+      minmax(0, var(--content-width))
+      minmax(180px, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+
   .reading {
+    min-width: 0;
     max-width: var(--content-width);
     margin: 0 auto;
+    width: 100%;
   }
+
+  /* ── 사이드바 공통 ── */
+  .side {
+    position: sticky;
+    top: var(--space-5);
+    align-self: start;
+    max-height: calc(100vh - var(--space-8));
+    overflow-y: auto;
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+  }
+  .side-title {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    margin: 0 0 var(--space-3);
+  }
+  .side ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ── 좌: 글 목록 ── */
+  .postlist li {
+    margin-bottom: var(--space-1);
+  }
+  .postlist-link {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--c-muted);
+    border-left: 2px solid transparent;
+  }
+  .postlist-link:hover {
+    background: var(--c-surface);
+    color: var(--c-text);
+    text-decoration: none;
+  }
+  .postlist-link.current {
+    background: var(--c-accent-soft);
+    border-left-color: var(--c-accent);
+    color: var(--c-text);
+  }
+  .postlist-date {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    margin-bottom: 0.1em;
+  }
+  .postlist-title {
+    display: block;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+  }
+  .postlist-link.current .postlist-title {
+    color: var(--c-accent);
+  }
+
+  /* ── 우: 목차 ── */
+  .toc a {
+    display: block;
+    padding: 0.25em var(--space-3);
+    color: var(--c-muted);
+    border-left: 2px solid var(--c-border);
+    text-decoration: none;
+  }
+  .toc a:hover {
+    color: var(--c-text);
+  }
+  .toc a.active {
+    color: var(--c-accent);
+    border-left-color: var(--c-accent);
+    font-weight: 600;
+  }
+  .toc-h3 a {
+    padding-left: var(--space-5);
+    font-size: var(--fs-xs);
+  }
+
+  /* ── 본문 프로즈 타이포그래피 ── */
   .post-header h1 {
     font-size: clamp(1.9rem, 5vw, var(--fs-3xl));
+  }
+  /* 앵커 점프 시 sticky 헤더에 가리지 않도록 여유 */
+  .prose :global(h2),
+  .prose :global(h3) {
+    scroll-margin-top: var(--space-5);
   }
   .meta {
     display: flex;
@@ -109,7 +292,6 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
     margin-left: var(--space-2);
   }
 
-  /* 본문 프로즈 타이포그래피 */
   .prose :global(h2) {
     margin-top: var(--space-8);
     padding-top: var(--space-2);
@@ -200,6 +382,27 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
   .postnav-title {
     font-weight: 600;
     font-size: var(--fs-sm);
+  }
+
+  /* ── 반응형 축소 ── */
+  /* 태블릿: 좌측 글 목록을 접고 [본문 | 목차] 2단 */
+  @media (max-width: 1199px) {
+    .article-shell {
+      grid-template-columns: minmax(0, var(--content-width)) minmax(180px, 1fr);
+    }
+    .side-left {
+      display: none;
+    }
+  }
+  /* 좁은 화면: 사이드바 모두 접고 본문 단독(720 중앙). 프레임도 720으로 통일됨. */
+  @media (max-width: 980px) {
+    .article-shell {
+      grid-template-columns: minmax(0, var(--content-width));
+      justify-content: center;
+    }
+    .side {
+      display: none;
+    }
   }
 
   @media (max-width: 560px) {

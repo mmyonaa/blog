@@ -8,6 +8,8 @@ export default defineConfig({
   site: "https://mmyonaa.github.io",
   base: "/mcp",
   integrations: [sitemap()],
+  // 개발 중 하단에 뜨는 Astro 개발 툴바 비활성화(배포본엔 원래 없음)
+  devToolbar: { enabled: false },
   markdown: {
     // 한글 등 CJK 문자에 붙은 **강조**/*이탤릭*이 깨지지 않게(CommonMark flanking 완화)
     remarkPlugins: [remarkCjkFriendly],
