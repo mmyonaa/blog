@@ -152,7 +152,7 @@ h4 {
   margin: 0 0 var(--space-4);
 }
 
-h1 { font-size: var(--fs-3xl); }
+h1 { font-size: clamp(2rem, 6vw, var(--fs-3xl)); }
 h2 { font-size: var(--fs-xl); margin-top: var(--space-8); }
 h3 { font-size: var(--fs-lg); margin-top: var(--space-6); }
 
@@ -255,4 +255,15 @@ a.pill:hover {
   background: var(--c-accent-soft);
   color: var(--c-accent);
   text-decoration: none;
+}
+
+/* ── 반응형 (#27) ── */
+@media (max-width: 640px) {
+  :root {
+    --fs-base: 1rem;
+    --fs-2xl: 1.75rem;
+  }
+  .container {
+    padding: var(--space-5) var(--space-4) var(--space-8);
+  }
 }

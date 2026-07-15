@@ -188,4 +188,13 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
     font-weight: 600;
     font-size: var(--fs-sm);
   }
+
+  @media (max-width: 560px) {
+    .postnav {
+      grid-template-columns: 1fr;
+    }
+    .postnav-next {
+      text-align: left;
+    }
+  }
 </style>
