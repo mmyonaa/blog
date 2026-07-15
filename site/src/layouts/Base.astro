@@ -7,10 +7,8 @@ interface Props {
   title: string;
   description?: string;
   ogType?: "website" | "article";
-  wide?: boolean;
 }
-const { title, description, ogType = "website", wide = false } = Astro.props;
-const pageMax = wide ? "var(--wide-width)" : "var(--content-width)";
+const { title, description, ogType = "website" } = Astro.props;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const siteName = "blog";
@@ -48,7 +46,7 @@ const canonical = Astro.site
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={desc} />
   </head>
-  <body style={`--page-max: ${pageMax};`}>
+  <body style="--page-max: var(--wide-width);">
     <Header />
     <main>
       <div class="container">

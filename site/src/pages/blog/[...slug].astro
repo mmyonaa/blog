@@ -42,6 +42,7 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
 ---
 
 <Base title={post.data.title} description={post.data.description} ogType="article">
+  <div class="reading">
   <article class="prose">
     <header class="post-header">
       <h1>{post.data.title}</h1>
@@ -82,9 +83,15 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
       </nav>
     )
   }
+  </div>
 </Base>
 
 <style>
+  /* 프레임(헤더/컨테이너)은 넓게 유지하되, 본문은 읽기 좋은 폭으로 왼쪽 정렬.
+     → 모든 페이지의 왼쪽 여백이 일정하게 유지됨 */
+  .reading {
+    max-width: var(--content-width);
+  }
   .post-header h1 {
     font-size: clamp(1.9rem, 5vw, var(--fs-3xl));
   }
