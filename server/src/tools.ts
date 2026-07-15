@@ -75,7 +75,12 @@ export function registerPublishPost(server: McpServer): void {
           .regex(DATE_RE, "YYYY-MM-DD 형식")
           .optional()
           .describe("발행일 YYYY-MM-DD (기본: 현재). 시각은 자동으로 현재 시:분:초가 기록됨"),
-        slug: z.string().optional().describe("URL 슬러그 (기본: 제목에서 생성)"),
+        slug: z
+          .string()
+          .optional()
+          .describe(
+            "URL 슬러그. 공유 시 깨지지 않도록 짧은 영문(kebab-case) 권장. 예: 'mcp-3-primitives'. 미지정 시 제목에서 생성(한글 그대로).",
+          ),
         description: z.string().optional().describe("요약(메타 설명)"),
       },
     },
