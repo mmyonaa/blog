@@ -1,0 +1,36 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const href = (id: string) => `${base}/blog/${id}/`;
+---
+
+<Base title="blog-mcp" description="MCP를 배우며 자동 발행하는 블로그">
+  <h1>blog-mcp</h1>
+  <p class="meta">MCP를 직접 만들어 배우고, 그 과정을 자동으로 기록하는 블로그.</p>
+  <hr />
+  {
+    posts.length === 0 ? (
+      <p>아직 발행된 글이 없습니다.</p>
+    ) : (
+      <ul style="list-style: none; padding: 0;">
+        {posts.map((post) => (
+          <li style="margin-bottom: 1.5rem;">
+            <a href={href(post.id)} style="font-size: 1.15rem; font-weight: 600;">
+              {post.data.title}
+            </a>
+            <div class="meta">
+              {post.data.pubDate.toISOString().slice(0, 10)}
+              {post.data.tags.length > 0 && <> · {post.data.tags.join(", ")}</>}
+            </div>
+            {post.data.description && <p style="margin: 0.3rem 0 0;">{post.data.description}</p>}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Base>

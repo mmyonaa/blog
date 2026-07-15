@@ -10,6 +10,9 @@ dist/
 .env.*
 .pnpm-store/
 
+# Astro
+.astro/
+
 # Claude Code 로컬 설정 (개인용)
 .claude/settings.local.json
 

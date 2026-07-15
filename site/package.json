@@ -1,0 +1,15 @@
+{
+  "name": "@blog-mcp/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "blog-mcp 정적 블로그 (Astro). site/src/content/blog 의 마크다운을 렌더링",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5"
+  }
+}

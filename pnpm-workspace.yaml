@@ -1,5 +1,5 @@
 packages:
   - "server"
+  - "site"
   # Phase 3에서 추가 예정:
   # - "orchestrator"
-  # - "site"
