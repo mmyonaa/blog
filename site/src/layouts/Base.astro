@@ -50,8 +50,10 @@ const canonical = Astro.site
   </head>
   <body style={`--page-max: ${pageMax};`}>
     <Header />
-    <main class="container" style="padding-bottom: var(--space-6);">
-      <slot />
+    <main>
+      <div class="container">
+        <slot />
+      </div>
     </main>
     <Footer />
   </body>
