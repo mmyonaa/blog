@@ -17,6 +17,10 @@ const desc = description ?? "MCP를 배우며 자동 발행하는 블로그";
 const canonical = Astro.site
   ? new URL(Astro.url.pathname, Astro.site).href
   : Astro.url.pathname;
+// OG 이미지(절대 URL). 링크 공유 시 미리보기 썸네일.
+const ogImage = Astro.site
+  ? new URL(`${base}/og.png`, Astro.site).href
+  : `${base}/og.png`;
 ---
 
 <!doctype html>
@@ -24,8 +28,20 @@ const canonical = Astro.site
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* 테마: 렌더 전에 즉시 적용해 깜빡임(FOUC) 방지 */}
+    <script is:inline>
+      (() => {
+        try {
+          const t = localStorage.getItem("theme");
+          if (t === "light" || t === "dark")
+            document.documentElement.dataset.theme = t;
+        } catch {}
+      })();
+    </script>
     <title>{title}</title>
     <meta name="description" content={desc} />
+    <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={`${base}/apple-touch-icon.png`} />
     <link rel="canonical" href={canonical} />
     <link
       rel="alternate"
@@ -42,21 +58,120 @@ const canonical = Astro.site
     <meta property="og:site_name" content={siteName} />
     <meta property="og:locale" content="ko_KR" />
 
+    <meta property="og:image" content={ogImage} />
+
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={desc} />
+    <meta name="twitter:image" content={ogImage} />
 
     <!-- 페이지 전환 애니메이션(다른 글로 이동 시 매끄럽게) -->
     <ClientRouter />
   </head>
   <body class="shell">
+    <a class="skip-link" href="#main">본문 바로가기</a>
     <Header />
-    <main>
+    <main id="main">
       <div class="container">
         <slot />
       </div>
     </main>
     <Footer />
+
+    <button type="button" class="to-top" aria-label="맨 위로" data-to-top>
+      <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+        <path
+          d="M10 15V6M6 9l4-4 4 4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+    </button>
+
+    <script>
+      // 테마 토글 + 맨 위로 버튼. 문서 위임으로 한 번만 등록(View Transitions 유지).
+      if (!(window as any).__uiBound) {
+        (window as any).__uiBound = true;
+
+        const applyTheme = (t: string | null) => {
+          const root = document.documentElement;
+          if (t === "light" || t === "dark") root.dataset.theme = t;
+          else delete root.dataset.theme;
+        };
+        const currentTheme = () => {
+          const set = document.documentElement.dataset.theme;
+          if (set) return set;
+          return window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        };
+
+        document.addEventListener("click", async (e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest("[data-theme-toggle]")) {
+            const next = currentTheme() === "dark" ? "light" : "dark";
+            applyTheme(next);
+            try {
+              localStorage.setItem("theme", next);
+            } catch {}
+          } else if (target.closest("[data-to-top]")) {
+            const reduce = window.matchMedia(
+              "(prefers-reduced-motion: reduce)",
+            ).matches;
+            window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+          } else {
+            const copyBtn = target.closest<HTMLElement>("[data-copy-code]");
+            if (copyBtn) {
+              const pre = copyBtn.closest("pre");
+              const code = pre?.querySelector("code")?.textContent ?? "";
+              try {
+                await navigator.clipboard.writeText(code);
+              } catch {
+                /* 실패 무시 */
+              }
+              const label = copyBtn.querySelector(".code-copy-label");
+              if (label) {
+                const prev = label.textContent;
+                label.textContent = "복사됨!";
+                copyBtn.classList.add("copied");
+                window.setTimeout(() => {
+                  label.textContent = prev;
+                  copyBtn.classList.remove("copied");
+                }, 1400);
+              }
+            }
+          }
+        });
+
+        // 코드블록마다 복사 버튼 주입(중복 방지)
+        const initCodeCopy = () => {
+          document.querySelectorAll("pre").forEach((pre) => {
+            if (pre.querySelector(".code-copy")) return;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "code-copy";
+            btn.setAttribute("data-copy-code", "");
+            btn.setAttribute("aria-label", "코드 복사");
+            btn.innerHTML = '<span class="code-copy-label">복사</span>';
+            pre.appendChild(btn);
+          });
+        };
+        document.addEventListener("astro:page-load", initCodeCopy);
+
+        // 맨 위로 버튼: 일정 스크롤 이상에서만 표시
+        const toTop = () =>
+          document.querySelector<HTMLElement>("[data-to-top]");
+        const onScroll = () => {
+          const btn = toTop();
+          if (btn) btn.classList.toggle("show", window.scrollY > 600);
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        document.addEventListener("astro:page-load", onScroll);
+        onScroll();
+      }
+    </script>
   </body>
 </html>

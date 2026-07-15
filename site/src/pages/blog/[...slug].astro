@@ -48,6 +48,26 @@ function excerpt(e: Entry): string {
       : (e.body ?? "").replace(/[`#>*_~\[\]()|-]/g, " ").replace(/\s+/g, " ").trim();
   return raw.slice(0, 100);
 }
+
+// 검색엔진용 구조화 데이터(BlogPosting)
+const pageUrl = Astro.site
+  ? new URL(`${base}/blog/${post.id}/`, Astro.site).href
+  : `${base}/blog/${post.id}/`;
+const ogImg = Astro.site ? new URL(`${base}/og.png`, Astro.site).href : `${base}/og.png`;
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.data.title,
+  description: post.data.description ?? "",
+  datePublished: post.data.pubDate.toISOString(),
+  dateModified: post.data.pubDate.toISOString(),
+  keywords: post.data.tags,
+  url: pageUrl,
+  image: ogImg,
+  mainEntityOfPage: pageUrl,
+  author: { "@type": "Person", name: "blog" },
+  publisher: { "@type": "Organization", name: "blog", logo: { "@type": "ImageObject", url: ogImg } },
+};
 ---
 
 <Base title={post.data.title} description={post.data.description} ogType="article">
@@ -95,6 +115,22 @@ function excerpt(e: Entry): string {
           </div>
         </header>
         <hr />
+        {
+          toc.length > 0 && (
+            <details class="mobile-toc">
+              <summary>목차</summary>
+              <nav class="toc">
+                <ul>
+                  {toc.map((h) => (
+                    <li class:list={[`toc-h${h.depth}`]}>
+                      <a href={`#${h.slug}`}>{h.text}</a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </details>
+          )
+        }
         <Content />
       </article>
 
@@ -141,6 +177,7 @@ function excerpt(e: Entry): string {
       )
     }
   </div>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
 </Base>
 
 <script>
@@ -173,6 +210,22 @@ function excerpt(e: Entry): string {
     headings.forEach((h) => obs.observe(h));
   }
   document.addEventListener("astro:page-load", initScrollSpy);
+
+  // 헤딩 앵커: h2/h3 옆에 섹션 링크(#) 주입. 호버 시 노출.
+  function initHeadingAnchors() {
+    document
+      .querySelectorAll<HTMLElement>(".prose h2[id], .prose h3[id]")
+      .forEach((h) => {
+        if (h.querySelector(".heading-anchor")) return;
+        const a = document.createElement("a");
+        a.className = "heading-anchor";
+        a.href = `#${h.id}`;
+        a.setAttribute("aria-label", "이 섹션 링크");
+        a.textContent = "#";
+        h.appendChild(a);
+      });
+  }
+  document.addEventListener("astro:page-load", initHeadingAnchors);
 
   // 링크 복사(공유). 문서 위임으로 한 번만 등록해 View Transitions에도 유지.
   if (!(window as any).__shareBound) {
@@ -335,6 +388,36 @@ function excerpt(e: Entry): string {
     font-size: var(--fs-xs);
   }
 
+  /* 모바일 접이식 목차: 좁은 화면(사이드 목차 숨김 구간)에서만 노출 */
+  .mobile-toc {
+    display: none;
+    margin: 0 0 var(--space-6);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    background: var(--c-surface);
+    padding: var(--space-2) var(--space-4);
+  }
+  .mobile-toc > summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    padding: var(--space-2) 0;
+    list-style-position: inside;
+  }
+  .mobile-toc .toc {
+    padding-bottom: var(--space-2);
+  }
+  .mobile-toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (max-width: 980px) {
+    .mobile-toc {
+      display: block;
+    }
+  }
+
   /* ── 본문 프로즈 타이포그래피 ── */
   .post-header h1 {
     font-size: clamp(1.9rem, 5vw, var(--fs-3xl));
@@ -343,6 +426,23 @@ function excerpt(e: Entry): string {
   .prose :global(h2),
   .prose :global(h3) {
     scroll-margin-top: var(--space-5);
+  }
+  /* 헤딩 앵커(#): 호버 시 노출 */
+  .prose :global(.heading-anchor) {
+    margin-left: 0.4em;
+    color: var(--c-muted);
+    font-weight: 400;
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.12s ease, color 0.12s ease;
+  }
+  .prose :global(h2:hover) :global(.heading-anchor),
+  .prose :global(h3:hover) :global(.heading-anchor),
+  .prose :global(.heading-anchor:focus-visible) {
+    opacity: 1;
+  }
+  .prose :global(.heading-anchor:hover) {
+    color: var(--c-accent);
   }
   .meta {
     display: flex;
@@ -410,6 +510,16 @@ function excerpt(e: Entry): string {
   .prose :global(a) {
     text-decoration: underline;
     text-underline-offset: 2px;
+  }
+  /* 외부 링크 표시 */
+  .prose :global(a[href^="http"])::after {
+    content: "↗";
+    display: inline-block;
+    margin-left: 0.15em;
+    font-size: 0.8em;
+    vertical-align: baseline;
+    color: var(--c-muted);
+    text-decoration: none;
   }
   .prose :global(blockquote) {
     margin: var(--space-5) 0;

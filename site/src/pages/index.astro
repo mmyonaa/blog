@@ -173,7 +173,9 @@ const [featured, ...rest] = posts;
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    /* 글이 적어도 카드가 과하게 늘어나지 않도록 상한을 둔다 */
+    grid-template-columns: repeat(auto-fill, minmax(260px, 360px));
+    justify-content: start;
     gap: var(--space-4);
   }
   .card {

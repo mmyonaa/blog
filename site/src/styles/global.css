@@ -70,8 +70,9 @@
   --shell-width: 1240px;
 }
 
+/* OS 다크. 단 사용자가 라이트로 강제(data-theme=light)한 경우는 제외. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --c-bg: #0b0b0f;
     --c-surface: #16161d;
     --c-surface-2: #1f1f28;
@@ -195,12 +196,42 @@ code {
 }
 
 pre {
+  position: relative;
   padding: var(--space-4);
   border-radius: var(--radius-md);
   border: 1px solid var(--c-border);
   overflow-x: auto;
   font-size: var(--fs-sm);
   line-height: 1.6;
+}
+
+/* 코드블록 복사 버튼(JS로 주입) */
+.code-copy {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.25em 0.6em;
+  font: inherit;
+  font-size: var(--fs-xs);
+  color: var(--c-muted);
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+pre:hover .code-copy,
+.code-copy:focus-visible {
+  opacity: 1;
+}
+.code-copy:hover,
+.code-copy.copied {
+  color: var(--c-accent);
+  border-color: var(--c-accent);
 }
 pre code {
   background: none;
@@ -281,6 +312,67 @@ a.pill:hover {
   background: var(--c-accent-soft);
   color: var(--c-accent);
   text-decoration: none;
+}
+
+/* ── 접근성 ── */
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+/* 키보드 사용자용 '본문 바로가기' */
+.skip-link {
+  position: absolute;
+  left: var(--space-3);
+  top: -3rem;
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background: var(--c-accent);
+  color: var(--c-accent-contrast);
+  border-radius: var(--radius-md);
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: var(--space-3);
+  text-decoration: none;
+}
+
+/* ── 맨 위로 버튼 ── */
+.to-top {
+  position: fixed;
+  right: clamp(var(--space-4), 4vw, var(--space-8));
+  bottom: clamp(var(--space-4), 4vw, var(--space-8));
+  z-index: 40;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-pill);
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, color 0.12s ease,
+    border-color 0.12s ease;
+}
+.to-top.show {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.to-top:hover {
+  color: var(--c-accent);
+  border-color: var(--c-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .to-top {
+    transition: opacity 0.18s ease;
+    transform: none;
+  }
 }
 
 /* ── 반응형 (#27) ── */
