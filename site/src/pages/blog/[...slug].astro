@@ -87,10 +87,10 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
 </Base>
 
 <style>
-  /* 프레임(헤더/컨테이너)은 넓게 유지하되, 본문은 읽기 좋은 폭으로 왼쪽 정렬.
-     → 모든 페이지의 왼쪽 여백이 일정하게 유지됨 */
+  /* 본문은 읽기 좋은 폭으로 중앙 정렬 → 좌우 여백이 대칭 */
   .reading {
     max-width: var(--content-width);
+    margin: 0 auto;
   }
   .post-header h1 {
     font-size: clamp(1.9rem, 5vw, var(--fs-3xl));
