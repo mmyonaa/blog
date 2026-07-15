@@ -35,7 +35,7 @@ const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
 ---
 
-<Base title={post.data.title} description={post.data.description}>
+<Base title={post.data.title} description={post.data.description} ogType="article">
   <article class="prose">
     <header class="post-header">
       <h1>{post.data.title}</h1>
