@@ -121,6 +121,15 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* 목차/앵커 이동 시 부드럽게 스크롤. 상단 여유는 scroll-padding으로. */
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--space-6);
+}
+/* 모션 최소화 설정을 존중 */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {

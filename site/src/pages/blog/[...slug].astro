@@ -137,11 +137,13 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
 </Base>
 
 <script>
-  // 스크롤 스파이: 현재 화면 상단에 있는 섹션을 목차에서 강조
-  const links = Array.from(
-    document.querySelectorAll<HTMLAnchorElement>(".toc a[data-slug]"),
-  );
-  if (links.length) {
+  // 스크롤 스파이: 현재 화면 상단에 있는 섹션을 목차에서 강조.
+  // View Transitions로 다른 글로 이동해도 astro:page-load 마다 다시 초기화한다.
+  function initScrollSpy() {
+    const links = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>(".toc a[data-slug]"),
+    );
+    if (!links.length) return;
     const bySlug = new Map(links.map((a) => [a.dataset.slug, a]));
     const headings = document.querySelectorAll<HTMLElement>(
       ".prose h2[id], .prose h3[id]",
@@ -163,6 +165,7 @@ const readingMin = Math.max(1, Math.round((post.body?.length ?? 0) / 500));
     );
     headings.forEach((h) => obs.observe(h));
   }
+  document.addEventListener("astro:page-load", initScrollSpy);
 </script>
 
 <style>
