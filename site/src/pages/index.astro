@@ -2,13 +2,13 @@
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import { tagHref } from "../lib/tags.ts";
+import { fmtDateTime } from "../lib/date.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (id: string) => `${base}/blog/${id}/`;
-const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 
 const [featured, ...rest] = posts;
 ---
@@ -27,7 +27,7 @@ const [featured, ...rest] = posts;
     ) : (
       <>
         <article class="featured">
-          <span class="featured-label">FEATURED · {fmtDate(featured.data.pubDate)}</span>
+          <span class="featured-label">FEATURED · {fmtDateTime(featured.data.pubDate)}</span>
           <h2 class="featured-title">
             <a href={href(featured.id)}>{featured.data.title}</a>
           </h2>
@@ -50,7 +50,7 @@ const [featured, ...rest] = posts;
             <div class="grid">
               {rest.map((post) => (
                 <article class="card">
-                  <div class="muted card-meta">{fmtDate(post.data.pubDate)}</div>
+                  <div class="muted card-meta">{fmtDateTime(post.data.pubDate)}</div>
                   <h3 class="card-title">
                     <a href={href(post.id)}>{post.data.title}</a>
                   </h3>

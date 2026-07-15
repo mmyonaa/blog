@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import { getTagMap, type Post } from "../../lib/tags.ts";
+import { fmtDateTime } from "../../lib/date.ts";
 
 export async function getStaticPaths() {
   const map = await getTagMap();
@@ -18,7 +19,6 @@ const { tag, posts } = Astro.props as Props;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (id: string) => `${base}/blog/${id}/`;
-const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 ---
 
 <Base title={`#${tag} — blog`} description={`${tag} 태그가 달린 글 목록`}>
@@ -33,7 +33,7 @@ const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
           <a href={href(post.id)} class="post-title">
             {post.data.title}
           </a>
-          <div class="muted">{fmtDate(post.data.pubDate)}</div>
+          <div class="muted">{fmtDateTime(post.data.pubDate)}</div>
         </li>
       ))
     }
