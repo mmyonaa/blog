@@ -9,6 +9,35 @@ import { nowIso, slugify, yamlString } from "./util.js";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+/** 본문 최소 분량(공백 제외 문자 수). 너무 짧은 껍데기 글을 막는 가벼운 하한선. */
+const MIN_BODY_LEN = 200;
+
+/**
+ * 발행 전 본문을 가볍게 검증한다. 문제점 목록을 반환하며, 비어 있으면 통과.
+ *
+ * 규격을 빡세게 강제하지 않는다(학습 프로젝트 취지). 명백히 깨진 글만 걸러낸다:
+ *  - 프론트매터는 publish_post가 따로 붙이므로, 본문이 `---`로 시작하면 이중 생성 위험.
+ *  - 최소한의 구조로 `##` 소제목 1개 이상.
+ *  - 껍데기 글 방지용 최소 분량.
+ */
+function validateBody(body: string): string[] {
+  const problems: string[] = [];
+  const trimmed = body.trim();
+
+  if (trimmed.startsWith("---")) {
+    problems.push("본문이 `---`로 시작합니다. 프론트매터는 자동으로 붙으니 본문에는 넣지 마세요.");
+  }
+  if (!/^#{2,6}\s/m.test(body)) {
+    problems.push("`##` 소제목이 하나도 없습니다. 소제목을 최소 1개 넣어주세요.");
+  }
+  const visibleLen = trimmed.replace(/\s/g, "").length;
+  if (visibleLen < MIN_BODY_LEN) {
+    problems.push(`본문이 너무 짧습니다(공백 제외 ${visibleLen}자). 최소 ${MIN_BODY_LEN}자 이상 써주세요.`);
+  }
+
+  return problems;
+}
+
 interface Frontmatter {
   title: string;
   pubDate: string;
@@ -51,6 +80,20 @@ export function registerPublishPost(server: McpServer): void {
       },
     },
     async ({ title, body, tags, date, slug, description }) => {
+      // 본문을 가볍게 검증한다. 문제가 있으면 파일을 쓰지 않고 이유를 돌려준다.
+      const problems = validateBody(body);
+      if (problems.length > 0) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text" as const,
+              text: `본문 검증 실패:\n${problems.map((p) => `- ${p}`).join("\n")}`,
+            },
+          ],
+        };
+      }
+
       // pubDate는 초까지 기록. date 지정 시 그 날짜 + 현재 시각, 미지정 시 현재 시각.
       const iso = nowIso();
       const pubDate = date ? `${date}T${iso.slice(11)}` : iso;
