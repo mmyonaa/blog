@@ -32,7 +32,7 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 ## 진행 로드맵 (무료 → 무료 → 유료)
 
 - **Phase 1 — MCP 서버 만들기** ✅ 🆓 &nbsp;위 3대 primitive를 갖춘 stdio 서버 완성.
-- **Phase 2 — Claude Code에 붙여 대화형 테스트** 🚧 🆓 &nbsp;`claude mcp add`로 등록해 대화로 도구를 굴린다. 구독으로 커버되어 무료. **MCP 학습의 90%가 여기서 끝난다.** (현재 진행 중, 글 2편 발행됨)
+- **Phase 2 — Claude Code에 붙여 대화형 테스트** 🚧 🆓 &nbsp;`claude mcp add`로 등록해 대화로 도구를 굴린다. 구독으로 커버되어 무료. **MCP 학습의 90%가 여기서 끝난다.** (현재 진행 중)
 - **Phase 3 — 오케스트레이터 + cron 자동화** ⬜ 💸 &nbsp;사람 없이 매일 발행. 이때만 `ANTHROPIC_API_KEY`가 필요.
 
 Phase 2까지는 API 키 없이 전부 무료로 진행한다.
@@ -89,4 +89,4 @@ claude mcp add blog-mcp -- node server/dist/index.js
 
 ## 상태
 
-🚧 **Phase 2 진행 중** — MCP 서버(Phase 1) 완성, Claude Code에 붙여 대화형으로 도구를 다듬는 단계. 글 2편 발행됨.
+🚧 **Phase 2 진행 중** — MCP 서버(Phase 1) 완성, Claude Code에 붙여 대화형으로 도구를 다듬는 단계.
