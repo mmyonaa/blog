@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getContentDir } from "./config.js";
 import { listPosts } from "./posts.js";
-import { SEED_TOPICS } from "./topics.js";
+import { AREAS, SEED_TOPICS, type AreaId, type Topic } from "./topics.js";
 import { nowIso, slugify, yamlString } from "./util.js";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -183,16 +183,44 @@ export function registerSuggestTopic(server: McpServer): void {
         };
       }
 
-      const suggestions = available
-        .slice(0, count)
-        .map((t, i) => `${i + 1}. [id: ${t.id}] ${t.title}  [${t.tags.join(", ")}]`)
+      // --- 영역 다각화 ---
+      // 최근 글이 어떤 영역이었는지 파악(topicId → area)해서, 덜 다룬 영역을 우선하고
+      // 후보를 영역별로 라운드로빈으로 뽑아 한 영역에 쏠리지 않게 섞는다.
+      const idToArea = new Map(SEED_TOPICS.map((t) => [t.id, t.area] as const));
+      const recentAreas = recent
+        .map((p) => (p.topicId ? idToArea.get(p.topicId) : undefined))
+        .filter((a): a is AreaId => !!a);
+      const recentCount = (area: AreaId): number => recentAreas.filter((a) => a === area).length;
+
+      const byArea = new Map<AreaId, Topic[]>();
+      for (const t of available) {
+        const list = byArea.get(t.area) ?? [];
+        list.push(t);
+        byArea.set(t.area, list);
+      }
+      // 최근 사용이 적은 영역부터
+      const areaOrder = [...byArea.keys()].sort((a, b) => recentCount(a) - recentCount(b));
+
+      const picked: Topic[] = [];
+      for (let i = 0; picked.length < count && [...byArea.values()].some((l) => l.length); i++) {
+        const area = areaOrder[i % areaOrder.length];
+        const list = area ? byArea.get(area) : undefined;
+        const next = list?.shift();
+        if (next) picked.push(next);
+      }
+
+      const suggestions = picked
+        .map(
+          (t, i) =>
+            `${i + 1}. [${t.area}·${AREAS[t.area].label}] [id: ${t.id}] ${t.title}  [${t.tags.join(", ")}]`,
+        )
         .join("\n");
 
       return {
         content: [
           {
             type: "text" as const,
-            text: `안 겹치는 후보 주제 (${available.length}개 중 ${Math.min(count, available.length)}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로 넘기면 다음부터 중복 제안되지 않습니다.\n\n최근 발행 글(참고):\n${recentText}`,
+            text: `안 겹치는 후보 주제 (영역 섞음, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로 넘기면 다음부터 중복 제안되지 않습니다.\n\n최근 발행 글(참고):\n${recentText}`,
           },
         ],
       };

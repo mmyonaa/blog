@@ -55,7 +55,7 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         .join("\n");
       const topicLine = topic && topic.trim() !== ""
         ? `4. 주제는 "${topic}"으로 한다. (시드 밖 주제이므로 topicId는 없다)`
-        : `4. \`suggest_topic\` 도구를 호출해 안 겹치는 후보를 받고, 그중 하나를 고른다. 각 후보의 \`[id: ...]\`를 기억해 둔다.`;
+        : `4. \`suggest_topic\` 도구를 호출해 안 겹치는 후보를 받고, 그중 하나를 고른다. 후보는 영역(A/B/C)이 섞여 나오니 최근 글과 다른 영역을 우선 고려한다. 각 후보의 \`[id: ...]\`를 기억해 둔다.`;
 
       const text = [
         "당신은 이 블로그의 정기 필자다. 아래 순서로 오늘의 글 한 편을 작성하고 발행하라.",
