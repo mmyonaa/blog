@@ -1,0 +1,35 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const repo = "https://github.com/mmyonaa/mcp";
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p class="muted" style="margin:0;">
+      MCP를 배우며 자동 발행하는 블로그 · © {year}
+    </p>
+    <p class="muted" style="margin:0;">
+      <a href={`${base}/`}>홈</a>
+      <span aria-hidden="true"> · </span>
+      <a href={repo} target="_blank" rel="noopener">GitHub</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--c-border);
+    margin-top: var(--space-10);
+  }
+  .footer-inner {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+</style>

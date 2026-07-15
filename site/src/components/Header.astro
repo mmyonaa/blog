@@ -1,0 +1,54 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const pathname = Astro.url.pathname.replace(/\/$/, "");
+const isHome = pathname === base || pathname === "";
+const repo = "https://github.com/mmyonaa/mcp";
+---
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href={`${base}/`} class="brand">blog-mcp</a>
+    <nav class="nav">
+      <a href={`${base}/`} class:list={["pill", { active: isHome }]}>홈</a>
+      <a href={repo} class="pill" target="_blank" rel="noopener">GitHub ↗</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--c-border);
+    background: var(--c-bg);
+  }
+  .header-inner {
+    max-width: var(--content-width);
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+  .brand {
+    font-size: var(--fs-lg);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--c-text);
+  }
+  .brand:hover {
+    color: var(--c-accent);
+    text-decoration: none;
+  }
+  .nav {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .nav .pill {
+    font-size: var(--fs-sm);
+  }
+  .nav .active {
+    background: var(--c-accent-soft);
+    color: var(--c-accent);
+    font-weight: 600;
+  }
+</style>
