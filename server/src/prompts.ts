@@ -9,6 +9,7 @@ const DEPTH_BANDS = {
   quick: { label: "quick", range: "600~900자", min: 600, hint: "개념 한입 · 짧은 정리" },
   standard: { label: "standard", range: "1200~1600자", min: 1200, hint: "기본 · 개념 + 예제" },
   deep: { label: "deep", range: "2000~2800자", min: 2000, hint: "구현/튜토리얼 · 단계별 심화" },
+  epic: { label: "epic", range: "4000~7000자", min: 4000, hint: "장문 · 심층 가이드/여러 절 구성" },
 } as const;
 
 type Depth = keyof typeof DEPTH_BANDS;
@@ -33,15 +34,17 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
           .optional()
           .describe("직접 지정할 주제(생략 시 suggest_topic 후보 중 선택)"),
         depth: z
-          .enum(["quick", "standard", "deep"])
+          .enum(["quick", "standard", "deep", "epic"])
           .optional()
           .describe(
-            "글의 심화도(분량 밴드). quick=개념 한입(600~900자), standard=기본(1200~1600자), deep=구현/튜토리얼 심화(2000~2800자). 생략 시 standard. 주제 성격에 맞춰 조정 가능.",
+            "글의 심화도(분량 밴드). quick=개념 한입(600~900자), standard=기본(1200~1600자), deep=구현/튜토리얼 심화(2000~2800자), epic=장문(4000~7000자). 생략 시 standard. 주제 성격에 맞춰 조정 가능.",
           ),
         length: z
           .string()
           .optional()
-          .describe("목표 글자 수를 직접 지정(대략). 지정하면 depth 밴드보다 우선한다."),
+          .describe(
+            "목표 글자 수를 직접 지정(대략, 상한 없음). 지정하면 depth 밴드보다 우선한다. 아주 긴 글은 여기에 큰 값(예: 10000)을 넣는다.",
+          ),
       },
     },
     ({ topic, depth, length }) => {
