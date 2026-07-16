@@ -75,6 +75,7 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         "   - 톤: 군더더기 없이 명확하게. 과장·클리셰 지양",
         "6. `publish_post` 도구로 발행한다. `title`, `body`(프론트매터 제외한 본문), `tags`, 필요시 `description`을 채운다. `date`는 생략하면 오늘로 설정된다.",
         "   - suggest_topic 후보에서 고른 주제라면 그 후보의 `id`를 `topicId`로 꼭 넘긴다(중복 재제안 방지). 시드 밖 주제면 생략한다.",
+        "   - `tags`는 3~5개. 1단계에서 읽은 `blog://posts`의 기존 태그를 우선 재사용해 표기 흔들림(예: typescript/ts)을 막고, 소문자 영문 또는 한글로 일관되게 쓴다.",
         "7. 발행 결과(파일명)를 사람에게 한 줄로 보고한다.",
       ].join("\n");
 
