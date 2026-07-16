@@ -23,10 +23,13 @@ export interface Post extends PostSummary {
 
 const DATE_PREFIX = /^\d{4}-\d{2}-\d{2}-/;
 
-/** gray-matter가 날짜를 Date로 파싱할 수 있으므로 문자열 YYYY-MM-DD로 정규화. */
+/**
+ * gray-matter가 날짜를 Date로 파싱할 수 있으므로 ISO 문자열로 정규화한다.
+ * 날짜로 자르지 않고 시각(초)까지 보존해야, 같은 날 여러 편을 발행해도 최신순 정렬이 정확하다.
+ */
 function normalizeDate(value: unknown, fallback: string): string {
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  if (typeof value === "string" && value.trim() !== "") return value.slice(0, 10);
+  if (value instanceof Date) return `${value.toISOString().slice(0, 19)}Z`;
+  if (typeof value === "string" && value.trim() !== "") return value.trim();
   return fallback;
 }
 

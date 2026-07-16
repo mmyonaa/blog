@@ -183,7 +183,7 @@ export function registerSuggestTopic(server: McpServer): void {
 
       const recent = posts.slice(0, 5);
       const recentText = recent.length
-        ? recent.map((p) => `- ${p.title} (${p.pubDate}) [${p.tags.join(", ")}]`).join("\n")
+        ? recent.map((p) => `- ${p.title} (${p.pubDate.slice(0, 10)}) [${p.tags.join(", ")}]`).join("\n")
         : "(아직 발행된 글 없음)";
 
       if (available.length === 0) {
