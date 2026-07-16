@@ -6,9 +6,9 @@ import { z } from "zod";
  * LLM이 주제 성격에 맞춰 티어를 고르고, 아래 밴드를 목표로 본문 길이를 잡는다.
  */
 const DEPTH_BANDS = {
-  quick: { label: "quick", range: "600~900자", hint: "개념 한입 · 짧은 정리" },
-  standard: { label: "standard", range: "1200~1600자", hint: "기본 · 개념 + 예제" },
-  deep: { label: "deep", range: "2000~2800자", hint: "구현/튜토리얼 · 단계별 심화" },
+  quick: { label: "quick", range: "600~900자", min: 600, hint: "개념 한입 · 짧은 정리" },
+  standard: { label: "standard", range: "1200~1600자", min: 1200, hint: "기본 · 개념 + 예제" },
+  deep: { label: "deep", range: "2000~2800자", min: 2000, hint: "구현/튜토리얼 · 단계별 심화" },
 } as const;
 
 type Depth = keyof typeof DEPTH_BANDS;
@@ -47,6 +47,9 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
     ({ topic, depth, length }) => {
       const chosen: Depth = depth ?? "standard";
       const explicitLen = length && length.trim() !== "" ? length : null;
+      const explicitNum = explicitLen ? Number(explicitLen) : NaN;
+      // 직접 지정 분량이 있으면 그 85%를 하한으로, 아니면 티어 하한.
+      const minChars = Number.isFinite(explicitNum) ? Math.round(explicitNum * 0.85) : DEPTH_BANDS[chosen].min;
       const lengthLine = explicitLen
         ? `   - 분량: 약 ${explicitLen}자 (직접 지정)`
         : `   - 분량: ${DEPTH_BANDS[chosen].range} (심화도 ${chosen} — 주제가 더 얕거나 깊으면 아래 티어에서 조정)`;
@@ -76,6 +79,7 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         "6. `publish_post` 도구로 발행한다. `title`, `body`(프론트매터 제외한 본문), `tags`, 필요시 `description`을 채운다. `date`는 생략하면 오늘로 설정된다.",
         "   - suggest_topic 후보에서 고른 주제라면 그 후보의 `id`를 `topicId`로 꼭 넘긴다(중복 재제안 방지). 시드 밖 주제면 생략한다.",
         "   - `tags`는 3~5개. 1단계에서 읽은 `blog://posts`의 기존 태그를 우선 재사용해 표기 흔들림(예: typescript/ts)을 막고, 소문자 영문 또는 한글로 일관되게 쓴다.",
+        `   - 분량 하한을 지키도록 \`minChars: ${minChars}\`를 함께 넘긴다. 본문이 이보다 짧으면 도구가 발행을 거부하니, 그때는 내용을 더 채워 다시 호출한다.`,
         "7. 발행 결과(파일명)를 사람에게 한 줄로 보고한다.",
       ].join("\n");
 

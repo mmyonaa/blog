@@ -19,8 +19,9 @@ const MIN_BODY_LEN = 200;
  *  - 프론트매터는 publish_post가 따로 붙이므로, 본문이 `---`로 시작하면 이중 생성 위험.
  *  - 최소한의 구조로 `##` 소제목 1개 이상.
  *  - 껍데기 글 방지용 최소 분량.
+ *  - (선택) minChars가 주어지면 목표 분량 하한(공백 포함)을 강제 — 심화도 밴드 undershoot 방지.
  */
-function validateBody(body: string): string[] {
+function validateBody(body: string, minChars?: number): string[] {
   const problems: string[] = [];
   const trimmed = body.trim();
 
@@ -33,6 +34,11 @@ function validateBody(body: string): string[] {
   const visibleLen = trimmed.replace(/\s/g, "").length;
   if (visibleLen < MIN_BODY_LEN) {
     problems.push(`본문이 너무 짧습니다(공백 제외 ${visibleLen}자). 최소 ${MIN_BODY_LEN}자 이상 써주세요.`);
+  }
+  if (minChars && minChars > 0 && trimmed.length < minChars) {
+    problems.push(
+      `본문이 목표보다 짧습니다(${trimmed.length}자 < 목표 ${minChars}자). 내용을 더 채워 다시 발행하세요.`,
+    );
   }
 
   return problems;
@@ -89,12 +95,20 @@ export function registerPublishPost(server: McpServer): void {
           .describe(
             "이 글이 어떤 시드 주제(suggest_topic의 id)를 다뤘는지. 지정하면 그 주제는 다시 제안되지 않는다. 시드 밖 주제면 생략.",
           ),
+        minChars: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe(
+            "본문 최소 글자 수(공백 포함). 본문이 이보다 짧으면 발행이 거부된다. write_daily_post가 심화도 밴드 하한을 넘겨 짧은 글을 막는다.",
+          ),
         description: z.string().optional().describe("요약(메타 설명)"),
       },
     },
-    async ({ title, body, tags, date, slug, topicId, description }) => {
+    async ({ title, body, tags, date, slug, topicId, minChars, description }) => {
       // 본문을 가볍게 검증한다. 문제가 있으면 파일을 쓰지 않고 이유를 돌려준다.
-      const problems = validateBody(body);
+      const problems = validateBody(body, minChars);
       if (problems.length > 0) {
         return {
           isError: true,
