@@ -197,4 +197,25 @@ const [featured, ...rest] = posts;
     font-size: var(--fs-sm);
     margin: 0 0 var(--space-3);
   }
+
+  /* ── 모바일 (#27) ── */
+  @media (max-width: 640px) {
+    .hero {
+      padding: var(--space-5) 0 var(--space-6);
+    }
+    /* featured 카드: 좁은 화면에서 패딩을 줄여 본문 폭 확보 */
+    .featured {
+      padding: var(--space-5);
+    }
+    /* 최근 글: 카드가 featured와 같은 폭으로 꽉 차게(좌측 고정 폭 → 단일 풀폭) */
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    /* section-head: 제목과 '전체 글 보기'가 좁을 땐 세로로 */
+    .section-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-1);
+    }
+  }
 </style>

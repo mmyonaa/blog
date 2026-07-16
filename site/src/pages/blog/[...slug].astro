@@ -398,14 +398,53 @@ const jsonLd = {
     padding: var(--space-2) var(--space-4);
   }
   .mobile-toc > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
     cursor: pointer;
     font-weight: 700;
     font-size: var(--fs-sm);
     padding: var(--space-2) 0;
-    list-style-position: inside;
+    list-style: none;
+    user-select: none;
+  }
+  /* 기본 삼각형 마커 제거(Safari) */
+  .mobile-toc > summary::-webkit-details-marker {
+    display: none;
+  }
+  /* 커스텀 chevron: 접힘=오른쪽(▶), 펼침=아래(▼) */
+  .mobile-toc > summary::before {
+    content: "";
+    flex-shrink: 0;
+    width: 0.5em;
+    height: 0.5em;
+    margin-left: 0.1em;
+    border-right: 2px solid var(--c-muted);
+    border-bottom: 2px solid var(--c-muted);
+    transform: rotate(-45deg);
+    transition: transform 0.18s ease;
+  }
+  .mobile-toc[open] > summary::before {
+    transform: rotate(45deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-toc > summary::before {
+      transition: none;
+    }
+  }
+  /* 펼쳤을 때: 제목과 목록 사이 구분선 + 여백 */
+  .mobile-toc[open] > summary {
+    margin-bottom: var(--space-2);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--c-border);
   }
   .mobile-toc .toc {
     padding-bottom: var(--space-2);
+  }
+  /* 모바일 목차 항목: 손가락 탭이 편하도록 세로 여백을 넉넉히 */
+  .mobile-toc .toc a {
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
   }
   .mobile-toc ul {
     list-style: none;
