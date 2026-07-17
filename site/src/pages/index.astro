@@ -16,25 +16,79 @@ const href = (id: string) => `${base}/blog/${id}/`;
 const RECENT_MAX = 6;
 const [featured, ...others] = posts;
 const rest = others.slice(0, RECENT_MAX);
+
+// ── 히어로 통계 ──
+// 로컬 날짜 키(YYYY-MM-DD). '연속 발행'은 가장 최근 글 날짜부터 하루씩 거슬러
+// 글이 있는 날이 이어지는 최대 길이.
+const dayKey = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+const daySet = new Set(posts.map((p) => dayKey(p.data.pubDate)));
+let streak = 0;
+if (posts.length > 0) {
+  const cursor = new Date(posts[0].data.pubDate);
+  while (daySet.has(dayKey(cursor))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+}
+const stats = [
+  { value: posts.length, label: "발행 글" },
+  { value: streak, label: "일 연속 발행" },
+  { value: sections.length, label: "카테고리" },
+];
+
+// 카테고리별 액센트 hue(단조로운 단색 pill 탈피). 없으면 기본 액센트.
+const SECTION_HUE: Record<string, string> = {
+  mcp: "#7c3aed",
+  jeongcheogi: "#0ea5e9",
+};
+const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
 ---
 
 <Base title="blog" description="MCP 만들기와 정보처리기사 개념을 매일 기록하는 학습 블로그">
   <section class="hero">
-    <h1 class="hero-title">blog</h1>
-    <p class="hero-sub">
-      MCP를 직접 만들며 배운 것과 정보처리기사 개념을, 매일 한 편씩 기록합니다.
-    </p>
-    {
-      sections.length > 0 && (
-        <nav class="sections-strip" aria-label="카테고리">
-          {sections.map((s) => (
-            <a class="sec-pill" href={sectionHref(base, s.id)}>
-              {s.label} <span class="sec-pill-count">{s.count}</span>
-            </a>
-          ))}
-        </nav>
-      )
-    }
+    <div class="hero-bg" aria-hidden="true">
+      <span class="blob blob-1"></span>
+      <span class="blob blob-2"></span>
+      <span class="blob blob-3"></span>
+    </div>
+    <div class="hero-inner">
+      <h1 class="hero-title reveal" style="--i: 0">blog</h1>
+      <p class="hero-sub reveal" style="--i: 1">
+        MCP를 직접 만들며 배운 것과 정보처리기사 개념을, 매일 한 편씩 기록합니다.
+      </p>
+      {
+        posts.length > 0 && (
+          <dl class="stats reveal" style="--i: 2">
+            {stats.map((s) => (
+              <div class="stat">
+                <dt class="stat-value">{s.value}</dt>
+                <dd class="stat-label">{s.label}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+      {
+        sections.length > 0 && (
+          <nav class="sections-strip reveal" style="--i: 3" aria-label="카테고리">
+            {sections.map((s) => (
+              <a
+                class="sec-pill"
+                href={sectionHref(base, s.id)}
+                style={`--pill-accent: ${hueOf(s.id)}`}
+              >
+                {s.label} <span class="sec-pill-count">{s.count}</span>
+              </a>
+            ))}
+          </nav>
+        )
+      }
+    </div>
   </section>
 
   {
@@ -42,8 +96,11 @@ const rest = others.slice(0, RECENT_MAX);
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
       <>
-        <article class="featured">
-          <span class="featured-label">FEATURED · {fmtDateTime(featured.data.pubDate)}</span>
+        <article class="featured reveal" style="--i: 4" data-spot>
+          <span class="featured-label">
+            <span class="badge-new">NEW</span>
+            FEATURED · {fmtDateTime(featured.data.pubDate)}
+          </span>
           <h2 class="featured-title">
             <a href={href(featured.id)}>{featured.data.title}</a>
           </h2>
@@ -67,8 +124,8 @@ const rest = others.slice(0, RECENT_MAX);
               <a class="more" href={`${base}/blog/`}>전체 글 보기 →</a>
             </div>
             <div class="grid">
-              {rest.map((post) => (
-                <article class="card">
+              {rest.map((post, i) => (
+                <article class="card reveal" style={`--i: ${5 + i}`} data-spot>
                   <div class="muted card-meta">{fmtDateTime(post.data.pubDate)}</div>
                   <h3 class="card-title">
                     <a href={href(post.id)}>{post.data.title}</a>
@@ -93,20 +150,211 @@ const rest = others.slice(0, RECENT_MAX);
   }
 </Base>
 
-<style>
-  .hero {
-    padding: var(--space-6) 0 var(--space-8);
+<script>
+  // 카드 커서 스포트라이트: [data-spot] 위에서 마우스 좌표를 CSS 변수로 흘려보낸다.
+  // 문서 위임 + 전역 가드로 한 번만 등록(View Transitions 유지).
+  if (!(window as any).__spotBound) {
+    (window as any).__spotBound = true;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!reduce) {
+      document.addEventListener(
+        "pointermove",
+        (e) => {
+          const el = (e.target as HTMLElement)?.closest?.<HTMLElement>("[data-spot]");
+          if (!el) return;
+          const r = el.getBoundingClientRect();
+          el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+          el.style.setProperty("--my", `${e.clientY - r.top}px`);
+        },
+        { passive: true },
+      );
+    }
   }
+</script>
+
+<style>
+  /* ══════════════════════════════════════════════════════════
+     히어로 — 오로라 블롭 배경 + 도트 패턴 + 그라디언트 제목
+     ══════════════════════════════════════════════════════════ */
+  .hero {
+    position: relative;
+    padding: var(--space-8) 0 var(--space-8);
+    isolation: isolate;
+  }
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 미세 도트 패턴: 뷰포트 전체 폭(풀블리드)으로 깔고 아래로 페이드아웃.
+     컨테이너 폭에 갇히지 않도록 100vw를 히어로 중심에 맞춰 배치. */
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -20%;
+    bottom: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    z-index: -2;
+    background-image: radial-gradient(
+      var(--c-border) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(
+      120% 90% at 50% 0%,
+      #000 0%,
+      transparent 70%
+    );
+    mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 70%);
+    opacity: 0.6;
+  }
+
+  /* 오로라 블롭: 뷰포트 전체 폭(풀블리드)에 흐릿한 광원 2~3개 */
+  .hero-bg {
+    position: absolute;
+    top: -40%;
+    bottom: -20%;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.5;
+    will-change: transform;
+  }
+  .blob-1 {
+    width: 42vw;
+    max-width: 460px;
+    aspect-ratio: 1;
+    top: -8%;
+    left: -6%;
+    background: radial-gradient(circle, #a855f7, transparent 68%);
+  }
+  .blob-2 {
+    width: 34vw;
+    max-width: 380px;
+    aspect-ratio: 1;
+    top: -14%;
+    right: 4%;
+    background: radial-gradient(circle, #6366f1, transparent 68%);
+    opacity: 0.42;
+  }
+  .blob-3 {
+    width: 30vw;
+    max-width: 340px;
+    aspect-ratio: 1;
+    top: 22%;
+    left: 34%;
+    background: radial-gradient(circle, #ec4899, transparent 70%);
+    opacity: 0.28;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .blob {
+      opacity: 0.4;
+    }
+    :root:not([data-theme="light"]) .hero::before {
+      opacity: 0.4;
+    }
+  }
+  :root[data-theme="dark"] .blob {
+    opacity: 0.4;
+  }
+  :root[data-theme="dark"] .hero::before {
+    opacity: 0.4;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .blob-1 {
+      animation: drift1 18s ease-in-out infinite alternate;
+    }
+    .blob-2 {
+      animation: drift2 22s ease-in-out infinite alternate;
+    }
+    .blob-3 {
+      animation: drift3 26s ease-in-out infinite alternate;
+    }
+  }
+  @keyframes drift1 {
+    to {
+      transform: translate(8%, 12%) scale(1.12);
+    }
+  }
+  @keyframes drift2 {
+    to {
+      transform: translate(-10%, 8%) scale(1.08);
+    }
+  }
+  @keyframes drift3 {
+    to {
+      transform: translate(6%, -10%) scale(1.15);
+    }
+  }
+
   .hero-title {
-    font-size: clamp(2.5rem, 7vw, 3.5rem);
+    font-size: clamp(2.75rem, 8vw, 4rem);
+    line-height: 1;
     margin: 0 0 var(--space-3);
+    background: linear-gradient(115deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-title {
+      animation: sheen 8s ease-in-out infinite alternate;
+    }
+  }
+  @keyframes sheen {
+    to {
+      background-position: 100% center;
+    }
   }
   .hero-sub {
     color: var(--c-muted);
     font-size: var(--fs-lg);
-    max-width: 40ch;
+    max-width: 42ch;
     margin: 0;
   }
+
+  /* ── 통계 스트립 ── */
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    margin: var(--space-5) 0 0;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .stat-value {
+    font-size: var(--fs-2xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(120deg, var(--c-accent), var(--c-accent-hover));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label {
+    margin: 0.15em 0 0;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    letter-spacing: 0.02em;
+  }
+
   .sections-strip {
     display: flex;
     flex-wrap: wrap;
@@ -118,25 +366,31 @@ const rest = others.slice(0, RECENT_MAX);
     align-items: center;
     gap: 0.4em;
     padding: 0.4em 0.9em;
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-full, 999px);
-    background: var(--c-surface);
+    border: 1px solid
+      color-mix(in srgb, var(--pill-accent) 35%, var(--c-border));
+    border-radius: var(--radius-pill, 999px);
+    background: color-mix(in srgb, var(--pill-accent) 8%, var(--c-surface));
     color: var(--c-text);
     font-size: var(--fs-sm);
     font-weight: 600;
     text-decoration: none;
-    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    transition: border-color 0.15s ease, color 0.15s ease,
+      background 0.15s ease, transform 0.15s ease;
   }
   .sec-pill:hover {
-    border-color: var(--c-accent);
-    color: var(--c-accent);
-    background: var(--c-accent-soft);
+    border-color: var(--pill-accent);
+    color: var(--pill-accent);
+    background: color-mix(in srgb, var(--pill-accent) 16%, transparent);
+    transform: translateY(-1px);
   }
   .sec-pill-count {
-    color: var(--c-accent);
+    color: var(--pill-accent);
     font-weight: 700;
   }
 
+  /* ══════════════════════════════════════════════════════════
+     카드 — 스포트라이트 + 글로우 보더
+     ══════════════════════════════════════════════════════════ */
   /* stretched-link 패턴: 카드는 div, 제목 링크가 카드 전체를 덮고,
      태그 링크는 그 위(z-index)로 올려 별도 클릭 가능하게 유지 */
   .featured,
@@ -144,12 +398,43 @@ const rest = others.slice(0, RECENT_MAX);
     position: relative;
     border: 1px solid var(--c-border);
     border-radius: var(--radius-lg);
-    transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+    transition: box-shadow 0.2s ease, transform 0.2s ease,
+      border-color 0.2s ease;
+    isolation: isolate;
+  }
+  /* 커서 스포트라이트: 마우스 위치(--mx/--my)에 은은한 광원 */
+  .featured::before,
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 0%),
+      color-mix(in srgb, var(--c-accent) 22%, transparent),
+      transparent 45%
+    );
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .featured:hover::before,
+  .card:hover::before {
+    opacity: 1;
   }
   .featured:hover,
   .card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--c-accent) 55%, var(--c-border));
+    box-shadow: var(--shadow-md),
+      0 0 0 1px color-mix(in srgb, var(--c-accent) 30%, transparent),
+      0 12px 40px color-mix(in srgb, var(--c-accent) 22%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .featured:hover,
+    .card:hover {
+      transform: none;
+    }
   }
   .featured-title a,
   .card-title a {
@@ -171,19 +456,43 @@ const rest = others.slice(0, RECENT_MAX);
     gap: var(--space-2);
   }
 
+  /* ── featured 강조 ── */
   .featured {
     padding: var(--space-6);
-    background: var(--c-accent-soft);
+    background: linear-gradient(
+      135deg,
+      var(--c-accent-soft),
+      var(--c-surface) 85%
+    );
     box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
-  .featured:hover {
-    border-color: var(--c-accent);
+  /* 상단 그라디언트 하이라이트 라인 */
+  .featured::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, #7c3aed, #a855f7, #ec4899);
+    opacity: 0.9;
   }
   .featured-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
     color: var(--c-accent);
     font-size: var(--fs-xs);
     font-weight: 700;
     letter-spacing: 0.04em;
+  }
+  .badge-new {
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(120deg, #7c3aed, #ec4899);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
   }
   .featured-title {
     font-size: var(--fs-2xl);
@@ -226,9 +535,6 @@ const rest = others.slice(0, RECENT_MAX);
     padding: var(--space-5);
     background: var(--c-surface);
   }
-  .card:hover {
-    border-color: var(--c-accent);
-  }
   .card-title {
     font-size: var(--fs-lg);
     margin: var(--space-1) 0 var(--space-2);
@@ -242,6 +548,24 @@ const rest = others.slice(0, RECENT_MAX);
     margin: 0 0 var(--space-3);
   }
 
+  /* ══════════════════════════════════════════════════════════
+     진입 애니메이션 — fade-up, --i로 stagger
+     ══════════════════════════════════════════════════════════ */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      animation: reveal-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation-delay: calc(var(--i, 0) * 70ms);
+    }
+  }
+  @keyframes reveal-up {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   /* 태블릿: 3열이 좁아지기 전에 2열로 */
   @media (max-width: 900px) {
     .grid {
@@ -252,7 +576,10 @@ const rest = others.slice(0, RECENT_MAX);
   /* ── 모바일 (#27) ── */
   @media (max-width: 640px) {
     .hero {
-      padding: var(--space-5) 0 var(--space-6);
+      padding: var(--space-6) 0 var(--space-6);
+    }
+    .stats {
+      gap: var(--space-5);
     }
     /* featured 카드: 좁은 화면에서 패딩을 줄여 본문 폭 확보 */
     .featured {

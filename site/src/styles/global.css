@@ -148,6 +148,9 @@ body {
   /* 한국어: 단어(어절) 중간에서 줄바꿈 금지. 긴 URL 등만 강제 분리. */
   word-break: keep-all;
   overflow-wrap: break-word;
+  /* 풀블리드(100vw) 배경 등이 가로 스크롤을 만들지 않도록 클립.
+     clip은 스크롤 컨테이너를 만들지 않아 position: sticky 동작을 해치지 않는다. */
+  overflow-x: clip;
 }
 
 main {

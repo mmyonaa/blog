@@ -72,8 +72,31 @@ const jsonLd = {
 
 <Base title={post.data.title} description={post.data.description} ogType="article">
   <div class="article-shell">
+    <div class="post-header-area">
+      <header class="post-header">
+        <h1>{post.data.title}</h1>
+        <div class="meta">
+          <span>{fmtDateTime(post.data.pubDate)}</span>
+          {post.data.tags.length > 0 && (
+            <span class="tags">
+              {post.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
+            </span>
+          )}
+          <button type="button" class="pill share-btn" data-share aria-live="polite">
+            <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" class="share-icon">
+              <path
+                d="M8.7 11.3a3.5 3.5 0 0 0 5.05.13l2.12-2.12a3.5 3.5 0 0 0-4.95-4.95l-1.2 1.2M11.3 8.7a3.5 3.5 0 0 0-5.05-.13L4.13 10.7a3.5 3.5 0 0 0 4.95 4.95l1.2-1.2"
+                fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+            </svg>
+            <span class="share-label">링크 복사</span>
+          </button>
+        </div>
+      </header>
+      <hr />
+    </div>
+
+    <a class="side-left-head side-title side-title-link" href={`${base}/blog/`}>글 목록 →</a>
     <aside class="side side-left" aria-label="글 목록">
-      <a class="side-title side-title-link" href={`${base}/blog/`}>글 목록 →</a>
       <ul class="postlist">
         {
           allPosts.map((p) => (
@@ -95,26 +118,6 @@ const jsonLd = {
 
     <div class="reading">
       <article class="prose">
-        <header class="post-header">
-          <h1>{post.data.title}</h1>
-          <div class="meta">
-            <span>{fmtDateTime(post.data.pubDate)}</span>
-            {post.data.tags.length > 0 && (
-              <span class="tags">
-                {post.data.tags.map((t) => <a class="pill" href={tagHref(base, t)}>{t}</a>)}
-              </span>
-            )}
-            <button type="button" class="pill share-btn" data-share aria-live="polite">
-              <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" class="share-icon">
-                <path
-                  d="M8.7 11.3a3.5 3.5 0 0 0 5.05.13l2.12-2.12a3.5 3.5 0 0 0-4.95-4.95l-1.2 1.2M11.3 8.7a3.5 3.5 0 0 0-5.05-.13L4.13 10.7a3.5 3.5 0 0 0 4.95 4.95l1.2-1.2"
-                  fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
-              </svg>
-              <span class="share-label">링크 복사</span>
-            </button>
-          </div>
-        </header>
-        <hr />
         {
           toc.length > 0 && (
             <details class="mobile-toc">
@@ -280,8 +283,30 @@ const jsonLd = {
       minmax(180px, 1fr)
       minmax(0, var(--content-width))
       minmax(180px, 1fr);
-    gap: var(--space-6);
+    /* 제목(헤더)은 가운데 열의 1행에만, 사이드바는 2행부터 → 좌·우 사이드바가
+       본문 시작선에 맞춰 내려온다. 세로 간격은 헤더의 hr 여백이 담당하므로 row-gap 0. */
+    grid-template-areas:
+      "lefthead header ."
+      "left     body   toc";
+    column-gap: var(--space-6);
+    row-gap: 0;
     align-items: start;
+  }
+  .post-header-area {
+    grid-area: header;
+  }
+  /* '글 목록 →' 링크는 좌측 상단(제목 줄 높이)에, 실제 목록은 본문 시작선에 정렬 */
+  .side-left-head {
+    grid-area: lefthead;
+  }
+  .side-left {
+    grid-area: left;
+  }
+  .reading {
+    grid-area: body;
+  }
+  .side-toc {
+    grid-area: toc;
   }
 
   .reading {
@@ -631,8 +656,12 @@ const jsonLd = {
   @media (max-width: 1199px) {
     .article-shell {
       grid-template-columns: minmax(0, var(--content-width)) minmax(180px, 1fr);
+      grid-template-areas:
+        "header ."
+        "body   toc";
     }
-    .side-left {
+    .side-left,
+    .side-left-head {
       display: none;
     }
   }
@@ -640,9 +669,13 @@ const jsonLd = {
   @media (max-width: 980px) {
     .article-shell {
       grid-template-columns: minmax(0, var(--content-width));
+      grid-template-areas:
+        "header"
+        "body";
       justify-content: center;
     }
-    .side {
+    .side,
+    .side-left-head {
       display: none;
     }
   }
