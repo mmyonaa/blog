@@ -4,6 +4,7 @@ import Base from "../layouts/Base.astro";
 import { tagHref } from "../lib/tags.ts";
 import { getSectionCounts, sectionHref } from "../lib/sections.ts";
 import { fmtDateTime } from "../lib/date.ts";
+import { buildActivity, heatLevel } from "../lib/activity.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -41,6 +42,9 @@ const stats = [
   { value: sections.length, label: "카테고리" },
 ];
 
+// 발행 스트릭 잔디(heatmap): 글 pubDate를 주×요일 격자로.
+const activity = buildActivity(posts.map((p) => p.data.pubDate));
+
 // 카테고리별 액센트 hue(단조로운 단색 pill 탈피). 없으면 기본 액센트.
 const SECTION_HUE: Record<string, string> = {
   mcp: "#7c3aed",
@@ -66,7 +70,7 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
           <dl class="stats reveal" style="--i: 2">
             {stats.map((s) => (
               <div class="stat">
-                <dt class="stat-value">{s.value}</dt>
+                <dt class="stat-value" data-countup={s.value}>{s.value}</dt>
                 <dd class="stat-label">{s.label}</dd>
               </div>
             ))}
@@ -74,8 +78,43 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
         )
       }
       {
+        posts.length > 0 && (
+          <section class="activity reveal" style="--i: 3" aria-label="발행 활동">
+            <div class="activity-head">
+              <span class="activity-title">발행 스트릭</span>
+              {streak > 0 && <span class="activity-streak">🔥 {streak}일 연속</span>}
+            </div>
+            <div class="heatmap" role="img" aria-label={`최근 ${activity.weeks}주 발행 활동 · 총 ${activity.total}편`}>
+              <div class="heatmap-months" style={`--weeks: ${activity.weeks}`}>
+                {activity.months.map((m) => (
+                  <span class="hm-month" style={`grid-column: ${m.col} / span ${m.span}`}>
+                    {m.name}
+                  </span>
+                ))}
+              </div>
+              <div class="heatmap-grid" style={`--weeks: ${activity.weeks}`}>
+                {activity.cells.map((c) => (
+                  <span
+                    class:list={["hm-cell", `lv${heatLevel(c.count)}`, { "hm-future": c.future }]}
+                    title={c.future ? undefined : `${c.date.getMonth() + 1}/${c.date.getDate()} · ${c.count}편`}
+                  />
+                ))}
+              </div>
+            </div>
+            <div class="heatmap-legend">
+              <span>적음</span>
+              <span class="hm-cell lv0" />
+              <span class="hm-cell lv1" />
+              <span class="hm-cell lv2" />
+              <span class="hm-cell lv3" />
+              <span>많음</span>
+            </div>
+          </section>
+        )
+      }
+      {
         sections.length > 0 && (
-          <nav class="sections-strip reveal" style="--i: 3" aria-label="카테고리">
+          <nav class="sections-strip reveal" style="--i: 4" aria-label="카테고리">
             {sections.map((s) => (
               <a
                 class="sec-pill"
@@ -96,7 +135,7 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
       <>
-        <article class="featured reveal" style="--i: 4" data-spot>
+        <article class="featured reveal" style="--i: 5" data-spot>
           <span class="featured-label">
             <span class="badge-new">NEW</span>
             FEATURED · {fmtDateTime(featured.data.pubDate)}
@@ -125,7 +164,7 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
             </div>
             <div class="grid">
               {rest.map((post, i) => (
-                <article class="card reveal" style={`--i: ${5 + i}`} data-spot>
+                <article class="card reveal" style={`--i: ${6 + i}`} data-spot>
                   <div class="muted card-meta">{fmtDateTime(post.data.pubDate)}</div>
                   <h3 class="card-title">
                     <a href={href(post.id)}>{post.data.title}</a>
@@ -169,6 +208,31 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
         { passive: true },
       );
     }
+
+    // 통계 카운트업: [data-countup]을 0→값으로. reduced-motion이면 즉시 최종값.
+    const runCountUp = () => {
+      document.querySelectorAll<HTMLElement>("[data-countup]").forEach((el) => {
+        const target = parseInt(el.getAttribute("data-countup") || "0", 10);
+        if (!Number.isFinite(target) || reduce || target <= 0) {
+          el.textContent = String(Number.isFinite(target) ? target : 0);
+          return;
+        }
+        const dur = 850;
+        let startT = 0;
+        el.textContent = "0";
+        const tick = (now: number) => {
+          if (!startT) startT = now;
+          const t = Math.min(1, (now - startT) / dur);
+          const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+          el.textContent = String(Math.round(target * eased));
+          if (t < 1) requestAnimationFrame(tick);
+          else el.textContent = String(target);
+        };
+        requestAnimationFrame(tick);
+      });
+    };
+    // View Transitions로 홈에 재진입할 때마다 다시 실행(최초 로드 포함).
+    document.addEventListener("astro:page-load", runCountUp);
   }
 </script>
 
@@ -358,6 +422,85 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
     font-size: var(--fs-xs);
     color: var(--c-muted);
     letter-spacing: 0.02em;
+  }
+
+  /* ── 발행 스트릭 잔디(heatmap) ── */
+  .activity {
+    margin-top: var(--space-6);
+    max-width: 100%;
+  }
+  .activity-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  .activity-title {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+  }
+  .activity-streak {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--c-accent);
+  }
+  /* 좁은 화면에선 격자가 넘칠 수 있으니 가로 스크롤 허용 */
+  .heatmap {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  /* 월 라벨과 칸 격자는 같은 고정 열 폭(13px)을 써서 정렬을 맞춘다 */
+  .heatmap-months {
+    display: grid;
+    grid-template-columns: repeat(var(--weeks), 13px);
+    gap: 3px;
+    margin-bottom: 5px;
+    min-width: max-content;
+  }
+  .hm-month {
+    font-size: 0.7rem;
+    line-height: 1;
+    color: var(--c-muted);
+    white-space: nowrap;
+    overflow: visible;
+  }
+  .heatmap-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 13px);
+    grid-auto-columns: 13px;
+    gap: 3px;
+    min-width: max-content;
+  }
+  .hm-cell {
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+    background: var(--c-surface-2);
+  }
+  .hm-cell.lv1 {
+    background: color-mix(in srgb, var(--c-accent) 32%, var(--c-surface-2));
+  }
+  .hm-cell.lv2 {
+    background: color-mix(in srgb, var(--c-accent) 62%, var(--c-surface-2));
+  }
+  .hm-cell.lv3 {
+    background: var(--c-accent);
+  }
+  .hm-future {
+    visibility: hidden;
+  }
+  .heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: var(--space-3);
+    font-size: 0.7rem;
+    color: var(--c-muted);
+  }
+  .heatmap-legend .hm-cell {
+    width: 11px;
+    height: 11px;
   }
 
   .sections-strip {
