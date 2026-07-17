@@ -302,7 +302,10 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
 
   .hero-title {
     font-size: clamp(2.75rem, 8vw, 4rem);
-    line-height: 1;
+    /* background-clip:text에선 배경 박스 높이가 line-height라, 너무 좁으면
+       'g' 같은 descender가 배경 밖으로 나가 투명 처리(잘림)된다. 여유 확보. */
+    line-height: 1.18;
+    padding-bottom: 0.06em;
     margin: 0 0 var(--space-3);
     background: linear-gradient(115deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
     background-size: 200% auto;

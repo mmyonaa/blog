@@ -28,10 +28,13 @@ interface Props {
 const { post, newer, older } = Astro.props as Props;
 const { Content, headings } = await render(post);
 
-// 좌측 사이드바용 글 목록(최신순) — 현재 보고 있는 글은 제외.
+// 좌측 사이드바용 글 목록(최신순) — 현재 보고 있는 글은 제외하고, 최근 N개만.
+// (스크롤이 생기지 않도록 개수 제한. 전체는 상단 '글 목록 →' 링크로.)
+const SIDEBAR_MAX = 6;
 const allPosts = (await getCollection("blog"))
   .filter((p) => p.id !== post.id)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, SIDEBAR_MAX);
 
 // 우측 목차: 본문의 h2/h3만 사용 (h1은 제목이라 제외)
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
