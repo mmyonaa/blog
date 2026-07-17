@@ -53,7 +53,7 @@ const SECTION_HUE: Record<string, string> = {
 const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
 ---
 
-<Base title="blog" description="MCP 만들기와 정보처리기사 개념을 매일 기록하는 학습 블로그">
+<Base title="blog" description="매일 한 편씩, 배우고 만들며 기록하는 학습 블로그">
   <section class="hero">
     <div class="hero-bg" aria-hidden="true">
       <span class="blob blob-1"></span>
@@ -63,7 +63,7 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
     <div class="hero-inner">
       <h1 class="hero-title reveal" style="--i: 0">blog</h1>
       <p class="hero-sub reveal" style="--i: 1">
-        MCP를 직접 만들며 배운 것과 정보처리기사 개념을, 매일 한 편씩 기록합니다.
+        배우고 만들며 알게 된 것들을, 매일 한 편씩 기록합니다.
       </p>
       {
         posts.length > 0 && (
@@ -80,10 +80,6 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
       {
         posts.length > 0 && (
           <section class="activity reveal" style="--i: 3" aria-label="발행 활동">
-            <div class="activity-head">
-              <span class="activity-title">발행 스트릭</span>
-              {streak > 0 && <span class="activity-streak">🔥 {streak}일 연속</span>}
-            </div>
             <div class="heatmap" role="img" aria-label={`최근 ${activity.weeks}주 발행 활동 · 총 ${activity.total}편`}>
               <div class="heatmap-months" style={`--weeks: ${activity.weeks}`}>
                 {activity.months.map((m) => (
@@ -428,21 +424,6 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
   .activity {
     margin-top: var(--space-6);
     max-width: 100%;
-  }
-  .activity-head {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    margin-bottom: var(--space-3);
-  }
-  .activity-title {
-    font-size: var(--fs-sm);
-    font-weight: 700;
-  }
-  .activity-streak {
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    color: var(--c-accent);
   }
   /* 좁은 화면에선 격자가 넘칠 수 있으니 가로 스크롤 허용 */
   .heatmap {
