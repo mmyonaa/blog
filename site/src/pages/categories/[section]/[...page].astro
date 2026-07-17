@@ -1,0 +1,33 @@
+---
+import type { GetStaticPaths } from "astro";
+import Base from "../../../layouts/Base.astro";
+import PostList from "../../../components/PostList.astro";
+import Pagination from "../../../components/Pagination.astro";
+import { getSectionMap, sectionLabel } from "../../../lib/sections.ts";
+import { PAGE_SIZE } from "../../../lib/pagination.ts";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const map = await getSectionMap();
+  return [...map.entries()].flatMap(([section, posts]) =>
+    paginate(posts, { params: { section }, pageSize: PAGE_SIZE }),
+  );
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+const section = Astro.params.section!;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const label = sectionLabel(section);
+const pageHref = (n: number) =>
+  n <= 1 ? `${base}/categories/${section}/` : `${base}/categories/${section}/${n}/`;
+---
+
+<Base title={`${label} — blog`} description={`${label} 카테고리의 글 목록`}>
+  <p class="muted"><a href={`${base}/categories/`}>← 전체 카테고리</a></p>
+  <h1>{label}</h1>
+  <p class="muted">
+    {page.total}개의 글{page.lastPage > 1 && ` · ${page.currentPage} / ${page.lastPage} 페이지`}
+  </p>
+  <hr />
+  <PostList posts={page.data} />
+  <Pagination currentPage={page.currentPage} lastPage={page.lastPage} hrefFor={pageHref} />
+</Base>

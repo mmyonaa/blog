@@ -1,0 +1,73 @@
+---
+// /blog/ 상단의 '카테고리·태그로 보기' 링크. 예전 클라이언트 show/hide 필터를
+// URL 기반(전용 페이지로 이동)으로 대체한다.
+import { getSectionCounts, sectionHref } from "../lib/sections.ts";
+
+const categories = await getSectionCounts();
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+{
+  categories.length > 0 && (
+    <nav class="filter-links" aria-label="카테고리·태그로 보기">
+      <span class="fl-label">카테고리</span>
+      {categories.map((c) => (
+        <a class="pill fl-pill" href={sectionHref(base, c.id)}>
+          {c.label} <span class="fl-count">{c.count}</span>
+        </a>
+      ))}
+      <a class="fl-more" href={`${base}/tags/`}>
+        태그별 보기 →
+      </a>
+    </nav>
+  )
+}
+
+<style>
+  .filter-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-5) 0 var(--space-3);
+  }
+  .fl-label {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--c-muted);
+    margin-right: var(--space-1);
+  }
+  .fl-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.35em 0.85em;
+    border: 1px solid var(--c-border);
+    background: var(--c-surface);
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+  }
+  a.fl-pill:hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+    background: var(--c-accent-soft);
+    text-decoration: none;
+  }
+  .fl-count {
+    color: var(--c-accent);
+    font-weight: 700;
+  }
+  .fl-more {
+    margin-left: auto;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .fl-more {
+      margin-left: 0;
+    }
+  }
+</style>

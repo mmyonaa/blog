@@ -1,0 +1,51 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../../layouts/Base.astro";
+import PostList from "../../../components/PostList.astro";
+import Pagination from "../../../components/Pagination.astro";
+import BlogFilterLinks from "../../../components/BlogFilterLinks.astro";
+import { PAGE_SIZE } from "../../../lib/pagination.ts";
+
+// 2페이지 이후만 여기서 생성한다(1페이지는 /blog/index.astro). /blog/[...slug]와
+// 경로가 겹치지 않도록 'page/' 하위에 둔다.
+export async function getStaticPaths() {
+  const posts = (await getCollection("blog")).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+  );
+  const lastPage = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
+  const paths = [];
+  for (let n = 2; n <= lastPage; n++) {
+    paths.push({
+      params: { page: String(n) },
+      props: {
+        pageNum: n,
+        items: posts.slice((n - 1) * PAGE_SIZE, n * PAGE_SIZE),
+        lastPage,
+        total: posts.length,
+      },
+    });
+  }
+  return paths;
+}
+
+interface Props {
+  pageNum: number;
+  items: Awaited<ReturnType<typeof getCollection<"blog">>>;
+  lastPage: number;
+  total: number;
+}
+const { pageNum, items, lastPage, total } = Astro.props as Props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const pageHref = (n: number) => (n <= 1 ? `${base}/blog/` : `${base}/blog/page/${n}/`);
+---
+
+<Base title={`글 목록 (${pageNum}페이지) — blog`} description="블로그의 전체 글. 카테고리·태그로도 볼 수 있습니다.">
+  <h1>글 목록</h1>
+  <p class="muted">{total}개의 글 · 최신순 · {pageNum} / {lastPage} 페이지</p>
+
+  <BlogFilterLinks />
+  <hr />
+
+  <PostList posts={items} />
+  <Pagination currentPage={pageNum} lastPage={lastPage} hrefFor={pageHref} />
+</Base>

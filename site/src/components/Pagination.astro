@@ -1,0 +1,115 @@
+---
+import { pageWindow } from "../lib/pagination.ts";
+
+interface Props {
+  currentPage: number;
+  lastPage: number;
+  /** 페이지 번호 → URL. 빌드 타임에 평가된다. */
+  hrefFor: (n: number) => string;
+}
+const { currentPage, lastPage, hrefFor } = Astro.props as Props;
+const items = pageWindow(currentPage, lastPage);
+---
+
+{
+  lastPage > 1 && (
+    <nav class="pagination" aria-label="페이지 매김">
+      {currentPage > 1 ? (
+        <a class="pg-arrow" href={hrefFor(currentPage - 1)} rel="prev" aria-label="이전 페이지">
+          ←
+        </a>
+      ) : (
+        <span class="pg-arrow disabled" aria-hidden="true">
+          ←
+        </span>
+      )}
+
+      <ul class="pg-nums">
+        {items.map((it) =>
+          it === "…" ? (
+            <li class="pg-gap" aria-hidden="true">
+              …
+            </li>
+          ) : (
+            <li>
+              {it === currentPage ? (
+                <span class="pg-num current" aria-current="page">
+                  {it}
+                </span>
+              ) : (
+                <a class="pg-num" href={hrefFor(it)}>
+                  {it}
+                </a>
+              )}
+            </li>
+          ),
+        )}
+      </ul>
+
+      {currentPage < lastPage ? (
+        <a class="pg-arrow" href={hrefFor(currentPage + 1)} rel="next" aria-label="다음 페이지">
+          →
+        </a>
+      ) : (
+        <span class="pg-arrow disabled" aria-hidden="true">
+          →
+        </span>
+      )}
+    </nav>
+  )
+}
+
+<style>
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: var(--space-8) 0 var(--space-4);
+  }
+  .pg-nums {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .pg-num,
+  .pg-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.5em;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    background: var(--c-surface);
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  a.pg-num:hover,
+  a.pg-arrow:hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+    background: var(--c-accent-soft);
+    text-decoration: none;
+  }
+  .pg-num.current {
+    border-color: var(--c-accent);
+    background: var(--c-accent);
+    color: var(--c-accent-contrast);
+  }
+  .pg-arrow.disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .pg-gap {
+    padding: 0 0.25em;
+    color: var(--c-muted);
+  }
+</style>
