@@ -13,6 +13,9 @@ dist/
 # Astro
 .astro/
 
+# Playwright MCP: 브라우저 조작 시 자동 생성되는 페이지 스냅샷(로컬 임시)
+.playwright-mcp/
+
 # Claude Code 로컬 설정 (개인용)
 .claude/settings.local.json
 
