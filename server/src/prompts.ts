@@ -1,5 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { SECTIONS, type SectionId } from "./topics.js";
+
+const SECTION_IDS = Object.keys(SECTIONS) as SectionId[];
 
 /**
  * 심화도(depth) 티어별 목표 분량 밴드.
@@ -45,9 +48,15 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
           .describe(
             "목표 글자 수를 직접 지정(대략, 상한 없음). 지정하면 depth 밴드보다 우선한다. 아주 긴 글은 여기에 큰 값(예: 10000)을 넣는다.",
           ),
+        section: z
+          .string()
+          .optional()
+          .describe(`어느 섹션의 글인가. ${SECTION_IDS.join(" | ")} 중 하나. 생략 시 mcp.`),
       },
     },
-    ({ topic, depth, length }) => {
+    ({ topic, depth, length, section }) => {
+      const sec: SectionId = section && (section in SECTIONS) ? (section as SectionId) : "mcp";
+      const isJeong = sec === "jeongcheogi";
       const chosen: Depth = depth ?? "standard";
       const explicitLen = length && length.trim() !== "" ? length : null;
       const explicitNum = explicitLen ? Number(explicitLen) : NaN;
@@ -61,12 +70,20 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         .join("\n");
       const topicLine = topic && topic.trim() !== ""
         ? `4. 주제는 "${topic}"으로 한다. (시드 밖 주제이므로 topicId는 없다)`
-        : `4. \`suggest_topic\` 도구를 호출해 안 겹치는 후보를 받고, 그중 하나를 고른다. 후보는 영역(A/B/C)이 섞여 나오니 최근 글과 다른 영역을 우선 고려한다. 각 후보의 \`[id: ...]\`를 기억해 둔다.`;
+        : `4. \`suggest_topic\`을 \`section: "${sec}"\`로 호출해 안 겹치는 후보를 받고, 그중 하나를 고른다. 후보는 영역이 섞여 나오니 최근 글과 다른 영역을 우선 고려한다. 각 후보의 \`[id: ...]\`를 기억해 둔다.`;
+
+      // 섹션별 본문 형식 지침(정처기는 개념 정리형, 그 외는 개발 튜토리얼형).
+      const formatLine = isJeong
+        ? "   - 형식: 개념 정리형 — 정의 → 핵심 원리 → 예시 → 시험에 자주 나오는 포인트. 표나 코드는 도움이 될 때만."
+        : "   - 형식: 마크다운. 적절한 소제목과, 가능하면 코드 예제 1개 이상 포함";
+      const audienceLine = isJeong
+        ? "   - 대상: 정보처리기사를 준비하는 사람 (개념을 처음 정리하는 수준)"
+        : "   - 대상: 개발을 배우는 독자";
 
       const text = [
-        "당신은 이 블로그의 정기 필자다. 아래 순서로 오늘의 글 한 편을 작성하고 발행하라.",
+        `당신은 이 블로그의 정기 필자다. 이번 글의 섹션은 "${SECTIONS[sec].label}"(section="${sec}")이다. 아래 순서로 글 한 편을 작성하고 발행하라.`,
         "",
-        "1. `blog://posts` 리소스를 읽어 지금까지 발행된 글의 제목·태그를 파악한다.",
+        "1. `blog://posts` 리소스를 읽어 지금까지 발행된 글의 제목·태그를 파악한다(같은 섹션 글과 겹치지 않게).",
         "2. 최근 글과 주제·내용이 겹치지 않도록 한다. 각 글은 그 자체로 완결되게 쓰고, \"다음 글에서는...\" 같은 예고는 넣지 않는다.",
         "3. 필요하면 특정 지난 글을 `blog://posts/{slug}`로 열어 맥락을 확인한다.",
         topicLine,
@@ -76,10 +93,11 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         "   - 심화도 티어(참고):",
         depthTable,
         "     (분량은 공백 포함 글자 수 기준. 하한에 걸치지 말고 밴드 중간값을 목표로 한다.)",
-        "   - 대상: 개발을 배우는 독자",
-        "   - 형식: 마크다운. 적절한 소제목과, 가능하면 코드 예제 1개 이상 포함",
+        audienceLine,
+        formatLine,
         "   - 톤: 군더더기 없이 명확하게. 과장·클리셰 지양",
         "6. `publish_post` 도구로 발행한다. `title`, `body`(프론트매터 제외한 본문), `tags`, 필요시 `description`을 채운다. `date`는 생략하면 오늘로 설정된다.",
+        `   - \`section: "${sec}"\`을 반드시 넘긴다.`,
         "   - suggest_topic 후보에서 고른 주제라면 그 후보의 `id`를 `topicId`로 꼭 넘긴다(중복 재제안 방지). 시드 밖 주제면 생략한다.",
         "   - `tags`는 3~5개. 1단계에서 읽은 `blog://posts`의 기존 태그를 우선 재사용해 표기 흔들림(예: typescript/ts)을 막고, 소문자 영문 또는 한글로 일관되게 쓴다.",
         `   - 분량 하한을 지키도록 \`minChars: ${minChars}\`를 함께 넘긴다. 본문이 이보다 짧으면 도구가 발행을 거부하니, 그때는 내용을 더 채워 다시 호출한다.`,

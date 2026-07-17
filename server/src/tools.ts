@@ -4,7 +4,23 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getContentDir } from "./config.js";
 import { listPosts } from "./posts.js";
-import { AREAS, SEED_TOPICS, type AreaId, type Topic } from "./topics.js";
+import {
+  AREAS,
+  SECTIONS,
+  SEED_TOPICS,
+  sectionOfArea,
+  type AreaId,
+  type SectionId,
+  type Topic,
+} from "./topics.js";
+
+/** 유효한 section id 목록(레지스트리 파생 — 하드코딩 금지). */
+const SECTION_IDS = Object.keys(SECTIONS) as SectionId[];
+
+/** 문자열이 유효한 section인지 좁힌다. */
+function isSectionId(value: string): value is SectionId {
+  return (SECTION_IDS as string[]).includes(value);
+}
 import { nowIso, slugify, yamlString } from "./util.js";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -48,6 +64,7 @@ interface Frontmatter {
   title: string;
   pubDate: string;
   tags: string[];
+  section: string;
   topicId?: string | undefined;
   description?: string | undefined;
 }
@@ -58,6 +75,7 @@ function buildFrontmatter(fm: Frontmatter): string {
     "---",
     `title: ${yamlString(fm.title)}`,
     `pubDate: ${fm.pubDate}`,
+    `section: ${yamlString(fm.section)}`,
     `tags: [${fm.tags.map(yamlString).join(", ")}]`,
   ];
   if (fm.topicId) lines.push(`topicId: ${yamlString(fm.topicId)}`);
@@ -78,6 +96,10 @@ export function registerPublishPost(server: McpServer): void {
         title: z.string().min(1).describe("글 제목"),
         body: z.string().min(1).describe("마크다운 본문 (프론트매터 제외)"),
         tags: z.array(z.string()).default([]).describe("태그 목록"),
+        section: z
+          .string()
+          .default("mcp")
+          .describe(`글의 섹션(대분류). ${SECTION_IDS.join(" | ")} 중 하나. 기본 mcp.`),
         date: z
           .string()
           .regex(DATE_RE, "YYYY-MM-DD 형식")
@@ -106,7 +128,20 @@ export function registerPublishPost(server: McpServer): void {
         description: z.string().optional().describe("요약(메타 설명)"),
       },
     },
-    async ({ title, body, tags, date, slug, topicId, minChars, description }) => {
+    async ({ title, body, tags, date, slug, topicId, minChars, section, description }) => {
+      // section이 레지스트리에 있는지 검증(하드코딩 대신 SECTIONS 파생).
+      if (!isSectionId(section)) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text" as const,
+              text: `알 수 없는 section "${section}". 사용 가능: ${SECTION_IDS.join(", ")}`,
+            },
+          ],
+        };
+      }
+
       // 본문을 가볍게 검증한다. 문제가 있으면 파일을 쓰지 않고 이유를 돌려준다.
       const problems = validateBody(body, minChars);
       if (problems.length > 0) {
@@ -140,7 +175,7 @@ export function registerPublishPost(server: McpServer): void {
         };
       }
 
-      const frontmatter = buildFrontmatter({ title, pubDate, tags, topicId, description });
+      const frontmatter = buildFrontmatter({ title, pubDate, tags, section, topicId, description });
       await writeFile(filePath, `${frontmatter}\n\n${body.trimEnd()}\n`, "utf8");
 
       return {
@@ -173,25 +208,47 @@ export function registerSuggestTopic(server: McpServer): void {
           .max(10)
           .default(3)
           .describe("제안할 후보 개수 (기본 3)"),
+        section: z
+          .string()
+          .default("mcp")
+          .describe(`후보를 뽑을 섹션. ${SECTION_IDS.join(" | ")} 중 하나. 기본 mcp.`),
       },
     },
-    async ({ count }) => {
+    async ({ count, section }) => {
+      if (!isSectionId(section)) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text" as const,
+              text: `알 수 없는 section "${section}". 사용 가능: ${SECTION_IDS.join(", ")}`,
+            },
+          ],
+        };
+      }
+      const sectionLabel = SECTIONS[section].label;
+
       const posts = await listPosts();
       // 발행 글에 기록된 topicId로 중복을 판정한다(제목·슬러그가 바뀌어도 안정적).
       const usedIds = new Set(posts.map((p) => p.topicId).filter((id): id is string => !!id));
-      const available = SEED_TOPICS.filter((t) => !usedIds.has(t.id));
+      // 이 섹션에 속한, 아직 안 쓴 시드만 후보로.
+      const available = SEED_TOPICS.filter(
+        (t) => !usedIds.has(t.id) && sectionOfArea(t.area) === section,
+      );
+      const sectionTotal = SEED_TOPICS.filter((t) => sectionOfArea(t.area) === section).length;
 
-      const recent = posts.slice(0, 5);
+      // 최근 글도 같은 섹션 것만 참고한다.
+      const recent = posts.filter((p) => (p.section ?? "mcp") === section).slice(0, 5);
       const recentText = recent.length
         ? recent.map((p) => `- ${p.title} (${p.pubDate.slice(0, 10)}) [${p.tags.join(", ")}]`).join("\n")
-        : "(아직 발행된 글 없음)";
+        : "(이 섹션엔 아직 발행된 글 없음)";
 
       if (available.length === 0) {
         return {
           content: [
             {
               type: "text" as const,
-              text: `시드 풀의 모든 주제(${SEED_TOPICS.length}개)가 이미 발행되었습니다.\n\n두 가지 선택지가 있습니다:\n1. 시드 밖 **자유 주제**로 바로 씁니다 — publish_post에 topicId 없이 발행하면 됩니다.\n2. 앞으로도 겹침 회피를 받고 싶은 주제라면 topics.ts에 새 시드로 추가하세요.\n\n최근 발행:\n${recentText}`,
+              text: `'${sectionLabel}' 섹션의 모든 시드 주제(${sectionTotal}개)가 이미 발행되었습니다.\n\n두 가지 선택지가 있습니다:\n1. 시드 밖 **자유 주제**로 바로 씁니다 — publish_post에 topicId 없이(section=${section}) 발행하면 됩니다.\n2. 앞으로도 겹침 회피를 받고 싶은 주제라면 topics.ts에 새 시드로 추가하세요.\n\n최근 발행:\n${recentText}`,
             },
           ],
         };
@@ -234,7 +291,7 @@ export function registerSuggestTopic(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: `안 겹치는 후보 주제 (영역 섞음, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로 넘기면 다음부터 중복 제안되지 않습니다.\n이 후보가 마음에 안 들면 시드 밖 자유 주제로 써도 됩니다(topicId 생략).\n\n최근 발행 글(참고):\n${recentText}`,
+            text: `[${sectionLabel}] 안 겹치는 후보 주제 (영역 섞음, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로, section은 "${section}"로 넘긴다.\n이 후보가 마음에 안 들면 시드 밖 자유 주제로 써도 됩니다(topicId 생략, section 유지).\n\n최근 발행 글(참고):\n${recentText}`,
           },
         ],
       };

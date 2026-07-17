@@ -10,6 +10,7 @@ const blog = defineCollection({
   schema: z.object({
     title: z.string(),
     pubDate: z.date(),
+    section: z.string().default("mcp"),
     tags: z.array(z.string()).default([]),
     topicId: z.string().optional(),
     description: z.string().optional(),
