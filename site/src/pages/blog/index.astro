@@ -1,52 +1,163 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
-import { tagHref } from "../../lib/tags.ts";
+import { tagHref, getTagCounts } from "../../lib/tags.ts";
+import { getSectionCounts } from "../../lib/sections.ts";
 import { fmtDateTime } from "../../lib/date.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+const categories = await getSectionCounts();
+const tags = await getTagCounts();
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (id: string) => `${base}/blog/${id}/`;
+
+/** 글의 카테고리 id(없으면 mcp). */
+const catOf = (p: (typeof posts)[number]) =>
+  typeof p.data.section === "string" && p.data.section.trim() !== "" ? p.data.section : "mcp";
 ---
 
-<Base title="글 목록 — blog" description="블로그의 전체 글을 최신순으로 모아봅니다">
+<Base title="글 목록 — blog" description="블로그의 전체 글을 카테고리·태그로 걸러봅니다">
   <h1>글 목록</h1>
-  <p class="muted">전체 {posts.length}개의 글 · 최신순</p>
+  <p class="muted"><span data-count>{posts.length}</span>개의 글 · 최신순</p>
+
+  {
+    posts.length > 0 && (
+      <div class="filters">
+        <label class="filter">
+          <span class="filter-label">카테고리</span>
+          <select data-filter-category>
+            <option value="">전체</option>
+            {categories.map((c) => (
+              <option value={c.id}>
+                {c.label} ({c.count})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label class="filter">
+          <span class="filter-label">태그</span>
+          <select data-filter-tag>
+            <option value="">전체</option>
+            {tags.map((t) => (
+              <option value={t.tag}>
+                {t.tag} ({t.count})
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="button" class="pill filter-reset" data-filter-reset hidden>
+          초기화
+        </button>
+      </div>
+    )
+  }
   <hr />
 
   {
     posts.length === 0 ? (
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
-      <ul class="post-list">
-        {posts.map((post) => (
-          <li class="post-item">
-            <div class="muted post-date">{fmtDateTime(post.data.pubDate)}</div>
-            <h2 class="post-title">
-              <a href={href(post.id)}>{post.data.title}</a>
-            </h2>
-            {post.data.description && (
-              <p class="post-desc">{post.data.description}</p>
-            )}
-            {post.data.tags.length > 0 && (
-              <div class="tags">
-                {post.data.tags.map((t) => (
-                  <a class="pill" href={tagHref(base, t)}>
-                    {t}
-                  </a>
-                ))}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+      <>
+        <ul class="post-list" data-post-list>
+          {posts.map((post) => (
+            <li
+              class="post-item"
+              data-category={catOf(post)}
+              data-tags={post.data.tags.join(",")}
+            >
+              <div class="muted post-date">{fmtDateTime(post.data.pubDate)}</div>
+              <h2 class="post-title">
+                <a href={href(post.id)}>{post.data.title}</a>
+              </h2>
+              {post.data.description && <p class="post-desc">{post.data.description}</p>}
+              {post.data.tags.length > 0 && (
+                <div class="tags">
+                  {post.data.tags.map((t) => (
+                    <a class="pill" href={tagHref(base, t)}>
+                      {t}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+        <p class="muted empty" data-empty hidden>
+          조건에 맞는 글이 없습니다.
+        </p>
+      </>
     )
   }
 </Base>
 
 <style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-5) 0 var(--space-3);
+  }
+  /* 라벨 + 셀렉트를 한 알약에 묶는다 */
+  .filter {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-left: 0.9em;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-full, 999px);
+    background: var(--c-surface);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .filter:hover {
+    border-color: var(--c-accent);
+  }
+  .filter:focus-within {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px var(--c-accent-soft);
+  }
+  .filter-label {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--c-muted);
+    white-space: nowrap;
+  }
+  .filter select {
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--c-text);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0.5em 1.9em 0.5em 0.1em;
+    border-radius: var(--radius-full, 999px);
+    /* 커스텀 화살표 */
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7em center;
+    background-size: 0.7em;
+  }
+  .filter select:focus {
+    outline: none;
+  }
+  .filter-reset {
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--c-muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .filter-reset:hover {
+    color: var(--c-accent);
+  }
+
   .post-list {
     list-style: none;
     padding: 0;
@@ -55,6 +166,9 @@ const href = (id: string) => `${base}/blog/${id}/`;
   .post-item {
     padding: var(--space-5) 0;
     border-bottom: 1px solid var(--c-border);
+  }
+  .post-item[hidden] {
+    display: none;
   }
   .post-date {
     font-size: var(--fs-xs);
@@ -79,4 +193,78 @@ const href = (id: string) => `${base}/blog/${id}/`;
     flex-wrap: wrap;
     gap: var(--space-2);
   }
+  .empty {
+    padding: var(--space-6) 0;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .filter {
+      flex: 1 1 100%;
+    }
+    .filter select {
+      flex: 1;
+    }
+  }
 </style>
+
+<script>
+  // /blog/ 카테고리·태그 필터. SSG라 전 글을 렌더해두고 클라이언트에서 show/hide한다.
+  // View Transitions 대응: 리스너는 문서에 한 번만 매고, astro:page-load마다 초기화.
+  function initBlogFilter() {
+    const list = document.querySelector<HTMLElement>("[data-post-list]");
+    const catSel = document.querySelector<HTMLSelectElement>("[data-filter-category]");
+    const tagSel = document.querySelector<HTMLSelectElement>("[data-filter-tag]");
+    if (!list || !catSel || !tagSel) return; // /blog/ 목록 페이지가 아니면 무시
+
+    const items = Array.from(list.querySelectorAll<HTMLElement>(".post-item"));
+    const countEl = document.querySelector<HTMLElement>("[data-count]");
+    const emptyEl = document.querySelector<HTMLElement>("[data-empty]");
+    const resetBtn = document.querySelector<HTMLElement>("[data-filter-reset]");
+
+    const apply = (pushUrl: boolean) => {
+      const cat = catSel.value;
+      const tag = tagSel.value;
+      let visible = 0;
+      for (const li of items) {
+        const liCat = li.getAttribute("data-category") || "";
+        const liTags = (li.getAttribute("data-tags") || "").split(",").filter(Boolean);
+        const ok = (!cat || liCat === cat) && (!tag || liTags.includes(tag));
+        li.hidden = !ok;
+        if (ok) visible++;
+      }
+      if (countEl) countEl.textContent = String(visible);
+      if (emptyEl) emptyEl.hidden = visible !== 0;
+      if (resetBtn) resetBtn.hidden = !cat && !tag;
+      if (pushUrl) {
+        const params = new URLSearchParams();
+        if (cat) params.set("category", cat);
+        if (tag) params.set("tag", tag);
+        const qs = params.toString();
+        history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
+      }
+    };
+
+    // URL 쿼리 → 초기 선택(유효한 값일 때만)
+    const params = new URLSearchParams(location.search);
+    const initCat = params.get("category") || "";
+    const initTag = params.get("tag") || "";
+    if ([...catSel.options].some((o) => o.value === initCat)) catSel.value = initCat;
+    if ([...tagSel.options].some((o) => o.value === initTag)) tagSel.value = initTag;
+
+    catSel.addEventListener("change", () => apply(true));
+    tagSel.addEventListener("change", () => apply(true));
+    resetBtn?.addEventListener("click", () => {
+      catSel.value = "";
+      tagSel.value = "";
+      apply(true);
+    });
+
+    apply(false);
+  }
+
+  if (!(window as any).__blogFilterBound) {
+    (window as any).__blogFilterBound = true;
+    document.addEventListener("astro:page-load", initBlogFilter);
+  }
+</script>
