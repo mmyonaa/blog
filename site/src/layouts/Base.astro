@@ -13,7 +13,7 @@ const { title, description, ogType = "website" } = Astro.props;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const siteName = "blog";
-const desc = description ?? "MCP를 배우며 자동 발행하는 블로그";
+const desc = description ?? "MCP 만들기와 정보처리기사 개념을 매일 기록하는 학습 블로그";
 const canonical = Astro.site
   ? new URL(Astro.url.pathname, Astro.site).href
   : Astro.url.pathname;
