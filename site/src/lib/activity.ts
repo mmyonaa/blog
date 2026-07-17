@@ -109,11 +109,14 @@ export function buildActivity(
   return { weeks, cells, months, total: dates.length };
 }
 
-/** 발행 수 → 강도 레벨(0~3). 미래는 -1. */
+/**
+ * 발행 수 → 강도 레벨(0~3). 미래는 -1.
+ * 구간: 0 / 1~4 / 5~9 / 10+.
+ */
 export function heatLevel(count: number): number {
   if (count < 0) return -1;
   if (count === 0) return 0;
-  if (count === 1) return 1;
-  if (count === 2) return 2;
+  if (count <= 4) return 1;
+  if (count <= 9) return 2;
   return 3;
 }
