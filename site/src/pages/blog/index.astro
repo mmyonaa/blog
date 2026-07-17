@@ -16,6 +16,20 @@ const href = (id: string) => `${base}/blog/${id}/`;
 /** 글의 카테고리 id(없으면 mcp). */
 const catOf = (p: (typeof posts)[number]) =>
   typeof p.data.section === "string" && p.data.section.trim() !== "" ? p.data.section : "mcp";
+
+// 커스텀 드롭다운 옵션(전체 + 각 항목). label=트리거 표시용(개수 제외), text=목록 표시용.
+const categoryOptions = [
+  { value: "", label: "전체", text: "전체" },
+  ...categories.map((c) => ({ value: c.id, label: c.label, text: `${c.label} (${c.count})` })),
+];
+const tagOptions = [
+  { value: "", label: "전체", text: "전체" },
+  ...tags.map((t) => ({ value: t.tag, label: t.tag, text: `${t.tag} (${t.count})` })),
+];
+const dropdowns = [
+  { name: "category", label: "카테고리", options: categoryOptions },
+  { name: "tag", label: "태그", options: tagOptions },
+];
 ---
 
 <Base title="글 목록 — blog" description="블로그의 전체 글을 카테고리·태그로 걸러봅니다">
@@ -25,31 +39,41 @@ const catOf = (p: (typeof posts)[number]) =>
   {
     posts.length > 0 && (
       <div class="filters">
-        <label class="filter">
-          <span class="filter-label">카테고리</span>
-          <select data-filter-category>
-            <option value="">전체</option>
-            {categories.map((c) => (
-              <option value={c.id}>
-                {c.label} ({c.count})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label class="filter">
-          <span class="filter-label">태그</span>
-          <select data-filter-tag>
-            <option value="">전체</option>
-            {tags.map((t) => (
-              <option value={t.tag}>
-                {t.tag} ({t.count})
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="button" class="pill filter-reset" data-filter-reset hidden>
-          초기화
-        </button>
+        {dropdowns.map((dd) => (
+          <div class="filter" data-dropdown data-name={dd.name} data-value="">
+            <span class="filter-label" id={`dd-label-${dd.name}`}>
+              {dd.label}
+            </span>
+            <button
+              type="button"
+              class="dd-trigger"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-labelledby={`dd-label-${dd.name} dd-val-${dd.name}`}
+            >
+              <span class="dd-value" id={`dd-val-${dd.name}`} data-dd-value>
+                전체
+              </span>
+              <svg class="dd-arrow" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+                <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+            <ul class="dd-list" role="listbox" aria-labelledby={`dd-label-${dd.name}`} hidden>
+              {dd.options.map((o) => (
+                <li
+                  role="option"
+                  tabindex="-1"
+                  data-value={o.value}
+                  data-label={o.label}
+                  aria-selected={o.value === "" ? "true" : "false"}
+                >
+                  {o.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        <button type="button" class="filter-reset" data-filter-reset hidden>초기화</button>
       </div>
     )
   }
@@ -100,8 +124,10 @@ const catOf = (p: (typeof posts)[number]) =>
     gap: var(--space-3);
     margin: var(--space-5) 0 var(--space-3);
   }
-  /* 라벨 + 셀렉트를 한 알약에 묶는다 */
+
+  /* 라벨 + 트리거를 한 알약에 묶는다 */
   .filter {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -125,34 +151,109 @@ const catOf = (p: (typeof posts)[number]) =>
     color: var(--c-muted);
     white-space: nowrap;
   }
-  .filter select {
+
+  .dd-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
     font: inherit;
     font-size: var(--fs-sm);
     font-weight: 600;
     color: var(--c-text);
-    border: none;
     background: transparent;
+    border: none;
     cursor: pointer;
-    padding: 0.5em 1.9em 0.5em 0.1em;
+    padding: 0.5em 0.9em 0.5em 0.1em;
     border-radius: var(--radius-full, 999px);
-    /* 커스텀 화살표 */
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.7em center;
-    background-size: 0.7em;
   }
-  .filter select:focus {
+  .dd-trigger:focus-visible {
     outline: none;
   }
+  .dd-arrow {
+    flex-shrink: 0;
+    color: var(--c-muted);
+    transition: transform 0.15s ease;
+  }
+  .dd-trigger[aria-expanded="true"] .dd-arrow {
+    transform: rotate(180deg);
+  }
+
+  /* 커스텀 드롭다운 목록(네이티브 select 팝업 대체) */
+  .dd-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 100%;
+    width: max-content;
+    max-width: 18rem;
+    max-height: 16rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: var(--space-1);
+    list-style: none;
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: 20;
+    animation: dd-in 0.12s ease;
+  }
+  .dd-list[hidden] {
+    display: none;
+  }
+  @keyframes dd-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dd-list {
+      animation: none;
+    }
+  }
+  .dd-list [role="option"] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.5em 0.7em;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    color: var(--c-text);
+    cursor: pointer;
+    white-space: nowrap;
+    outline: none;
+  }
+  /* 선택 표시용 체크 자리(항상 확보 → 텍스트 정렬 유지) */
+  .dd-list [role="option"]::before {
+    content: "";
+    width: 0.9em;
+    flex-shrink: 0;
+    color: var(--c-accent);
+    font-weight: 700;
+  }
+  .dd-list [role="option"][aria-selected="true"]::before {
+    content: "✓";
+  }
+  .dd-list [role="option"]:hover,
+  .dd-list [role="option"]:focus {
+    background: var(--c-accent-soft);
+  }
+  .dd-list [role="option"][aria-selected="true"] {
+    color: var(--c-accent);
+    font-weight: 700;
+  }
+
   .filter-reset {
+    font: inherit;
     font-size: var(--fs-sm);
     cursor: pointer;
-    border: 1px solid transparent;
+    border: none;
     background: transparent;
     color: var(--c-muted);
     text-decoration: underline;
     text-underline-offset: 3px;
+    padding: 0.4em 0.2em;
   }
   .filter-reset:hover {
     color: var(--c-accent);
@@ -202,29 +303,115 @@ const catOf = (p: (typeof posts)[number]) =>
     .filter {
       flex: 1 1 100%;
     }
-    .filter select {
+    .dd-trigger {
       flex: 1;
+      justify-content: space-between;
+    }
+    .dd-list {
+      max-width: none;
     }
   }
 </style>
 
 <script>
-  // /blog/ 카테고리·태그 필터. SSG라 전 글을 렌더해두고 클라이언트에서 show/hide한다.
-  // View Transitions 대응: 리스너는 문서에 한 번만 매고, astro:page-load마다 초기화.
+  // /blog/ 카테고리·태그 필터 + 커스텀 드롭다운(네이티브 select 팝업이 OS 스타일이라 대체).
+  // SSG라 전 글을 렌더해두고 클라이언트에서 show/hide. View Transitions 대응: 문서 리스너는
+  // 한 번만 매고 astro:page-load마다 재초기화한다.
+
+  /** 커스텀 드롭다운 하나를 구동. onChange는 선택이 바뀔 때 호출. */
+  function setupDropdown(dd: HTMLElement, onChange: () => void) {
+    const trigger = dd.querySelector<HTMLButtonElement>(".dd-trigger")!;
+    const listEl = dd.querySelector<HTMLElement>(".dd-list")!;
+    const valEl = dd.querySelector<HTMLElement>("[data-dd-value]")!;
+    const options = Array.from(listEl.querySelectorAll<HTMLElement>('[role="option"]'));
+    let focusIdx = 0;
+
+    const isOpen = () => !listEl.hidden;
+    const open = () => {
+      listEl.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+      focusIdx = Math.max(
+        0,
+        options.findIndex((o) => o.getAttribute("aria-selected") === "true"),
+      );
+      options[focusIdx]?.focus();
+    };
+    const close = (focusTrigger = false) => {
+      listEl.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+      if (focusTrigger) trigger.focus();
+    };
+    const choose = (opt: HTMLElement) => {
+      options.forEach((o) => o.setAttribute("aria-selected", "false"));
+      opt.setAttribute("aria-selected", "true");
+      dd.dataset.value = opt.dataset.value || "";
+      valEl.textContent = opt.dataset.label || opt.textContent?.trim() || "";
+      close(true);
+      onChange();
+    };
+
+    trigger.addEventListener("click", () => (isOpen() ? close() : open()));
+    options.forEach((opt, i) => {
+      opt.addEventListener("click", () => choose(opt));
+      opt.addEventListener("mouseenter", () => {
+        focusIdx = i;
+        opt.focus();
+      });
+    });
+
+    dd.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (!isOpen()) {
+        if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close(true);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        focusIdx = (focusIdx + 1) % options.length;
+        options[focusIdx].focus();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        focusIdx = (focusIdx - 1 + options.length) % options.length;
+        options[focusIdx].focus();
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        choose(options[focusIdx]);
+      } else if (e.key === "Tab") {
+        close();
+      }
+    });
+
+    // 외부(URL 등)에서 값 지정
+    (dd as any)._setValue = (value: string) => {
+      const opt = options.find((o) => (o.dataset.value || "") === value) || options[0];
+      options.forEach((o) => o.setAttribute("aria-selected", "false"));
+      opt.setAttribute("aria-selected", "true");
+      dd.dataset.value = opt.dataset.value || "";
+      valEl.textContent = opt.dataset.label || opt.textContent?.trim() || "";
+    };
+  }
+
   function initBlogFilter() {
     const list = document.querySelector<HTMLElement>("[data-post-list]");
-    const catSel = document.querySelector<HTMLSelectElement>("[data-filter-category]");
-    const tagSel = document.querySelector<HTMLSelectElement>("[data-filter-tag]");
-    if (!list || !catSel || !tagSel) return; // /blog/ 목록 페이지가 아니면 무시
+    const dropdowns = Array.from(document.querySelectorAll<HTMLElement>("[data-dropdown]"));
+    if (!list || dropdowns.length === 0) return; // /blog/ 목록 페이지가 아니면 무시
 
     const items = Array.from(list.querySelectorAll<HTMLElement>(".post-item"));
     const countEl = document.querySelector<HTMLElement>("[data-count]");
     const emptyEl = document.querySelector<HTMLElement>("[data-empty]");
     const resetBtn = document.querySelector<HTMLElement>("[data-filter-reset]");
 
+    const getVal = (name: string) =>
+      dropdowns.find((d) => d.dataset.name === name)?.dataset.value || "";
+
     const apply = (pushUrl: boolean) => {
-      const cat = catSel.value;
-      const tag = tagSel.value;
+      const cat = getVal("category");
+      const tag = getVal("tag");
       let visible = 0;
       for (const li of items) {
         const liCat = li.getAttribute("data-category") || "";
@@ -245,18 +432,14 @@ const catOf = (p: (typeof posts)[number]) =>
       }
     };
 
-    // URL 쿼리 → 초기 선택(유효한 값일 때만)
-    const params = new URLSearchParams(location.search);
-    const initCat = params.get("category") || "";
-    const initTag = params.get("tag") || "";
-    if ([...catSel.options].some((o) => o.value === initCat)) catSel.value = initCat;
-    if ([...tagSel.options].some((o) => o.value === initTag)) tagSel.value = initTag;
+    dropdowns.forEach((dd) => setupDropdown(dd, () => apply(true)));
 
-    catSel.addEventListener("change", () => apply(true));
-    tagSel.addEventListener("change", () => apply(true));
+    // URL 쿼리 → 초기 선택
+    const params = new URLSearchParams(location.search);
+    dropdowns.forEach((dd) => (dd as any)._setValue(params.get(dd.dataset.name || "") || ""));
+
     resetBtn?.addEventListener("click", () => {
-      catSel.value = "";
-      tagSel.value = "";
+      dropdowns.forEach((dd) => (dd as any)._setValue(""));
       apply(true);
     });
 
@@ -266,5 +449,18 @@ const catOf = (p: (typeof posts)[number]) =>
   if (!(window as any).__blogFilterBound) {
     (window as any).__blogFilterBound = true;
     document.addEventListener("astro:page-load", initBlogFilter);
+    // 바깥 클릭 → 열린 드롭다운 닫기(문서에 한 번만)
+    document.addEventListener("click", (e) => {
+      const t = e.target as HTMLElement;
+      document.querySelectorAll<HTMLElement>("[data-dropdown]").forEach((dd) => {
+        if (dd.contains(t)) return;
+        const listEl = dd.querySelector<HTMLElement>(".dd-list");
+        const trigger = dd.querySelector<HTMLElement>(".dd-trigger");
+        if (listEl && !listEl.hidden) {
+          listEl.hidden = true;
+          trigger?.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
   }
 </script>
