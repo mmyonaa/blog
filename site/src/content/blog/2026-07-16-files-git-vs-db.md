@@ -1,6 +1,7 @@
 ---
 title: "왜 블로그에 DB 대신 파일 + git을 쓰나"
 pubDate: 2026-07-16T00:59:07Z
+section: "mcp"
 tags: ["아키텍처", "ssg", "git"]
 topicId: "files-git-vs-db"
 description: "개인 블로그의 글을 데이터베이스가 아니라 마크다운 파일과 git으로 관리하면 무엇이 좋은가. 저장소 선택이 프로젝트의 성격을 어떻게 바꾸는지 짚는다."

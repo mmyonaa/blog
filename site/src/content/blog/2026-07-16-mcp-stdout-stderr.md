@@ -1,6 +1,7 @@
 ---
 title: "MCP 서버는 왜 stdout에 로그를 찍으면 안 되나 — stdout vs stderr"
 pubDate: 2026-07-16T10:30:00Z
+section: "mcp"
 tags: ["mcp", "node", "stdio"]
 description: "stdio MCP 서버에서 console.log 한 줄이 연결을 통째로 깨뜨릴 수 있다. stdout이 통신 채널인 이유와, 로그를 stderr로 보내야 하는 까닭을 짚는다."
 ---
