@@ -99,6 +99,7 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         "6. `publish_post` 도구로 발행한다. `title`, `body`(프론트매터 제외한 본문), `tags`, 필요시 `description`을 채운다. `date`는 생략하면 오늘로 설정된다.",
         `   - \`section: "${sec}"\`을 반드시 넘긴다.`,
         "   - suggest_topic 후보에서 고른 주제라면 그 후보의 `id`를 `topicId`로 꼭 넘긴다(중복 재제안 방지). 시드 밖 주제면 생략한다.",
+        "   - `slug`에 짧은 영문 kebab-case를 **반드시** 넘긴다(URL 안정용). 시드 주제면 그 `id`를 그대로 slug로 쓰고, 자유 주제면 내용을 요약한 영문 슬러그를 만든다. 생략하면 한글 슬러그가 되어 URL이 지저분해지니 절대 비워두지 않는다.",
         "   - `tags`는 3~5개. 1단계에서 읽은 `blog://posts`의 기존 태그를 우선 재사용해 표기 흔들림(예: typescript/ts)을 막고, 소문자 영문 또는 한글로 일관되게 쓴다.",
         `   - 분량 하한을 지키도록 \`minChars: ${minChars}\`를 함께 넘긴다. 본문이 이보다 짧으면 도구가 발행을 거부하니, 그때는 내용을 더 채워 다시 호출한다.`,
         "7. 발행 결과(파일명)를 사람에게 한 줄로 보고한다.",
