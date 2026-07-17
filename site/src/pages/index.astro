@@ -2,11 +2,13 @@
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import { tagHref } from "../lib/tags.ts";
+import { getSectionCounts, sectionHref } from "../lib/sections.ts";
 import { fmtDateTime } from "../lib/date.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+const sections = await getSectionCounts();
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (id: string) => `${base}/blog/${id}/`;
 
@@ -22,6 +24,17 @@ const rest = others.slice(0, RECENT_MAX);
     <p class="hero-sub">
       MCP를 직접 만들어 배우고, 그 과정을 자동으로 기록합니다. 매일 한 편씩.
     </p>
+    {
+      sections.length > 0 && (
+        <nav class="sections-strip" aria-label="섹션">
+          {sections.map((s) => (
+            <a class="sec-pill" href={sectionHref(base, s.id)}>
+              {s.label} <span class="sec-pill-count">{s.count}</span>
+            </a>
+          ))}
+        </nav>
+      )
+    }
   </section>
 
   {
@@ -93,6 +106,35 @@ const rest = others.slice(0, RECENT_MAX);
     font-size: var(--fs-lg);
     max-width: 40ch;
     margin: 0;
+  }
+  .sections-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+  }
+  .sec-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.4em 0.9em;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-full, 999px);
+    background: var(--c-surface);
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .sec-pill:hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+    background: var(--c-accent-soft);
+  }
+  .sec-pill-count {
+    color: var(--c-accent);
+    font-weight: 700;
   }
 
   /* stretched-link 패턴: 카드는 div, 제목 링크가 카드 전체를 덮고,
