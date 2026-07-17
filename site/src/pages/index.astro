@@ -176,9 +176,8 @@ const rest = others.slice(0, RECENT_MAX);
   }
   .grid {
     display: grid;
-    /* 글이 적어도 카드가 과하게 늘어나지 않도록 상한을 둔다 */
-    grid-template-columns: repeat(auto-fill, minmax(260px, 360px));
-    justify-content: start;
+    /* 3열이 컨테이너 폭을 균등 분할 → 오른쪽 끝이 featured·'전체 글 보기'와 정렬 */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-4);
   }
   .card {
@@ -199,6 +198,13 @@ const rest = others.slice(0, RECENT_MAX);
     color: var(--c-muted);
     font-size: var(--fs-sm);
     margin: 0 0 var(--space-3);
+  }
+
+  /* 태블릿: 3열이 좁아지기 전에 2열로 */
+  @media (max-width: 900px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   /* ── 모바일 (#27) ── */
