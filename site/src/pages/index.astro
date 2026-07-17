@@ -208,7 +208,9 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
       transparent 70%
     );
     mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 70%);
-    opacity: 0.6;
+    opacity: 0.4;
+    /* 장식 레이어 — 헤더/콘텐츠 클릭을 절대 가로채지 않게 */
+    pointer-events: none;
   }
 
   /* 오로라 블롭: 뷰포트 전체 폭(풀블리드)에 흐릿한 광원 2~3개 */
@@ -226,8 +228,8 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
   .blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(60px);
-    opacity: 0.5;
+    filter: blur(64px);
+    opacity: 0.3;
     will-change: transform;
   }
   .blob-1 {
@@ -245,7 +247,7 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
     top: -14%;
     right: 4%;
     background: radial-gradient(circle, #6366f1, transparent 68%);
-    opacity: 0.42;
+    opacity: 0.24;
   }
   .blob-3 {
     width: 30vw;
@@ -254,21 +256,21 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
     top: 22%;
     left: 34%;
     background: radial-gradient(circle, #ec4899, transparent 70%);
-    opacity: 0.28;
+    opacity: 0.15;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) .blob {
-      opacity: 0.4;
+      opacity: 0.22;
     }
     :root:not([data-theme="light"]) .hero::before {
-      opacity: 0.4;
+      opacity: 0.25;
     }
   }
   :root[data-theme="dark"] .blob {
-    opacity: 0.4;
+    opacity: 0.22;
   }
   :root[data-theme="dark"] .hero::before {
-    opacity: 0.4;
+    opacity: 0.25;
   }
 
   @media (prefers-reduced-motion: no-preference) {

@@ -28,10 +28,10 @@ interface Props {
 const { post, newer, older } = Astro.props as Props;
 const { Content, headings } = await render(post);
 
-// 좌측 사이드바용 전체 글 목록(최신순)
-const allPosts = (await getCollection("blog")).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+// 좌측 사이드바용 글 목록(최신순) — 현재 보고 있는 글은 제외.
+const allPosts = (await getCollection("blog"))
+  .filter((p) => p.id !== post.id)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 // 우측 목차: 본문의 h2/h3만 사용 (h1은 제목이라 제외)
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
@@ -295,6 +295,11 @@ const jsonLd = {
   .post-header-area {
     grid-area: header;
   }
+  /* 타이틀 섹션의 보더(hr)에 좌·우 사이드바 상단을 맞춘다: hr 하단 마진을 0으로 두어
+     2행(사이드바+본문)이 보더 라인에서 시작하고, 본문만 padding-top으로 여백을 회복. */
+  .post-header-area hr {
+    margin-bottom: 0;
+  }
   /* '글 목록 →' 링크는 좌측 상단(제목 줄 높이)에, 실제 목록은 본문 시작선에 정렬 */
   .side-left-head {
     grid-area: lefthead;
@@ -314,6 +319,8 @@ const jsonLd = {
     max-width: var(--content-width);
     margin: 0 auto;
     width: 100%;
+    /* 사이드바는 hr 보더 라인에서 시작하고, 본문 텍스트만 보더와 여백을 둔다. */
+    padding-top: var(--space-6);
   }
 
   /* ── 사이드바 공통 ── */

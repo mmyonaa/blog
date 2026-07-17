@@ -65,6 +65,10 @@ const searchIndexUrl = `${base}/search-index.json`;
 
 <style>
   .site-header {
+    /* 랜딩 히어로의 풀블리드 배경(스택 컨텍스트)이 헤더 위에 그려지지 않도록
+       헤더를 별도 스택 컨텍스트로 올린다. 클릭 가로채기·시각적 겹침 모두 방지. */
+    position: relative;
+    z-index: 1;
     border-bottom: 1px solid var(--c-border);
     background: var(--c-bg);
   }
