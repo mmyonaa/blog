@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
-import { tagHref } from "../lib/tags.ts";
+import { tagHref, getTagCounts } from "../lib/tags.ts";
 import { getSectionCounts, sectionHref } from "../lib/sections.ts";
 import { fmtDateTime } from "../lib/date.ts";
 import { buildActivity, heatLevel } from "../lib/activity.ts";
@@ -10,6 +10,7 @@ const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 const sections = await getSectionCounts();
+const tags = await getTagCounts();
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (id: string) => `${base}/blog/${id}/`;
 
@@ -37,9 +38,10 @@ if (posts.length > 0) {
   }
 }
 const stats = [
-  { value: posts.length, label: "발행 글" },
+  { value: posts.length, label: "발행 글", href: `${base}/blog/` },
   { value: streak, label: "일 연속 발행" },
-  { value: sections.length, label: "카테고리" },
+  { value: sections.length, label: "카테고리", href: `${base}/categories/` },
+  { value: tags.length, label: "태그", href: `${base}/tags/` },
 ];
 
 // 발행 스트릭 잔디(heatmap): 글 pubDate를 주×요일 격자로.
@@ -69,9 +71,15 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
         posts.length > 0 && (
           <dl class="stats reveal" style="--i: 2">
             {stats.map((s) => (
-              <div class="stat">
+              <div class:list={["stat", { "stat-link": s.href }]}>
                 <dt class="stat-value" data-countup={s.value}>{s.value}</dt>
-                <dd class="stat-label">{s.label}</dd>
+                <dd class="stat-label">
+                  {s.href ? (
+                    <a href={s.href} class="stat-a">{s.label}</a>
+                  ) : (
+                    s.label
+                  )}
+                </dd>
               </div>
             ))}
           </dl>
@@ -434,6 +442,23 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
     display: flex;
     flex-direction: column;
     line-height: 1.1;
+  }
+  /* 클릭 가능한 통계: 라벨 링크가 stat 전체를 덮어 숫자까지 클릭되게 */
+  .stat-link {
+    position: relative;
+  }
+  .stat-a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .stat-a::after {
+    content: "";
+    position: absolute;
+    inset: -0.2em -0.3em;
+    border-radius: var(--radius-sm);
+  }
+  .stat-link:hover .stat-label {
+    color: var(--c-accent);
   }
   .stat-value {
     font-size: var(--fs-2xl);
