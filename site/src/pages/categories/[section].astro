@@ -23,8 +23,8 @@ const href = (id: string) => `${base}/blog/${id}/`;
 const label = sectionLabel(section);
 ---
 
-<Base title={`${label} — blog`} description={`${label} 섹션의 글 목록`}>
-  <p class="muted"><a href={`${base}/sections/`}>← 전체 섹션</a></p>
+<Base title={`${label} — blog`} description={`${label} 카테고리의 글 목록`}>
+  <p class="muted"><a href={`${base}/categories/`}>← 전체 카테고리</a></p>
   <h1>{label}</h1>
   <p class="muted">{posts.length}개의 글</p>
   <hr />

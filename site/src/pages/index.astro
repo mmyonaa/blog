@@ -26,7 +26,7 @@ const rest = others.slice(0, RECENT_MAX);
     </p>
     {
       sections.length > 0 && (
-        <nav class="sections-strip" aria-label="섹션">
+        <nav class="sections-strip" aria-label="카테고리">
           {sections.map((s) => (
             <a class="sec-pill" href={sectionHref(base, s.id)}>
               {s.label} <span class="sec-pill-count">{s.count}</span>

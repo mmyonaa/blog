@@ -19,8 +19,9 @@ export function sectionLabel(id: string): string {
   return SECTION_LABELS[id] ?? id;
 }
 
+// 내부 데이터 축은 'section'이지만, 화면·URL 표기는 '카테고리(categories)'로 노출한다.
 export function sectionHref(base: string, id: string): string {
-  return `${base}/sections/${encodeURIComponent(id)}/`;
+  return `${base}/categories/${encodeURIComponent(id)}/`;
 }
 
 /** 글의 섹션(없으면 mcp — 구버전 글 호환). */

@@ -6,13 +6,13 @@ const sections = await getSectionCounts();
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<Base title="섹션 — blog" description="주제별 섹션으로 글을 모아봅니다">
-  <h1>섹션</h1>
-  <p class="muted">이 블로그는 주제별 섹션으로 나뉘어 있습니다.</p>
+<Base title="카테고리 — blog" description="카테고리별로 글을 모아봅니다">
+  <h1>카테고리</h1>
+  <p class="muted">이 블로그는 카테고리별로 나뉘어 있습니다.</p>
   <hr />
   {
     sections.length === 0 ? (
-      <p class="muted">아직 섹션이 없습니다.</p>
+      <p class="muted">아직 카테고리가 없습니다.</p>
     ) : (
       <div class="sec-grid">
         {sections.map((s) => (
