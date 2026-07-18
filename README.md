@@ -1,6 +1,6 @@
 # blog-mcp
 
-> 매일 한 편씩 블로그 글을 자동으로 쓰고 발행하는 것을 목표로,
+> 블로그 글을 자동으로 쓰고 발행하는 것을 목표로,
 > 그 과정에서 **MCP(Model Context Protocol) 서버를 직접 만들어보고 배우는** 학습 프로젝트.
 
 **진짜 목적은 결과물(블로그)이 아니라 MCP를 제대로 익히는 것이다.** 그래서 발행 파이프라인은 최대한 단순하게 두고, MCP 서버 설계에 집중한다.
@@ -60,13 +60,34 @@ Phase 2까지는 API 키 없이 전부 무료로 진행한다.
 │       ├── prompts.ts     # write_daily_post
 │       ├── posts.ts       # 발행된 글 읽기
 │       ├── topics.ts      # 시드 주제 풀
+│       ├── util.ts        # 슬러그·날짜 유틸
 │       └── config.ts      # 콘텐츠 디렉토리 설정
 ├── site/            # Astro 블로그 (발행된 글이 여기 렌더됨)
-│   └── src/content/blog/  # publish_post가 쓰는 마크다운 목적지
-└── docs/            # 설계 노트 (plan.md 등)
+│   └── src/
+│       ├── content/blog/      # publish_post가 쓰는 마크다운 목적지
+│       ├── content.config.ts  # 글 프론트매터 스키마
+│       ├── pages/             # 글·목록·섹션·태그·RSS·검색 인덱스
+│       ├── components/        # 목록·페이지네이션·헤더/푸터
+│       ├── layouts/           # Base.astro (메타·OG·JSON-LD)
+│       └── lib/               # 태그·날짜 헬퍼
+└── docs/            # 설계 노트 — 아래 §문서 참고
 ```
 
 발행된 글은 `site/src/content/blog/`에 저장된다(환경변수 `BLOG_CONTENT_DIR`로 재정의 가능).
+
+## 문서
+
+설계 판단과 그 근거는 `docs/`에 남긴다. 구현보다 문서가 앞서는 경우가 많다(= 제안 단계).
+
+| 문서 | 다루는 것 | 상태 |
+|---|---|---|
+| [plan.md](docs/plan.md) | 전체 설계도 — MCP 구조·3단계 로드맵·배포·비용 | 기준 문서 |
+| [content-strategy.md](docs/content-strategy.md) | 무슨 글을, 어떤 톤·구조로 쓸까 | 적용 중 |
+| [research-synthesis-mode.md](docs/research-synthesis-mode.md) | 웹 소스를 종합해 쓰는 Mode R 설계 | 제안 |
+| [publishing-routing.md](docs/publishing-routing.md) | 모드별로 발행처를 다르게 라우팅 | 제안 |
+| [이미지-넣기.md](docs/이미지-넣기.md) | 글에 이미지를 넣는 두 가지 층 | 제안 |
+| [view-count-supabase.md](docs/view-count-supabase.md) | 조회수 — 정적 사이트에 동적 데이터 붙이기 | 제안 |
+| [custom-domain-setup.md](docs/custom-domain-setup.md) | 커스텀 도메인 연결 절차 | 절차 문서 |
 
 ## 빠른 시작
 
@@ -92,3 +113,4 @@ claude mcp add blog-mcp -- node server/dist/index.js
 ## 상태
 
 🚧 **Phase 2 진행 중** — MCP 서버(Phase 1) 완성, Claude Code에 붙여 대화형으로 도구를 다듬는 단계.
+현재까지 16편 발행(`MCP 만들기` · `정처기`). 배포 워크플로(GitHub Actions Pages)는 아직 없다.
