@@ -1,0 +1,6 @@
+# 모든 크롤러 허용
+User-agent: *
+Allow: /
+
+# 사이트맵 위치
+Sitemap: https://mmyonaa.github.io/mcp/sitemap-index.xml
