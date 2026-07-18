@@ -10,10 +10,11 @@ export type Post = CollectionEntry<"blog">;
 export const SECTION_LABELS: Record<string, string> = {
   mcp: "MCP 만들기",
   jeongcheogi: "정처기",
+  security: "보안",
 };
 
 /** 노출 순서. 여기 없는 섹션은 뒤에 이름순으로 붙는다. */
-const SECTION_ORDER = ["mcp", "jeongcheogi"];
+const SECTION_ORDER = ["mcp", "jeongcheogi", "security"];
 
 export function sectionLabel(id: string): string {
   return SECTION_LABELS[id] ?? id;

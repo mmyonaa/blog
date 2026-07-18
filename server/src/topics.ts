@@ -17,6 +17,10 @@
 export const SECTIONS = {
   mcp: { label: "MCP 만들기", desc: "blog-mcp를 만들며 배운 것을 기록하는 메타 블로그" },
   jeongcheogi: { label: "정처기", desc: "정보처리기사 시험 개념 정리" },
+  security: {
+    label: "보안",
+    desc: "최근 보안 사고·취약점을 웹 리서치로 종합(Mode R). 시드 없이 자유 주제로 쓴다",
+  },
 } as const;
 
 export type SectionId = keyof typeof SECTIONS;
