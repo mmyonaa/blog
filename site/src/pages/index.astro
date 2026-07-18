@@ -55,7 +55,7 @@ const SECTION_HUE: Record<string, string> = {
 const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
 ---
 
-<Base title="blog" description="배우고 만들며 알게 된 것을 기록하는 학습 블로그">
+<Base title="blog" description="MCP 서버로 글을 발행하며 배운 것을 기록하는 블로그">
   <section class="hero">
     <div class="hero-bg" aria-hidden="true">
       <span class="blob blob-1"></span>
@@ -65,7 +65,7 @@ const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
     <div class="hero-inner">
       <h1 class="hero-title reveal" style="--i: 0">blog</h1>
       <p class="hero-sub reveal" style="--i: 1">
-        배우고 만들며 알게 된 것들을 기록합니다.
+        직접 만든 MCP 서버가 쓰고, 제가 배운 걸로 채웁니다.
       </p>
       {
         posts.length > 0 && (
