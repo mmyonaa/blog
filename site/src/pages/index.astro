@@ -2,7 +2,7 @@
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import { tagHref, getTagCounts } from "../lib/tags.ts";
-import { getSectionCounts, sectionHref } from "../lib/sections.ts";
+import { getSectionCounts, sectionHref, hueOf } from "../lib/sections.ts";
 import { fmtDateTime } from "../lib/date.ts";
 import { buildActivity, heatLevel } from "../lib/activity.ts";
 
@@ -47,12 +47,7 @@ const stats = [
 // 발행 스트릭 잔디(heatmap): 글 pubDate를 주×요일 격자로.
 const activity = buildActivity(posts.map((p) => p.data.pubDate));
 
-// 카테고리별 액센트 hue(단조로운 단색 pill 탈피). 없으면 기본 액센트.
-const SECTION_HUE: Record<string, string> = {
-  mcp: "#7c3aed",
-  jeongcheogi: "#0ea5e9",
-};
-const hueOf = (id: string) => SECTION_HUE[id] ?? "var(--c-accent)";
+// 카테고리별 액센트 hue는 lib/sections.ts에 있다(카드뷰와 공유).
 ---
 
 <Base title="blog" description="MCP 서버로 글을 발행하며 배운 것을 기록하는 블로그">

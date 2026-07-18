@@ -16,6 +16,18 @@ export const SECTION_LABELS: Record<string, string> = {
 /** 노출 순서. 여기 없는 섹션은 뒤에 이름순으로 붙는다. */
 const SECTION_ORDER = ["mcp", "jeongcheogi", "security"];
 
+/**
+ * 섹션별 액센트 hue. 랜딩의 섹션 pill과 카드뷰의 색 띠가 같은 색을 쓰도록
+ * 여기 한 곳에 둔다. 목록에 없는 섹션은 기본 액센트로 폴백.
+ */
+export const SECTION_HUE: Record<string, string> = {
+  mcp: "#7c3aed",
+  jeongcheogi: "#0ea5e9",
+  security: "#059669",
+};
+
+export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)";
+
 export function sectionLabel(id: string): string {
   return SECTION_LABELS[id] ?? id;
 }

@@ -28,13 +28,16 @@ const ogImage = Astro.site
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    {/* 테마: 렌더 전에 즉시 적용해 깜빡임(FOUC) 방지 */}
+    {/* 테마·목록뷰: 렌더 전에 즉시 적용해 깜빡임(FOUC) 방지 */}
     <script is:inline>
       (() => {
         try {
           const t = localStorage.getItem("theme");
           if (t === "light" || t === "dark")
             document.documentElement.dataset.theme = t;
+          // 카드가 기본이라 "list"일 때만 표시한다(없으면 카드).
+          if (localStorage.getItem("postview") === "list")
+            document.documentElement.dataset.view = "list";
         } catch {}
       })();
     </script>
@@ -109,13 +112,39 @@ const ogImage = Astro.site
             : "light";
         };
 
-        // View Transitions로 문서를 교체하면 <html>의 data-theme가 사라지므로
-        // 스왑 직후 localStorage 값으로 다시 적용한다(깜빡임 방지: 페인트 전).
+        // 목록 뷰(카드/리스트). 카드가 기본이라 "list"일 때만 속성을 둔다.
+        const applyView = (v: string | null) => {
+          const root = document.documentElement;
+          if (v === "list") root.dataset.view = "list";
+          else delete root.dataset.view;
+          document
+            .querySelectorAll<HTMLElement>("[data-view-set]")
+            .forEach((btn) => {
+              const on = btn.dataset.viewSet === (v === "list" ? "list" : "cards");
+              btn.setAttribute("aria-pressed", String(on));
+            });
+        };
+        const storedView = () => {
+          try {
+            return localStorage.getItem("postview");
+          } catch {
+            return null;
+          }
+        };
+
+        // View Transitions로 문서를 교체하면 <html>의 data-theme·data-view가
+        // 사라지므로 스왑 직후 localStorage 값으로 다시 적용한다(페인트 전).
         document.addEventListener("astro:after-swap", () => {
           try {
             applyTheme(localStorage.getItem("theme"));
           } catch {}
+          applyView(storedView());
         });
+        // 최초 로드 시 토글 버튼의 aria-pressed를 저장값에 맞춘다
+        // (data-view 자체는 head 인라인 스크립트가 이미 적용했다).
+        document.addEventListener("astro:page-load", () =>
+          applyView(storedView()),
+        );
 
         document.addEventListener("click", async (e) => {
           const target = e.target as HTMLElement;
@@ -124,6 +153,14 @@ const ogImage = Astro.site
             applyTheme(next);
             try {
               localStorage.setItem("theme", next);
+            } catch {}
+          } else if (target.closest("[data-view-set]")) {
+            const next =
+              target.closest<HTMLElement>("[data-view-set]")!.dataset.viewSet ??
+              "cards";
+            applyView(next);
+            try {
+              localStorage.setItem("postview", next);
             } catch {}
           } else if (target.closest("[data-to-top]")) {
             const reduce = window.matchMedia(

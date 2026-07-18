@@ -1,0 +1,59 @@
+---
+// 목록 표시 방식(카드/리스트) 전환 버튼.
+// 실제 전환은 <html data-view>를 보는 global.css가 하고, 상태 저장·복원은
+// Base.astro의 applyView가 맡는다. 여기는 마크업만 둔다.
+// aria-pressed 초기값은 기본 뷰(카드) 기준이며 astro:page-load에서 저장값에 맞춰진다.
+---
+
+<div class="view-toggle" role="group" aria-label="목록 표시 방식">
+  <button type="button" data-view-set="cards" aria-pressed="true">
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"></rect>
+      <rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"></rect>
+      <rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor"></rect>
+      <rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"></rect>
+    </svg>
+    카드
+  </button>
+  <button type="button" data-view-set="list" aria-pressed="false">
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <rect x="1" y="2" width="14" height="2" rx="1" fill="currentColor"></rect>
+      <rect x="1" y="7" width="14" height="2" rx="1" fill="currentColor"></rect>
+      <rect x="1" y="12" width="14" height="2" rx="1" fill="currentColor"></rect>
+    </svg>
+    목록
+  </button>
+</div>
+
+<style>
+  .view-toggle {
+    display: inline-flex;
+    gap: var(--space-1);
+    padding: 3px;
+    border: 1px solid var(--c-border);
+    border-radius: 999px;
+    background: var(--c-surface);
+  }
+  .view-toggle button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--c-muted);
+    font: inherit;
+    font-size: var(--fs-xs);
+    line-height: 1;
+    cursor: pointer;
+  }
+  .view-toggle button:hover {
+    color: var(--c-text);
+  }
+  .view-toggle button[aria-pressed="true"] {
+    background: var(--c-bg);
+    color: var(--c-text);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  }
+</style>

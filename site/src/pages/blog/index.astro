@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
-import PostList from "../../components/PostList.astro";
+import PostViews from "../../components/PostViews.astro";
 import Pagination from "../../components/Pagination.astro";
 import BlogFilterLinks from "../../components/BlogFilterLinks.astro";
 import { PAGE_SIZE } from "../../lib/pagination.ts";
@@ -28,7 +28,7 @@ const pageHref = (n: number) => (n <= 1 ? `${base}/blog/` : `${base}/blog/page/$
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
       <>
-        <PostList posts={pageItems} />
+        <PostViews posts={pageItems} toggle={false} />
         <Pagination currentPage={1} lastPage={lastPage} hrefFor={pageHref} />
       </>
     )

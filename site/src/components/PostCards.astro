@@ -1,0 +1,152 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { tagHref } from "../lib/tags.ts";
+import { fmtDateTime } from "../lib/date.ts";
+import { sectionLabel, sectionHref, hueOf } from "../lib/sections.ts";
+
+interface Props {
+  posts: CollectionEntry<"blog">[];
+}
+const { posts } = Astro.props as Props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const href = (id: string) => `${base}/blog/${id}/`;
+
+/** 구버전 글(section 없음)은 mcp로 본다 — lib/sections.ts의 sectionOf와 같은 규칙. */
+const sectionOf = (post: CollectionEntry<"blog">) =>
+  typeof post.data.section === "string" && post.data.section.trim() !== ""
+    ? post.data.section
+    : "mcp";
+
+/** 카드는 높이를 맞추므로 태그가 많아도 앞 3개만 노출(넘치면 +N). */
+const TAG_MAX = 3;
+---
+
+<ul class="post-cards">
+  {
+    posts.map((post) => {
+      const section = sectionOf(post);
+      const tags = post.data.tags.slice(0, TAG_MAX);
+      const overflow = post.data.tags.length - tags.length;
+      return (
+        <li class="card" style={`--hue: ${hueOf(section)}`}>
+          <span class="card-stripe" aria-hidden="true" />
+          <div class="card-body">
+            <div class="card-meta">
+              <a class="card-section" href={sectionHref(base, section)}>
+                {sectionLabel(section)}
+              </a>
+              <span class="muted card-date">{fmtDateTime(post.data.pubDate)}</span>
+            </div>
+            <h2 class="card-title">
+              <a href={href(post.id)}>{post.data.title}</a>
+            </h2>
+            {post.data.description && <p class="card-desc">{post.data.description}</p>}
+            {tags.length > 0 && (
+              <div class="tags card-tags">
+                {tags.map((t) => (
+                  <a class="pill" href={tagHref(base, t)}>
+                    {t}
+                  </a>
+                ))}
+                {overflow > 0 && <span class="pill pill-more">+{overflow}</span>}
+              </div>
+            )}
+          </div>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .post-cards {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-5) 0 0;
+    display: grid;
+    /* 폭에 따라 1~3열. 카드 최소 폭을 두어 좁은 화면에선 자동으로 1열이 된다. */
+    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    gap: var(--space-4);
+  }
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+  .card:hover {
+    border-color: var(--hue);
+    transform: translateY(-2px);
+  }
+  /* 섹션 색 띠 — 썸네일이 없는 대신 이게 카드의 시각적 앵커 역할을 한다. */
+  .card-stripe {
+    height: 4px;
+    background: var(--hue);
+  }
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: var(--space-4);
+    gap: var(--space-2);
+  }
+  .card-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    font-size: var(--fs-xs);
+  }
+  .card-section {
+    color: var(--hue);
+    font-weight: 600;
+  }
+  .card-section:hover {
+    text-decoration: underline;
+  }
+  .card-title {
+    font-size: var(--fs-lg);
+    line-height: 1.4;
+    margin: 0;
+  }
+  .card-title a {
+    color: var(--c-text);
+  }
+  .card-title a:hover {
+    color: var(--hue);
+    text-decoration: none;
+  }
+  .card-desc {
+    color: var(--c-muted);
+    font-size: var(--fs-sm);
+    margin: 0;
+    /* 요약 길이가 제각각이라 3줄로 자른다 — 카드 높이가 들쭉날쭉해지는 걸 막는다. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-tags {
+    /* 태그는 항상 카드 바닥에 붙어 정렬선이 생기게 한다. */
+    margin-top: auto;
+    padding-top: var(--space-2);
+  }
+  .pill-more {
+    color: var(--c-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card {
+      transition: none;
+    }
+    .card:hover {
+      transform: none;
+    }
+  }
+</style>

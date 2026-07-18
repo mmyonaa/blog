@@ -1,0 +1,38 @@
+---
+import type { CollectionEntry } from "astro:content";
+import PostList from "./PostList.astro";
+import PostCards from "./PostCards.astro";
+import ViewToggle from "./ViewToggle.astro";
+
+interface Props {
+  posts: CollectionEntry<"blog">[];
+  /** /blog/는 BlogFilterLinks 줄에 토글이 있으므로 여기선 끈다(중복 방지). */
+  toggle?: boolean;
+}
+const { posts, toggle = true } = Astro.props as Props;
+---
+
+{/*
+  두 뷰를 모두 렌더하고 CSS(:root[data-view])로 한쪽만 보인다.
+  - JS 없이도 카드뷰가 보인다(기본값). 토글만 동작하지 않는다.
+  - 상태를 <html>에 두므로 전환이 리페인트 한 번으로 끝난다.
+  DOM이 2배가 되지만 한 페이지에 10개 단위라 무시할 만한 비용.
+*/}
+{
+  toggle && (
+    <div class="view-switch">
+      <ViewToggle />
+    </div>
+  )
+}
+
+<div class="view-cards"><PostCards posts={posts} /></div>
+<div class="view-list"><PostList posts={posts} /></div>
+
+<style>
+  .view-switch {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-4);
+  }
+</style>

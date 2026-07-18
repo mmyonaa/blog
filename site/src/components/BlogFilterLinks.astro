@@ -1,7 +1,8 @@
 ---
 // /blog/ 상단의 '카테고리·태그로 보기' 링크. 예전 클라이언트 show/hide 필터를
 // URL 기반(전용 페이지로 이동)으로 대체한다.
-import { getSectionCounts, sectionHref } from "../lib/sections.ts";
+import { getSectionCounts, sectionHref, hueOf } from "../lib/sections.ts";
+import ViewToggle from "./ViewToggle.astro";
 
 const categories = await getSectionCounts();
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -12,13 +13,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <nav class="filter-links" aria-label="카테고리·태그로 보기">
       <span class="fl-label">카테고리</span>
       {categories.map((c) => (
-        <a class="pill fl-pill" href={sectionHref(base, c.id)}>
+        <a
+          class="pill fl-pill"
+          href={sectionHref(base, c.id)}
+          style={`--hue: ${hueOf(c.id)}`}
+        >
           {c.label} <span class="fl-count">{c.count}</span>
         </a>
       ))}
-      <a class="fl-more" href={`${base}/tags/`}>
-        태그별 보기 →
-      </a>
+      <div class="fl-more">
+        <ViewToggle />
+      </div>
     </nav>
   )
 }
@@ -49,14 +54,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     font-size: var(--fs-sm);
     font-weight: 600;
   }
+  /* 카테고리 색 점 — 카드 상단 띠와 같은 --hue를 써서 목록/필터의 색을 맞춘다. */
+  .fl-pill::before {
+    content: "";
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--hue);
+    flex: none;
+  }
   a.fl-pill:hover {
-    border-color: var(--c-accent);
-    color: var(--c-accent);
-    background: var(--c-accent-soft);
+    border-color: var(--hue);
+    color: var(--hue);
+    background: color-mix(in srgb, var(--hue) 10%, transparent);
     text-decoration: none;
   }
   .fl-count {
-    color: var(--c-accent);
+    color: var(--hue);
     font-weight: 700;
   }
   .fl-more {

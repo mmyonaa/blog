@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../../../layouts/Base.astro";
-import PostList from "../../../components/PostList.astro";
+import PostViews from "../../../components/PostViews.astro";
 import Pagination from "../../../components/Pagination.astro";
 import BlogFilterLinks from "../../../components/BlogFilterLinks.astro";
 import { PAGE_SIZE } from "../../../lib/pagination.ts";
@@ -46,6 +46,6 @@ const pageHref = (n: number) => (n <= 1 ? `${base}/blog/` : `${base}/blog/page/$
   <BlogFilterLinks />
   <hr />
 
-  <PostList posts={items} />
+  <PostViews posts={items} toggle={false} />
   <Pagination currentPage={pageNum} lastPage={lastPage} hrefFor={pageHref} />
 </Base>

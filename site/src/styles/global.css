@@ -388,3 +388,16 @@ a.pill:hover {
     padding: var(--space-5) var(--space-4) var(--space-8);
   }
 }
+
+/* ── 목록 뷰 전환 (카드/리스트) ──
+ * 두 뷰를 다 렌더해두고 <html data-view>로 한쪽만 보인다.
+ * data-view가 없으면(= JS 미실행/최초 방문) 카드가 기본. */
+:root[data-view="list"] .view-cards {
+  display: none;
+}
+.view-list {
+  display: none;
+}
+:root[data-view="list"] .view-list {
+  display: block;
+}

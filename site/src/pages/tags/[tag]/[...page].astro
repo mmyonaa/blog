@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths } from "astro";
 import Base from "../../../layouts/Base.astro";
-import PostList from "../../../components/PostList.astro";
+import PostViews from "../../../components/PostViews.astro";
 import Pagination from "../../../components/Pagination.astro";
 import { getTagMap } from "../../../lib/tags.ts";
 import { PAGE_SIZE } from "../../../lib/pagination.ts";
@@ -28,6 +28,6 @@ const pageHref = (n: number) =>
     {page.total}개의 글{page.lastPage > 1 && ` · ${page.currentPage} / ${page.lastPage} 페이지`}
   </p>
   <hr />
-  <PostList posts={page.data} />
+  <PostViews posts={page.data} />
   <Pagination currentPage={page.currentPage} lastPage={page.lastPage} hrefFor={pageHref} />
 </Base>
