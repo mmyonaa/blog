@@ -25,8 +25,8 @@ const searchIndexUrl = `${base}/search-index.json`;
         <kbd class="search-kbd">/</kbd>
       </button>
       <a href={`${base}/`} class:list={["pill", { active: isHome }]} aria-current={isHome ? "page" : undefined}>홈</a>
-      <a href={`${base}/blog/`} class:list={["pill", { active: isBlog }]} aria-current={isBlog ? "page" : undefined}>글</a>
       <a href={`${base}/topics/`} class:list={["pill", { active: isTopics }]} aria-current={isTopics ? "page" : undefined}>분류</a>
+      <a href={`${base}/blog/`} class:list={["pill", { active: isBlog }]} aria-current={isBlog ? "page" : undefined}>글</a>
       <button type="button" class="pill theme-toggle" data-theme-toggle aria-label="테마 전환">
         <svg class="icon-moon" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
           <path d="M16 11.5A6 6 0 1 1 8.5 4a5 5 0 0 0 7.5 7.5Z" fill="currentColor"></path>
