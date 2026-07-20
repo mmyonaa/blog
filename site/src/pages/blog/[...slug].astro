@@ -4,6 +4,7 @@ import Base from "../../layouts/Base.astro";
 import { tagHref } from "../../lib/tags.ts";
 import { fmtDateTime } from "../../lib/date.ts";
 import { sectionLabel, sectionHref, hueOf, sectionOf } from "../../lib/sections.ts";
+import Comments from "../../components/Comments.astro";
 
 export async function getStaticPaths() {
   const posts = (await getCollection("blog")).sort(
@@ -167,6 +168,8 @@ const jsonLd = {
           </nav>
         )
       }
+
+      <Comments />
     </div>
 
     {
