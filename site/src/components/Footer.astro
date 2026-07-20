@@ -1,6 +1,7 @@
 ---
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const repo = "https://github.com/mmyonaa/mcp";
+const profile = "https://github.com/mmyonaa";
 const year = new Date().getFullYear();
 ---
 
@@ -15,6 +16,8 @@ const year = new Date().getFullYear();
       <a href={`${base}/rss.xml`}>RSS</a>
       <span aria-hidden="true"> · </span>
       <a href={repo} target="_blank" rel="noopener">GitHub</a>
+      <span aria-hidden="true"> · </span>
+      <a href={profile} target="_blank" rel="noopener">@mmyonaa</a>
     </p>
   </div>
 </footer>
