@@ -21,14 +21,14 @@ const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "security"];
  * 섹션별 액센트 hue. 랜딩의 섹션 pill·카드뷰 색 띠·분류 카드 좌측 보더가 같은 색을
  * 쓰도록 여기 한 곳에 둔다. 목록에 없는 섹션은 기본 액센트로 폴백.
  *
- * 채도·명도는 비슷하게(차분한 에디토리얼 톤) 두되 색상(hue)만 벌려 카테고리가
- * 한눈에 구분되게 한다 — 이전엔 넷 다 남색 계열이라 사실상 단색이었다.
+ * 채도·명도는 비슷하게 묶어(차분한 에디토리얼 톤, 저채도 슬레이트 한 가족) 통일감을
+ * 유지하되, 색상(hue)만 조금씩 벌려 카테고리는 구분되게 한다. 선명한 원색은 피한다.
  */
 export const SECTION_HUE: Record<string, string> = {
   mcp: "#33415c", // 네이비(브랜드 기준색)
-  web: "#2f6a5e", // 청록 — 웹·프런트
-  jeongcheogi: "#5a4b8a", // 남보라 — 자격증·이론
-  security: "#a15545", // 테라코타 — 보안(경고 톤)
+  web: "#3a5f6b", // 청회색 — 살짝 청록으로
+  jeongcheogi: "#514d7e", // 남보라 슬레이트
+  security: "#7a5560", // 자주빛 슬레이트 — 톤 유지하며 따뜻하게
 };
 
 export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)";
