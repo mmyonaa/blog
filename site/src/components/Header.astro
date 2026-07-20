@@ -108,9 +108,11 @@ const searchIndexUrl = `${base}/search-index.json`;
     height: 2rem;
     font-size: var(--fs-sm);
   }
-  .nav .active {
-    background: var(--c-accent-soft);
-    color: var(--c-accent);
+  /* 활성 메뉴는 solid 액센트로 — soft 배경만으론 hover와 구분이 약하다 */
+  .nav .active,
+  .nav a.active:hover {
+    background: var(--c-accent);
+    color: var(--c-accent-contrast);
     font-weight: 600;
   }
 
