@@ -681,14 +681,14 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     text-decoration: none;
   }
 
-  /* ── RSS 안내 팝오버 ── */
-  .rss-wrap {
-    position: relative;
-  }
+  /* ── RSS 안내 팝오버 ──
+     모바일: 버튼 기준 앵커는 좁은 화면에서 뷰포트를 넘치므로,
+     .hero-cta(행 전체) 기준으로 행 아래 중앙에 띄운다. 데스크톱에서만 버튼 기준. */
   .rss-pop {
     position: absolute;
     top: calc(100% + var(--space-2));
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 30;
     width: min(24rem, calc(100vw - var(--space-8)));
     padding: var(--space-4);
@@ -696,6 +696,17 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     border-radius: var(--radius-md);
     background: var(--c-bg);
     box-shadow: var(--shadow-md);
+  }
+  /* 데스크톱: 아래 통계·글을 가리지 않게 버튼 오른쪽에 띄운다 */
+  @media (min-width: 901px) {
+    .rss-wrap {
+      position: relative;
+    }
+    .rss-pop {
+      top: 50%;
+      left: calc(100% + var(--space-3));
+      transform: translateY(-50%);
+    }
   }
   .rss-help {
     margin: 0 0 var(--space-3);
