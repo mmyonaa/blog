@@ -5,7 +5,14 @@
 
 **진짜 목적은 결과물(블로그)이 아니라 MCP를 제대로 익히는 것이다.** 그래서 발행 파이프라인은 최대한 단순하게 두고, MCP 서버 설계에 집중한다.
 
-> 발행되는 블로그 자체는 **섹션(section)** 으로 나뉜다 — `MCP·에이전트 만들기`(이 프로젝트 개발기·MCP/에이전트 해설)와 `정처기`(정보처리기사 개념 정리). 섹션은 레지스트리에 한 줄 추가로 늘릴 수 있는 확장 축이다.
+> 발행되는 블로그는 **섹션(section)** 으로 나뉜다. 섹션은 레지스트리(`server/src/topics.ts`)에 한 줄 추가로 늘릴 수 있는 확장 축이다.
+>
+> | 섹션 | 다루는 것 |
+> |---|---|
+> | `MCP·에이전트 만들기` | MCP 서버·에이전트를 만들며 배운 개념과 자동화 여정 |
+> | `블로그·웹 만들기` | Astro·TypeScript 등 블로그 사이트를 만들며 배운 웹 기술 |
+> | `정처기` | 정보처리기사 시험 개념 정리 |
+> | `보안` | 최근 보안 사고·취약점을 웹 리서치로 종합 |
 
 ## 이 프로젝트는 세 조각으로 나뉜다
 
@@ -35,7 +42,7 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 
 - **Phase 1 — MCP 서버 만들기** ✅ 🆓 &nbsp;위 3대 primitive를 갖춘 stdio 서버 완성.
 - **Phase 2 — Claude Code에 붙여 대화형 테스트** 🚧 🆓 &nbsp;`claude mcp add`로 등록해 대화로 도구를 굴린다. 구독으로 커버되어 무료. **MCP 학습의 90%가 여기서 끝난다.** (현재 진행 중)
-- **Phase 3 — 오케스트레이터 + cron 자동화** ⬜ 💸 &nbsp;사람 없이 매일 발행. 이때만 `ANTHROPIC_API_KEY`가 필요.
+- **Phase 3 — 오케스트레이터 + cron 자동화** ⬜ 💸 &nbsp;사람 없이 매일 발행. 이때만 LLM API 비용이 든다.
 
 Phase 2까지는 API 키 없이 전부 무료로 진행한다.
 
@@ -43,7 +50,8 @@ Phase 2까지는 API 키 없이 전부 무료로 진행한다.
 
 - **MCP 서버**: TypeScript + [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol) (stdio transport, zod 스키마)
 - **오케스트레이터**: `@anthropic-ai/claude-agent-sdk` (Phase 3)
-- **블로그 렌더링**: [Astro](https://astro.build) SSG (태그 페이지 · RSS 피드) → GitHub Pages
+- **블로그 렌더링**: [Astro](https://astro.build) SSG (섹션·태그 페이지 · RSS 피드 · 클라이언트 검색) → GitHub Pages
+- **댓글·의견**: giscus(GitHub Discussions 기반 공개 댓글) + 익명 의견 모달(폼 엔드포인트)
 - **트리거**: GitHub Actions cron (Phase 3)
 - **패키지 관리**: pnpm workspace (`server` + `site`)
 
@@ -59,35 +67,20 @@ Phase 2까지는 API 키 없이 전부 무료로 진행한다.
 │       ├── resources.ts   # blog://posts, blog://posts/{slug}
 │       ├── prompts.ts     # write_daily_post
 │       ├── posts.ts       # 발행된 글 읽기
-│       ├── topics.ts      # 시드 주제 풀
+│       ├── topics.ts      # 섹션 레지스트리 + 시드 주제 풀
 │       ├── util.ts        # 슬러그·날짜 유틸
 │       └── config.ts      # 콘텐츠 디렉토리 설정
-├── site/            # Astro 블로그 (발행된 글이 여기 렌더됨)
-│   └── src/
-│       ├── content/blog/      # publish_post가 쓰는 마크다운 목적지
-│       ├── content.config.ts  # 글 프론트매터 스키마
-│       ├── pages/             # 글·목록·섹션·태그·RSS·검색 인덱스
-│       ├── components/        # 목록·페이지네이션·헤더/푸터
-│       ├── layouts/           # Base.astro (메타·OG·JSON-LD)
-│       └── lib/               # 태그·날짜 헬퍼
-└── docs/            # 설계 노트 — 아래 §문서 참고
+└── site/            # Astro 블로그 (발행된 글이 여기 렌더됨)
+    └── src/
+        ├── content/blog/      # publish_post가 쓰는 마크다운 목적지
+        ├── content.config.ts  # 글 프론트매터 스키마
+        ├── pages/             # 글·목록·섹션·태그·RSS·검색 인덱스·의견 페이지
+        ├── components/        # 목록·헤더/푸터·댓글·의견 모달
+        ├── layouts/           # Base.astro (메타·OG·JSON-LD)
+        └── lib/               # 섹션·태그·날짜·의견 설정 헬퍼
 ```
 
 발행된 글은 `site/src/content/blog/`에 저장된다(환경변수 `BLOG_CONTENT_DIR`로 재정의 가능).
-
-## 문서
-
-설계 판단과 그 근거는 `docs/`에 남긴다. 구현보다 문서가 앞서는 경우가 많다(= 제안 단계).
-
-| 문서 | 다루는 것 | 상태 |
-|---|---|---|
-| [plan.md](docs/plan.md) | 전체 설계도 — MCP 구조·3단계 로드맵·배포·비용 | 기준 문서 |
-| [content-strategy.md](docs/content-strategy.md) | 무슨 글을, 어떤 톤·구조로 쓸까 | 적용 중 |
-| [research-synthesis-mode.md](docs/research-synthesis-mode.md) | 웹 소스를 종합해 쓰는 Mode R 설계 | 제안 |
-| [publishing-routing.md](docs/publishing-routing.md) | 모드별로 발행처를 다르게 라우팅 | 제안 |
-| [이미지-넣기.md](docs/이미지-넣기.md) | 글에 이미지를 넣는 두 가지 층 | 제안 |
-| [view-count-supabase.md](docs/view-count-supabase.md) | 조회수 — 정적 사이트에 동적 데이터 붙이기 | 제안 |
-| [custom-domain-setup.md](docs/custom-domain-setup.md) | 커스텀 도메인 연결 절차 | 절차 문서 |
 
 ## 빠른 시작
 
@@ -113,4 +106,5 @@ claude mcp add blog-mcp -- node server/dist/index.js
 ## 상태
 
 🚧 **Phase 2 진행 중** — MCP 서버(Phase 1) 완성, Claude Code에 붙여 대화형으로 도구를 다듬는 단계.
-현재까지 16편 발행(`MCP·에이전트 만들기` · `정처기`). 배포 워크플로(GitHub Actions Pages)는 아직 없다.
+현재까지 **30편 발행**(`MCP·에이전트 만들기` 11 · `정처기` 9 · `블로그·웹 만들기` 8 · `보안` 2).
+배포 워크플로(GitHub Actions Pages)는 준비 중이다.
