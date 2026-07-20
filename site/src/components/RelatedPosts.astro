@@ -30,9 +30,6 @@ const TAG_MAX = 3;
                 <a class="related-post-title" href={href(post.id)}>
                   {post.data.title}
                 </a>
-                {post.data.description && (
-                  <p class="related-desc">{post.data.description}</p>
-                )}
                 {tags.length > 0 && (
                   <div class="related-tags">
                     {tags.map((t) => (
@@ -122,16 +119,6 @@ const TAG_MAX = 3;
   .related-post-title:hover {
     color: var(--hue-on);
     text-decoration: none;
-  }
-  .related-desc {
-    color: var(--c-muted);
-    font-size: var(--fs-xs);
-    line-height: var(--lh-snug);
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
   .related-tags {
     display: flex;
