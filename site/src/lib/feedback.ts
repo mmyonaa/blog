@@ -3,7 +3,8 @@
 //   클라이언트 노출용으로 설계된 키라 코드에 넣어도 된다. 여기만 채우면
 //   /feedback/ 폼이 활성화되고 글 하단 안내·푸터 링크가 함께 폼 페이지를 가리킨다.
 // - null이면 익명 안내 문구는 렌더되지 않고, 진입점은 Discussions로 폴백한다.
-export const WEB3FORMS_ACCESS_KEY: string | null = null;
+export const WEB3FORMS_ACCESS_KEY: string | null =
+  "fede36d3-d31e-4c6d-b425-cbe9b8725383";
 
 export const DISCUSSIONS_URL = "https://github.com/mmyonaa/mcp/discussions";
 
