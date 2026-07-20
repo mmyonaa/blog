@@ -14,8 +14,8 @@ const posts = (await getCollection("blog")).sort(
 const sections = await getSectionCounts();
 const tags = await getTagCounts();
 // 히어로 카테고리 아래 인기 태그: 글 수 상위만(전체는 /topics/#tags).
-// 최대치만 넘기고, 실제 노출 개수는 화면 폭에 따라 PopularTags가 CSS로 조절한다.
-const topTags = tags.slice(0, 24);
+// 넉넉히 넘기고, 실제 노출량은 화면 폭에 따라 PopularTags가 '줄 수' 단위로 클립한다.
+const topTags = tags.slice(0, 36);
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 // RSS 안내 팝오버에 보여줄 절대 피드 주소(리더 앱에 그대로 등록하는 값)
