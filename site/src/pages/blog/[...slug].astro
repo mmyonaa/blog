@@ -3,6 +3,7 @@ import { getCollection, render, type CollectionEntry } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import { tagHref } from "../../lib/tags.ts";
 import { fmtDateTime } from "../../lib/date.ts";
+import { sectionLabel, sectionHref, hueOf, sectionOf } from "../../lib/sections.ts";
 
 export async function getStaticPaths() {
   const posts = (await getCollection("blog")).sort(
@@ -27,6 +28,9 @@ interface Props {
 
 const { post, newer, older } = Astro.props as Props;
 const { Content, headings } = await render(post);
+
+// 이 글의 카테고리(섹션) — 목록/카드와 같은 라벨·색을 헤더에도 노출.
+const section = sectionOf(post);
 
 // 좌측 사이드바용 글 목록(최신순) — 현재 보고 있는 글은 제외하고, 최근 N개만.
 // (스크롤이 생기지 않도록 개수 제한. 전체는 상단 '글 목록 →' 링크로.)
@@ -78,7 +82,8 @@ const jsonLd = {
     <div class="post-header-area">
       <header class="post-header">
         <h1>{post.data.title}</h1>
-        <div class="meta">
+        <div class="meta" style={`--hue: ${hueOf(section)}`}>
+          <a class="category" href={sectionHref(base, section)}>{sectionLabel(section)}</a>
           <span>{fmtDateTime(post.data.pubDate)}</span>
           {post.data.tags.length > 0 && (
             <span class="tags">
@@ -530,6 +535,22 @@ const jsonLd = {
     display: inline-flex;
     gap: var(--space-2);
     margin-left: var(--space-2);
+  }
+  /* 카테고리 pill — 카드뷰의 섹션 색과 같은 hue로 채운다(태그 pill과 구분). */
+  .category {
+    display: inline-block;
+    padding: 0.2em 0.75em;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--hue, var(--c-accent)) 14%, transparent);
+    color: var(--hue, var(--c-accent));
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+  .category:hover {
+    background: color-mix(in srgb, var(--hue, var(--c-accent)) 22%, transparent);
+    text-decoration: none;
   }
 
   /* 링크 복사 버튼 */
