@@ -12,7 +12,6 @@
       "mcp__playwright__browser_network_requests",
       "mcp__playwright__browser_wait_for",
       "mcp__playwright__browser_find",
-      "mcp__claude_ai_Atlassian_Rovo__getJiraIssue",
       "mcp__blog-mcp__suggest_topic",
       "Bash(pnpm build)",
       "Bash(pnpm test)",
