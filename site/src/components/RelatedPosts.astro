@@ -67,7 +67,9 @@ const TAG_MAX = 3;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    /* 본문 폭(720px)에 카드 3장이 한 줄로 들어가도록 최소폭을 잡는다(3×13rem+간격<720).
+       auto-fit이라 후보가 2개뿐이면 2장이 폭을 나눠 채운다 — 떨어지는 카드가 없다. */
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
     gap: var(--space-4);
   }
   .related-item {
