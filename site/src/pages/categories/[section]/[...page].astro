@@ -3,6 +3,7 @@ import type { GetStaticPaths } from "astro";
 import Base from "../../../layouts/Base.astro";
 import PostViews from "../../../components/PostViews.astro";
 import Pagination from "../../../components/Pagination.astro";
+import BlogFilterLinks from "../../../components/BlogFilterLinks.astro";
 import { getSectionMap, sectionLabel } from "../../../lib/sections.ts";
 import { PAGE_SIZE } from "../../../lib/pagination.ts";
 
@@ -22,12 +23,14 @@ const pageHref = (n: number) =>
 ---
 
 <Base title={`${label} — blog`} description={`${label} 카테고리의 글 목록`}>
-  <p class="muted"><a href={`${base}/categories/`}>← 전체 카테고리</a></p>
   <h1>{label}</h1>
   <p class="muted">
     {page.total}개의 글{page.lastPage > 1 && ` · ${page.currentPage} / ${page.lastPage} 페이지`}
   </p>
+
+  <BlogFilterLinks />
   <hr />
-  <PostViews posts={page.data} />
+
+  <PostViews posts={page.data} toggle={false} />
   <Pagination currentPage={page.currentPage} lastPage={page.lastPage} hrefFor={pageHref} />
 </Base>
