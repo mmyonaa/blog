@@ -3,20 +3,24 @@ import type { GetStaticPaths } from "astro";
 import Base from "../../../layouts/Base.astro";
 import PostViews from "../../../components/PostViews.astro";
 import Pagination from "../../../components/Pagination.astro";
-import { getTagMap } from "../../../lib/tags.ts";
+import { getTagMap, tagSlug } from "../../../lib/tags.ts";
 import { PAGE_SIZE } from "../../../lib/pagination.ts";
 
 export const getStaticPaths = (async ({ paginate }) => {
   const map = await getTagMap();
+  // URL은 로마자 슬러그로, 화면 표기용 원본 태그는 props로 넘긴다.
   return [...map.entries()].flatMap(([tag, posts]) =>
-    paginate(posts, { params: { tag }, pageSize: PAGE_SIZE }),
+    paginate(posts, {
+      params: { tag: tagSlug(tag) },
+      props: { tag },
+      pageSize: PAGE_SIZE,
+    }),
   );
 }) satisfies GetStaticPaths;
 
-const { page } = Astro.props;
-const tag = Astro.params.tag!;
+const { page, tag } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const seg = encodeURIComponent(tag);
+const seg = Astro.params.tag!;
 const pageHref = (n: number) =>
   n <= 1 ? `${base}/tags/${seg}/` : `${base}/tags/${seg}/${n}/`;
 ---

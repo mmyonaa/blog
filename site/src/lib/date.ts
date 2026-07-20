@@ -5,6 +5,11 @@ export function fmtDateTime(d: Date): string {
   return `${kst.slice(0, 10)} ${kst.slice(11, 19)}`;
 }
 
+// KST 기준 날짜만 'YYYY-MM-DD'. 초 단위 시각이 불필요한 곳(예: featured 아이라인)에.
+export function fmtDate(d: Date): string {
+  return new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
 // 상대 시각: 7일 이내면 '방금/N분 전/N시간 전/N일 전', 그 밖은 날짜(YYYY-MM-DD).
 // SSG라 기준 시각은 빌드 시점 — 매 발행마다 재빌드되므로 오차는 하루 안쪽.
 export function fmtRelative(d: Date, now: Date = new Date()): string {

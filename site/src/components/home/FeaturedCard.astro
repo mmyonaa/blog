@@ -3,7 +3,7 @@ import type { CollectionEntry } from "astro:content";
 import "../../styles/home-cards.css";
 import { tagHref } from "../../lib/tags.ts";
 import { sectionHref, sectionLabel, sectionOf, hueOf } from "../../lib/sections.ts";
-import { fmtDateTime } from "../../lib/date.ts";
+import { fmtDate } from "../../lib/date.ts";
 import { readMin } from "../../lib/reading.ts";
 
 interface Props {
@@ -23,7 +23,7 @@ const isNew =
   <div class="featured-meta">
     <span class="featured-label">
       {isNew && <span class="badge-new">NEW</span>}
-      FEATURED · {fmtDateTime(post.data.pubDate)} · {readMin(post.body)}분
+      FEATURED · <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
     </span>
     <a class="card-sec" href={sectionHref(base, sec)}>
       <span class="sec-dot" aria-hidden="true" />

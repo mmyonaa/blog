@@ -67,10 +67,12 @@ const searchIndexUrl = `${base}/search-index.json`;
 
 <style>
   .site-header {
-    /* 랜딩 히어로의 풀블리드 배경(스택 컨텍스트)이 헤더 위에 그려지지 않도록
-       헤더를 별도 스택 컨텍스트로 올린다. 클릭 가로채기·시각적 겹침 모두 방지. */
-    position: relative;
-    z-index: 1;
+    /* 상시 접근을 위해 상단 고정. 스크롤해도 검색·분류·테마가 늘 손에 닿는다.
+       sticky 자체가 스택 컨텍스트를 만들어, 랜딩 히어로의 풀블리드 배경이
+       헤더 위로 그려지거나 클릭을 가로채는 것도 함께 막는다(z-index로 재보장). */
+    position: sticky;
+    top: 0;
+    z-index: 20;
     border-bottom: 1px solid var(--c-border);
     background: var(--c-bg);
   }

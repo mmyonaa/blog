@@ -13,10 +13,11 @@ const posts = (await getCollection("blog")).sort(
 );
 const sections = await getSectionCounts();
 const tags = await getTagCounts();
-// 히어로 카테고리 아래 인기 태그: 글 수 상위 순으로 넉넉히 넘긴다(전체는 /topics/#tags).
-// 실제 노출량은 화면 폭에 따라 PopularTags가 '줄 수' 단위로 클립하므로, 여기선
-// 어떤 폭에서도 허용 줄 수를 꽉 채우고 남을 만큼(=거의 전량) 넘겨 stub 줄을 방지한다.
-const topTags = tags.slice(0, 60);
+// 히어로 카테고리 아래 인기 태그: 글 수 상위 순으로 상위 일부만(전체는 /topics/#tags).
+// 예전엔 넉넉히(60개) 넘기고 CSS로 줄 클립했으나, overflow:hidden은 탭 순서·스크린리더
+// 에서 요소를 지우지 못해 '안 보이는 링크 수십 개'가 남았다. '인기' 취지에 맞게 상위
+// 14개만 넘겨 노출·초점 대상을 좁힌다(2줄 클립과 함께 대부분 폭에서 전량 표시된다).
+const topTags = tags.slice(0, 14);
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 // RSS 안내 팝오버에 보여줄 절대 피드 주소(리더 앱에 그대로 등록하는 값)

@@ -13,7 +13,9 @@
   --c-surface-2: #eeeef1;
   --c-border: #e4e4e8;
   --c-text: #18181b;
-  --c-muted: #6b7280;
+  /* muted도 카드·태그(surface/surface-2) 위에서 WCAG AA(4.5:1)를 넘도록 한 단계 진하게.
+     (이전 #6b7280은 흰 배경만 통과, surface-2에선 4.18로 미달) */
+  --c-muted: #5f6773;
 
   /* ── 색상: 액센트 1색 (muted navy) ── */
   --c-accent: #33415c;
@@ -74,6 +76,9 @@
   --wide-width: 1080px;
   /* 사이드바 포함 3단 셸의 바깥 폭(글목록 + 본문720 + 목차) */
   --shell-width: 1240px;
+  /* sticky 헤더 높이(패딩 2*space-4 + pill 2rem + 보더). 앵커 스크롤 오프셋과
+     사이드바 sticky top이 이 값을 공유해 헤더에 가리지 않게 한다. */
+  --header-h: 4rem;
 }
 
 /* OS 다크. 단 사용자가 라이트로 강제(data-theme=light)한 경우는 제외. */
@@ -137,9 +142,10 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  /* 목차/앵커 이동 시 부드럽게 스크롤. 상단 여유는 scroll-padding으로. */
+  /* 목차/앵커 이동 시 부드럽게 스크롤. sticky 헤더에 가리지 않도록
+     상단 여유는 헤더 높이 + 약간의 숨쉴 틈으로. */
   scroll-behavior: smooth;
-  scroll-padding-top: var(--space-6);
+  scroll-padding-top: calc(var(--header-h) + var(--space-3));
 }
 /* 모션 최소화 설정을 존중 */
 @media (prefers-reduced-motion: reduce) {

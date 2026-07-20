@@ -18,14 +18,17 @@ export const SECTION_LABELS: Record<string, string> = {
 const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "security"];
 
 /**
- * 섹션별 액센트 hue. 랜딩의 섹션 pill과 카드뷰의 색 띠가 같은 색을 쓰도록
- * 여기 한 곳에 둔다. 목록에 없는 섹션은 기본 액센트로 폴백.
+ * 섹션별 액센트 hue. 랜딩의 섹션 pill·카드뷰 색 띠·분류 카드 좌측 보더가 같은 색을
+ * 쓰도록 여기 한 곳에 둔다. 목록에 없는 섹션은 기본 액센트로 폴백.
+ *
+ * 채도·명도는 비슷하게(차분한 에디토리얼 톤) 두되 색상(hue)만 벌려 카테고리가
+ * 한눈에 구분되게 한다 — 이전엔 넷 다 남색 계열이라 사실상 단색이었다.
  */
 export const SECTION_HUE: Record<string, string> = {
-  mcp: "#33415c",
-  web: "#545c8a",
-  jeongcheogi: "#42679b",
-  security: "#6b7fa0",
+  mcp: "#33415c", // 네이비(브랜드 기준색)
+  web: "#2f6a5e", // 청록 — 웹·프런트
+  jeongcheogi: "#5a4b8a", // 남보라 — 자격증·이론
+  security: "#a15545", // 테라코타 — 보안(경고 톤)
 };
 
 export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)";
