@@ -23,7 +23,7 @@ const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "security"];
  */
 export const SECTION_HUE: Record<string, string> = {
   mcp: "#33415c",
-  web: "#4f6d5a",
+  web: "#545c8a",
   jeongcheogi: "#42679b",
   security: "#6b7fa0",
 };
