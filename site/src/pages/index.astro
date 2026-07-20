@@ -333,7 +333,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     aspect-ratio: 1;
     top: -8%;
     left: -6%;
-    background: radial-gradient(circle, #a855f7, transparent 68%);
+    background: radial-gradient(circle, #4e618d, transparent 68%);
   }
   .blob-2 {
     width: 34vw;
@@ -341,7 +341,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     aspect-ratio: 1;
     top: -14%;
     right: 4%;
-    background: radial-gradient(circle, #6366f1, transparent 68%);
+    background: radial-gradient(circle, #33415c, transparent 68%);
     opacity: 0.24;
   }
   .blob-3 {
@@ -350,7 +350,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     aspect-ratio: 1;
     top: 22%;
     left: 34%;
-    background: radial-gradient(circle, #ec4899, transparent 70%);
+    background: radial-gradient(circle, #6a7ca0, transparent 70%);
     opacity: 0.15;
   }
   @media (prefers-color-scheme: dark) {
@@ -402,7 +402,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     line-height: 1.18;
     padding-bottom: 0.06em;
     margin: 0 0 var(--space-3);
-    background: linear-gradient(115deg, #7c3aed 0%, #a855f7 45%, #ec4899 100%);
+    background: linear-gradient(115deg, #2b3654 0%, #4e618d 50%, #7c8fb8 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -569,10 +569,12 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     align-items: center;
     gap: 0.4em;
     padding: 0.4em 0.9em;
+    /* 실제로 칠하는 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
+    --pill-on: var(--pill-accent);
     border: 1px solid
-      color-mix(in srgb, var(--pill-accent) 35%, var(--c-border));
+      color-mix(in srgb, var(--pill-on) 35%, var(--c-border));
     border-radius: var(--radius-pill, 999px);
-    background: color-mix(in srgb, var(--pill-accent) 8%, var(--c-surface));
+    background: color-mix(in srgb, var(--pill-on) 8%, var(--c-surface));
     color: var(--c-text);
     font-size: var(--fs-sm);
     font-weight: 600;
@@ -580,14 +582,22 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     transition: border-color 0.15s ease, color 0.15s ease,
       background 0.15s ease, transform 0.15s ease;
   }
+  :root[data-theme="dark"] .sec-pill {
+    --pill-on: color-mix(in srgb, var(--pill-accent) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .sec-pill {
+      --pill-on: color-mix(in srgb, var(--pill-accent) 58%, white);
+    }
+  }
   .sec-pill:hover {
-    border-color: var(--pill-accent);
-    color: var(--pill-accent);
-    background: color-mix(in srgb, var(--pill-accent) 16%, transparent);
+    border-color: var(--pill-on);
+    color: var(--pill-on);
+    background: color-mix(in srgb, var(--pill-on) 16%, transparent);
     transform: translateY(-1px);
   }
   .sec-pill-count {
-    color: var(--pill-accent);
+    color: var(--pill-on);
     font-weight: 700;
   }
 
@@ -676,7 +686,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     position: absolute;
     inset: 0 0 auto 0;
     height: 3px;
-    background: linear-gradient(90deg, #7c3aed, #a855f7, #ec4899);
+    background: linear-gradient(90deg, #2b3654, #4e618d, #7c8fb8);
     opacity: 0.9;
   }
   .featured-label {
@@ -691,7 +701,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
   .badge-new {
     padding: 0.15em 0.5em;
     border-radius: var(--radius-pill);
-    background: linear-gradient(120deg, #7c3aed, #ec4899);
+    background: linear-gradient(120deg, #33415c, #56699a);
     color: #fff;
     font-size: 0.7rem;
     font-weight: 800;

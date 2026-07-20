@@ -15,11 +15,11 @@
   --c-text: #18181b;
   --c-muted: #6b7280;
 
-  /* ── 색상: 액센트 1색 (violet) ── */
-  --c-accent: #6d28d9;
-  --c-accent-hover: #5b21b6;
+  /* ── 색상: 액센트 1색 (muted navy) ── */
+  --c-accent: #33415c;
+  --c-accent-hover: #29344a;
   --c-accent-contrast: #ffffff;
-  --c-accent-soft: #f3edff;
+  --c-accent-soft: #ebedf2;
 
   /* ── 코드 ── */
   --c-code-bg: #0d1117;
@@ -80,10 +80,10 @@
     --c-text: #ededf0;
     --c-muted: #a1a1aa;
 
-    --c-accent: #a78bfa;
-    --c-accent-hover: #c4b5fd;
-    --c-accent-contrast: #14101f;
-    --c-accent-soft: #211a33;
+    --c-accent: #8ea3cc;
+    --c-accent-hover: #a9bade;
+    --c-accent-contrast: #12151d;
+    --c-accent-soft: #1e2433;
 
     --c-code-bg: #14141b;
     --c-code-text: #e6edf3;
@@ -105,10 +105,10 @@
   --c-border: #2a2a34;
   --c-text: #ededf0;
   --c-muted: #a1a1aa;
-  --c-accent: #a78bfa;
-  --c-accent-hover: #c4b5fd;
-  --c-accent-contrast: #14101f;
-  --c-accent-soft: #211a33;
+  --c-accent: #8ea3cc;
+  --c-accent-hover: #a9bade;
+  --c-accent-contrast: #12151d;
+  --c-accent-soft: #1e2433;
   --c-code-bg: #14141b;
   --c-code-text: #e6edf3;
 }

@@ -21,9 +21,9 @@ const SECTION_ORDER = ["mcp", "jeongcheogi", "security"];
  * 여기 한 곳에 둔다. 목록에 없는 섹션은 기본 액센트로 폴백.
  */
 export const SECTION_HUE: Record<string, string> = {
-  mcp: "#44506b",
-  jeongcheogi: "#3f7d74",
-  security: "#8f5f6e",
+  mcp: "#33415c",
+  jeongcheogi: "#4e618d",
+  security: "#6a7ca0",
 };
 
 export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)";

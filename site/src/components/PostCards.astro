@@ -2,7 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import { tagHref } from "../lib/tags.ts";
 import { fmtDateTime } from "../lib/date.ts";
-import { sectionLabel, sectionHref, hueOf } from "../lib/sections.ts";
+import { sectionLabel, sectionHref, hueOf, sectionOf } from "../lib/sections.ts";
 
 interface Props {
   posts: CollectionEntry<"blog">[];
@@ -10,12 +10,6 @@ interface Props {
 const { posts } = Astro.props as Props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const href = (id: string) => `${base}/blog/${id}/`;
-
-/** 구버전 글(section 없음)은 mcp로 본다 — lib/sections.ts의 sectionOf와 같은 규칙. */
-const sectionOf = (post: CollectionEntry<"blog">) =>
-  typeof post.data.section === "string" && post.data.section.trim() !== ""
-    ? post.data.section
-    : "mcp";
 
 /** 카드는 높이를 맞추므로 태그가 많아도 앞 3개만 노출(넘치면 +N). */
 const TAG_MAX = 3;
@@ -79,15 +73,25 @@ const TAG_MAX = 3;
     transition:
       border-color 0.15s ease,
       transform 0.15s ease;
+    /* 실제로 칠하는 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
+    --hue-on: var(--hue);
+  }
+  :global(:root[data-theme="dark"]) .card {
+    --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .card {
+      --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+    }
   }
   .card:hover {
-    border-color: var(--hue);
+    border-color: var(--hue-on);
     transform: translateY(-2px);
   }
   /* 섹션 색 띠 — 썸네일이 없는 대신 이게 카드의 시각적 앵커 역할을 한다. */
   .card-stripe {
     height: 4px;
-    background: var(--hue);
+    background: var(--hue-on);
   }
   .card-body {
     display: flex;
@@ -104,7 +108,7 @@ const TAG_MAX = 3;
     font-size: var(--fs-xs);
   }
   .card-section {
-    color: var(--hue);
+    color: var(--hue-on);
     font-weight: 600;
   }
   .card-section:hover {
@@ -119,7 +123,7 @@ const TAG_MAX = 3;
     color: var(--c-text);
   }
   .card-title a:hover {
-    color: var(--hue);
+    color: var(--hue-on);
     text-decoration: none;
   }
   .card-desc {

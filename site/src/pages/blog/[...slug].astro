@@ -530,6 +530,16 @@ const jsonLd = {
     gap: var(--space-2);
     color: var(--c-muted);
     font-size: var(--fs-sm);
+    /* 실제로 칠하는 카테고리 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
+    --hue-on: var(--hue, var(--c-accent));
+  }
+  :global(:root[data-theme="dark"]) .meta {
+    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .meta {
+      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+    }
   }
   .tags {
     display: inline-flex;
@@ -541,15 +551,15 @@ const jsonLd = {
     display: inline-block;
     padding: 0.2em 0.75em;
     border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--hue, var(--c-accent)) 14%, transparent);
-    color: var(--hue, var(--c-accent));
+    background: color-mix(in srgb, var(--hue-on) 14%, transparent);
+    color: var(--hue-on);
     font-size: var(--fs-xs);
     font-weight: 600;
     line-height: 1.6;
     white-space: nowrap;
   }
   .category:hover {
-    background: color-mix(in srgb, var(--hue, var(--c-accent)) 22%, transparent);
+    background: color-mix(in srgb, var(--hue-on) 22%, transparent);
     text-decoration: none;
   }
 
