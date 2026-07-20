@@ -1,16 +1,12 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
-import { tagHref, getTagCounts } from "../lib/tags.ts";
-import {
-  getSectionCounts,
-  sectionHref,
-  sectionLabel,
-  sectionOf,
-  hueOf,
-} from "../lib/sections.ts";
-import { fmtDateTime, fmtRelative } from "../lib/date.ts";
-import { buildActivity, heatLevel, HEAT_LEGEND } from "../lib/activity.ts";
+import Hero from "../components/home/Hero.astro";
+import FeaturedCard from "../components/home/FeaturedCard.astro";
+import PostCard from "../components/home/PostCard.astro";
+import { getTagCounts } from "../lib/tags.ts";
+import { getSectionCounts } from "../lib/sections.ts";
+import { buildActivity } from "../lib/activity.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -18,7 +14,6 @@ const posts = (await getCollection("blog")).sort(
 const sections = await getSectionCounts();
 const tags = await getTagCounts();
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const href = (id: string) => `${base}/blog/${id}/`;
 
 // RSS 안내 팝오버에 보여줄 절대 피드 주소(리더 앱에 그대로 등록하는 값)
 const feedUrl = new URL(`${base}/rss.xml`, Astro.site ?? Astro.url).href;
@@ -27,18 +22,6 @@ const feedUrl = new URL(`${base}/rss.xml`, Astro.site ?? Astro.url).href;
 const RECENT_MAX = 6;
 const [featured, ...others] = posts;
 const rest = others.slice(0, RECENT_MAX);
-
-// NEW 배지: featured가 빌드 시점 기준 7일 이내 글일 때만.
-const NEW_BADGE_DAYS = 7;
-const isNew =
-  posts.length > 0 &&
-  Date.now() - featured.data.pubDate.valueOf() < NEW_BADGE_DAYS * 24 * 60 * 60 * 1000;
-
-// 읽는 시간: 본문(마크다운 원문) 글자 수 기준, 한국어 ≈ 500자/분.
-const readMin = (p: (typeof posts)[number]) =>
-  Math.max(1, Math.round((p.body ?? "").length / 500));
-
-const featuredSec = posts.length > 0 ? sectionOf(featured) : "mcp";
 
 // ── 히어로 통계 ──
 // 로컬 날짜 키(YYYY-MM-DD). '연속 발행'은 가장 최근 글 날짜부터 하루씩 거슬러
@@ -69,8 +52,6 @@ const stats = [
 
 // 발행 스트릭 잔디(heatmap): 글 pubDate를 주×요일 격자로.
 const activity = buildActivity(posts.map((p) => p.data.pubDate));
-
-// 카테고리별 액센트 hue는 lib/sections.ts에 있다(카드뷰와 공유).
 ---
 
 <Base title="blog" description="MCP 서버로 글을 발행하며 배운 것을 기록하는 블로그">
@@ -83,149 +64,23 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
       }
     </style>
   </noscript>
-  <section class="hero">
-    <div class="hero-bg" aria-hidden="true">
-      <span class="blob blob-1"></span>
-      <span class="blob blob-2"></span>
-      <span class="blob blob-3"></span>
-    </div>
-    <div class="hero-inner">
-      <div class="hero-cols">
-        <div class="hero-main">
-          <h1 class="hero-title reveal">blog</h1>
-          <p class="hero-sub reveal">
-            직접 만든 MCP 서버가 쓰고, 제가 배운 걸로 채웁니다.
-          </p>
-          {
-            posts.length > 0 && (
-              <div class="hero-cta reveal">
-                <a class="btn-cta" href={href(featured.id)}>
-                  최신 글 읽기 <span class="cta-arrow" aria-hidden="true">→</span>
-                </a>
-                <div class="rss-wrap">
-                  <button
-                    class="btn-ghost"
-                    type="button"
-                    data-rss-toggle
-                    aria-expanded="false"
-                    aria-controls="rss-pop"
-                  >
-                    RSS 구독
-                  </button>
-                  <div class="rss-pop" id="rss-pop" hidden>
-                    <p class="rss-help">
-                      RSS 리더(Feedly, Inoreader 등)에 아래 주소를 등록하면
-                      새 글을 자동으로 받아볼 수 있어요.
-                    </p>
-                    <div class="rss-row">
-                      <code class="rss-url" data-rss-url>{feedUrl}</code>
-                      <button class="rss-copy" type="button" data-rss-copy>복사</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          }
-      {
-        posts.length > 0 && (
-          <dl class="stats reveal">
-            {stats.map((s) => (
-              <div class:list={["stat", { "stat-link": s.href }]}>
-                <dt class="stat-value" data-countup={s.value}>{s.value}</dt>
-                <dd class="stat-label">
-                  {s.href ? (
-                    <a href={s.href} class="stat-a">{s.label}</a>
-                  ) : (
-                    s.label
-                  )}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )
-      }
-        </div>
-      {
-        posts.length > 0 && (
-          <section class="activity reveal" aria-label="발행 활동">
-            <div class="heatmap" role="img" aria-label={`최근 ${activity.weeks}주 발행 활동 · 총 ${activity.total}편`}>
-              <div class="heatmap-months" style={`--weeks: ${activity.weeks}`}>
-                {activity.months.map((m) => (
-                  <span class="hm-month" style={`grid-column: ${m.col} / span ${m.span}`}>
-                    {m.name}
-                  </span>
-                ))}
-              </div>
-              <div class="heatmap-grid" style={`--weeks: ${activity.weeks}`}>
-                {activity.cells.map((c) => (
-                  <span
-                    class:list={["hm-cell", `lv${heatLevel(c.count)}`, { "hm-future": c.future }]}
-                    data-tip={c.future ? undefined : `${c.date.getFullYear()}. ${c.date.getMonth() + 1}. ${c.date.getDate()}. · ${c.count}편`}
-                  />
-                ))}
-              </div>
-            </div>
-            <div class="heatmap-legend">
-              <span>적음</span>
-              {HEAT_LEGEND.map((l) => (
-                <span class={`hm-cell lv${l.lv}`} data-tip={l.label} />
-              ))}
-              <span>많음</span>
-            </div>
-            <div class="hm-tip" role="status" aria-live="polite" hidden></div>
-          </section>
-        )
-      }
-      </div>
-      {
-        sections.length > 0 && (
-          <nav class="sections-strip reveal" aria-label="카테고리">
-            {sections.map((s) => (
-              <a
-                class="sec-pill"
-                href={sectionHref(base, s.id)}
-                style={`--pill-accent: ${hueOf(s.id)}`}
-              >
-                {s.label} <span class="sec-pill-count">{s.count}</span>
-              </a>
-            ))}
-          </nav>
-        )
-      }
-    </div>
-  </section>
+
+  <Hero
+    hasPosts={posts.length > 0}
+    featuredHref={posts.length > 0 ? `${base}/blog/${featured.id}/` : `${base}/blog/`}
+    feedUrl={feedUrl}
+    stats={stats}
+    activity={activity}
+    sections={sections}
+    base={base}
+  />
 
   {
     posts.length === 0 ? (
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
       <>
-        <article class="featured reveal" data-spot style={`--sec-hue: ${hueOf(featuredSec)}`}>
-          <div class="featured-meta">
-            <span class="featured-label">
-              {isNew && <span class="badge-new">NEW</span>}
-              FEATURED · {fmtDateTime(featured.data.pubDate)} · {readMin(featured)}분
-            </span>
-            <a class="card-sec" href={sectionHref(base, featuredSec)}>
-              <span class="sec-dot" aria-hidden="true" />
-              {sectionLabel(featuredSec)}
-            </a>
-          </div>
-          <h2 class="featured-title">
-            <a href={href(featured.id)}>{featured.data.title}</a>
-          </h2>
-          {featured.data.description && <p class="featured-desc">{featured.data.description}</p>}
-          <span class="read">읽기 <span class="read-arrow" aria-hidden="true">→</span></span>
-          {featured.data.tags.length > 0 && (
-            <div class="tags">
-              {featured.data.tags.map((t) => (
-                <a class="pill" href={tagHref(base, t)}>
-                  {t}
-                </a>
-              ))}
-            </div>
-          )}
-        </article>
+        <FeaturedCard post={featured} />
 
         {rest.length > 0 && (
           <>
@@ -234,35 +89,9 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
               <a class="more" href={`${base}/blog/`}>전체 글 보기 →</a>
             </div>
             <div class="grid">
-              {rest.map((post) => {
-                const sec = sectionOf(post);
-                return (
-                <article class="card reveal" data-spot style={`--sec-hue: ${hueOf(sec)}`}>
-                  <div class="card-meta">
-                    <a class="card-sec" href={sectionHref(base, sec)}>
-                      <span class="sec-dot" aria-hidden="true" />
-                      {sectionLabel(sec)}
-                    </a>
-                    <span class="card-when">
-                      {fmtRelative(post.data.pubDate)} · {readMin(post)}분
-                    </span>
-                  </div>
-                  <h3 class="card-title">
-                    <a href={href(post.id)}>{post.data.title}</a>
-                  </h3>
-                  {post.data.description && <p class="card-desc">{post.data.description}</p>}
-                  {post.data.tags.length > 0 && (
-                    <div class="tags">
-                      {post.data.tags.map((t) => (
-                        <a class="pill" href={tagHref(base, t)}>
-                          {t}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </article>
-                );
-              })}
+              {rest.map((post) => (
+                <PostCard post={post} />
+              ))}
             </div>
           </>
         )}
@@ -272,11 +101,14 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
 </Base>
 
 <script>
-  // 카드 커서 스포트라이트: [data-spot] 위에서 마우스 좌표를 CSS 변수로 흘려보낸다.
+  // 페이지 공통 인터랙션(커서 스포트라이트·진입 reveal)만 여기서 담당.
+  // 히어로·잔디 등 컴포넌트 고유 동작은 각 컴포넌트의 <script>에 있다.
   // 문서 위임 + 전역 가드로 한 번만 등록(View Transitions 유지).
   if (!(window as any).__spotBound) {
     (window as any).__spotBound = true;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // 카드 커서 스포트라이트: [data-spot] 위에서 마우스 좌표를 CSS 변수로 흘려보낸다.
     if (!reduce) {
       document.addEventListener(
         "pointermove",
@@ -290,31 +122,6 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
         { passive: true },
       );
     }
-
-    // 통계 카운트업: [data-countup]을 0→값으로. reduced-motion이면 즉시 최종값.
-    const runCountUp = () => {
-      document.querySelectorAll<HTMLElement>("[data-countup]").forEach((el) => {
-        const target = parseInt(el.getAttribute("data-countup") || "0", 10);
-        if (!Number.isFinite(target) || reduce || target <= 0) {
-          el.textContent = String(Number.isFinite(target) ? target : 0);
-          return;
-        }
-        const dur = 850;
-        let startT = 0;
-        el.textContent = "0";
-        const tick = (now: number) => {
-          if (!startT) startT = now;
-          const t = Math.min(1, (now - startT) / dur);
-          const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
-          el.textContent = String(Math.round(target * eased));
-          if (t < 1) requestAnimationFrame(tick);
-          else el.textContent = String(target);
-        };
-        requestAnimationFrame(tick);
-      });
-    };
-    // View Transitions로 홈에 재진입할 때마다 다시 실행(최초 로드 포함).
-    document.addEventListener("astro:page-load", runCountUp);
 
     // 진입 reveal: 뷰포트에 들어온 .reveal에 .in을 부여해 애니메이션 시작.
     // 최초 로드 땐 화면 위 요소들이 한 배치로 들어와 기존과 같은 stagger,
@@ -340,770 +147,36 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
       );
       els.forEach((el) => io.observe(el));
     };
+    // View Transitions로 홈에 재진입할 때마다 다시 실행(최초 로드 포함).
     document.addEventListener("astro:page-load", runReveal);
-
-    // 잔디가 컨테이너보다 넓으면(좁은 화면·2단 오른쪽 열) 최근 주가 보이도록
-    // 오른쪽 끝으로 스크롤해 둔다.
-    const scrollHeatmaps = () => {
-      document.querySelectorAll<HTMLElement>(".heatmap").forEach((el) => {
-        el.scrollLeft = el.scrollWidth;
-      });
-    };
-    document.addEventListener("astro:page-load", scrollHeatmaps);
-
-    // RSS 팝오버: 버튼으로 토글, 주소 복사, 바깥 클릭·Escape로 닫기.
-    const closeRss = () => {
-      const pop = document.querySelector<HTMLElement>(".rss-pop");
-      if (pop && !pop.hidden) {
-        pop.hidden = true;
-        document
-          .querySelector("[data-rss-toggle]")
-          ?.setAttribute("aria-expanded", "false");
-      }
-    };
-    document.addEventListener("click", (e) => {
-      const t = e.target as HTMLElement;
-      const toggle = t?.closest?.<HTMLElement>("[data-rss-toggle]");
-      if (toggle) {
-        const pop = document.querySelector<HTMLElement>(".rss-pop");
-        if (!pop) return;
-        const willOpen = pop.hidden;
-        pop.hidden = !willOpen;
-        toggle.setAttribute("aria-expanded", String(willOpen));
-        return;
-      }
-      const copyBtn = t?.closest?.<HTMLElement>("[data-rss-copy]");
-      if (copyBtn) {
-        const url =
-          document.querySelector("[data-rss-url]")?.textContent?.trim() ?? "";
-        navigator.clipboard?.writeText(url).then(
-          () => {
-            copyBtn.textContent = "복사됨!";
-            setTimeout(() => {
-              copyBtn.textContent = "복사";
-            }, 1500);
-          },
-          () => {
-            // 클립보드를 못 쓰는 환경이면 주소를 선택 상태로 만들어 수동 복사 유도
-            const code = document.querySelector("[data-rss-url]");
-            if (!code) return;
-            const range = document.createRange();
-            range.selectNodeContents(code);
-            const sel = window.getSelection();
-            sel?.removeAllRanges();
-            sel?.addRange(range);
-          },
-        );
-        return;
-      }
-      if (!t?.closest?.(".rss-wrap")) closeRss();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeRss();
-    });
-
-    // 잔디 칸/범례 호버 툴팁: '날짜 · N편'(칸) 또는 레벨 범위(범례)를 표시.
-    // 툴팁은 .activity 기준 absolute. (.activity가 reveal 애니메이션으로 항등 transform을
-    // 남겨 containing block이 되므로, 그 기준으로 좌표를 계산해야 어긋나지 않는다.)
-    const showTip = (cell: HTMLElement) => {
-      const tip = document.querySelector<HTMLElement>(".hm-tip");
-      const host = tip?.parentElement;
-      const text = cell.getAttribute("data-tip");
-      if (!tip || !host || !text) return;
-      tip.textContent = text;
-      tip.hidden = false;
-      const c = cell.getBoundingClientRect();
-      const h = host.getBoundingClientRect();
-      const t = tip.getBoundingClientRect();
-      tip.style.left = `${c.left - h.left + c.width / 2 - t.width / 2}px`;
-      const above = c.top - h.top - t.height - 6;
-      // 카드 위로 넘치면 칸 아래에 표시
-      tip.style.top = `${above < 0 ? c.bottom - h.top + 6 : above}px`;
-    };
-    const hideTip = () => {
-      const tip = document.querySelector<HTMLElement>(".hm-tip");
-      if (tip) tip.hidden = true;
-    };
-    document.addEventListener("pointerover", (e) => {
-      const cell = (e.target as HTMLElement)?.closest?.<HTMLElement>(".hm-cell[data-tip]");
-      if (cell) showTip(cell);
-    });
-    document.addEventListener("pointerout", (e) => {
-      const cell = (e.target as HTMLElement)?.closest?.<HTMLElement>(".hm-cell[data-tip]");
-      if (cell) hideTip();
-    });
   }
 </script>
 
+<style is:global>
+  /* ══════════════════════════════════════════════════════════
+     진입 애니메이션 — 뷰포트에 들어올 때 스크립트가 .in을 부여.
+     같은 배치로 들어온 요소끼리 --d(70ms 간격)로 stagger.
+     .reveal은 히어로·잔디·카드 등 여러 컴포넌트에 걸쳐 쓰여 전역으로 둔다.
+     ══════════════════════════════════════════════════════════ */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    .reveal.in {
+      animation: reveal-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation-delay: var(--d, 0ms);
+    }
+  }
+  @keyframes reveal-up {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
 <style>
-  /* ══════════════════════════════════════════════════════════
-     히어로 — 오로라 블롭 배경 + 도트 패턴 + 그라디언트 제목
-     ══════════════════════════════════════════════════════════ */
-  .hero {
-    position: relative;
-    padding: var(--space-8) 0 var(--space-8);
-    isolation: isolate;
-  }
-  .hero-inner {
-    position: relative;
-    z-index: 1;
-  }
-
-  /* 미세 도트 패턴: 뷰포트 전체 폭(풀블리드)으로 깔고 아래로 페이드아웃.
-     컨테이너 폭에 갇히지 않도록 100vw를 히어로 중심에 맞춰 배치. */
-  .hero::before {
-    content: "";
-    position: absolute;
-    top: -20%;
-    bottom: 0;
-    left: 50%;
-    width: 100vw;
-    transform: translateX(-50%);
-    z-index: -2;
-    background-image: radial-gradient(
-      var(--c-border) 1px,
-      transparent 1px
-    );
-    background-size: 22px 22px;
-    -webkit-mask-image: radial-gradient(
-      120% 90% at 50% 0%,
-      #000 0%,
-      transparent 70%
-    );
-    mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 70%);
-    opacity: 0.4;
-    /* 장식 레이어 — 헤더/콘텐츠 클릭을 절대 가로채지 않게 */
-    pointer-events: none;
-  }
-
-  /* 오로라 블롭: 뷰포트 전체 폭(풀블리드)에 흐릿한 광원 2~3개 */
-  .hero-bg {
-    position: absolute;
-    top: -40%;
-    bottom: -20%;
-    left: 50%;
-    width: 100vw;
-    transform: translateX(-50%);
-    z-index: -1;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(64px);
-    opacity: 0.3;
-    will-change: transform;
-  }
-  .blob-1 {
-    width: 42vw;
-    max-width: 460px;
-    aspect-ratio: 1;
-    top: -8%;
-    left: -6%;
-    background: radial-gradient(circle, #4e618d, transparent 68%);
-  }
-  .blob-2 {
-    width: 34vw;
-    max-width: 380px;
-    aspect-ratio: 1;
-    top: -14%;
-    right: 4%;
-    background: radial-gradient(circle, #33415c, transparent 68%);
-    opacity: 0.24;
-  }
-  .blob-3 {
-    width: 30vw;
-    max-width: 340px;
-    aspect-ratio: 1;
-    top: 22%;
-    left: 34%;
-    background: radial-gradient(circle, #6a7ca0, transparent 70%);
-    opacity: 0.15;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .blob {
-      opacity: 0.22;
-    }
-    :root:not([data-theme="light"]) .hero::before {
-      opacity: 0.25;
-    }
-  }
-  :root[data-theme="dark"] .blob {
-    opacity: 0.22;
-  }
-  :root[data-theme="dark"] .hero::before {
-    opacity: 0.25;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .blob-1 {
-      animation: drift1 18s ease-in-out infinite alternate;
-    }
-    .blob-2 {
-      animation: drift2 22s ease-in-out infinite alternate;
-    }
-    .blob-3 {
-      animation: drift3 26s ease-in-out infinite alternate;
-    }
-  }
-  @keyframes drift1 {
-    to {
-      transform: translate(8%, 12%) scale(1.12);
-    }
-  }
-  @keyframes drift2 {
-    to {
-      transform: translate(-10%, 8%) scale(1.08);
-    }
-  }
-  @keyframes drift3 {
-    to {
-      transform: translate(6%, -10%) scale(1.15);
-    }
-  }
-
-  /* 브랜드 그라디언트 램프: 다크 그라운드에선 어두운 네이비가 배경에 묻히므로
-     밝은 톤으로 스왑한다(제목·featured 라인·NEW 배지가 공유). */
-  .hero-title,
-  .featured {
-    --grad-1: #2b3654;
-    --grad-2: #4e618d;
-    --grad-3: #7c8fb8;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .hero-title,
-    :root:not([data-theme="light"]) .featured {
-      --grad-1: #8ea3cc;
-      --grad-2: #a9bade;
-      --grad-3: #cdd9ee;
-    }
-  }
-  :root[data-theme="dark"] .hero-title,
-  :root[data-theme="dark"] .featured {
-    --grad-1: #8ea3cc;
-    --grad-2: #a9bade;
-    --grad-3: #cdd9ee;
-  }
-
-  .hero-title {
-    font-size: clamp(2.75rem, 8vw, 4rem);
-    /* background-clip:text에선 배경 박스 높이가 line-height라, 너무 좁으면
-       'g' 같은 descender가 배경 밖으로 나가 투명 처리(잘림)된다. 여유 확보. */
-    line-height: 1.18;
-    padding-bottom: 0.06em;
-    margin: 0 0 var(--space-3);
-    background: linear-gradient(115deg, var(--grad-1) 0%, var(--grad-2) 50%, var(--grad-3) 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-title {
-      animation: sheen 8s ease-in-out infinite alternate;
-    }
-  }
-  @keyframes sheen {
-    to {
-      background-position: 100% center;
-    }
-  }
-  .hero-sub {
-    color: var(--c-muted);
-    font-size: var(--fs-lg);
-    max-width: 42ch;
-    margin: 0;
-  }
-
-  /* ── 히어로 2단: 왼쪽 제목·부제·CTA·통계 / 오른쪽 잔디 ── */
-  .hero-cols {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
-    gap: var(--space-6) var(--space-8);
-    align-items: end;
-  }
-
-  /* ── CTA ── */
-  .hero-cta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-    margin-top: var(--space-5);
-    /* reveal 애니메이션이 형제들마다 스태킹 컨텍스트를 만들므로,
-       RSS 팝오버가 아래 통계·pill에 가려지지 않게 CTA 블록을 위로 올린다 */
-    position: relative;
-    z-index: 5;
-  }
-  .btn-cta,
-  .btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35em;
-    padding: 0.55em 1.1em;
-    border-radius: var(--radius-pill);
-    font-size: var(--fs-sm);
-    /* <button>은 body의 line-height를 상속하지 않아 <a>보다 납작해진다 — 명시해 맞춘다 */
-    line-height: inherit;
-    font-weight: 700;
-    text-decoration: none;
-    transition: background 0.15s ease, color 0.15s ease,
-      border-color 0.15s ease, transform 0.15s ease;
-  }
-  .btn-cta {
-    background: var(--c-accent);
-    color: var(--c-accent-contrast);
-  }
-  .btn-cta:hover {
-    background: var(--c-accent-hover);
-    color: var(--c-accent-contrast);
-    text-decoration: none;
-    transform: translateY(-1px);
-  }
-  .cta-arrow {
-    display: inline-block;
-    transition: transform 0.15s ease;
-  }
-  .btn-cta:hover .cta-arrow {
-    transform: translateX(3px);
-  }
-  .btn-ghost {
-    border: 1px solid var(--c-border);
-    background: var(--c-surface);
-    color: var(--c-text);
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .btn-ghost:hover {
-    border-color: var(--c-accent);
-    color: var(--c-accent);
-    text-decoration: none;
-  }
-
-  /* ── RSS 안내 팝오버 ──
-     모바일: 버튼 기준 앵커는 좁은 화면에서 뷰포트를 넘치므로,
-     .hero-cta(행 전체) 기준으로 행 아래 중앙에 띄운다. 데스크톱에서만 버튼 기준. */
-  .rss-pop {
-    position: absolute;
-    top: calc(100% + var(--space-2));
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 30;
-    width: min(24rem, calc(100vw - var(--space-8)));
-    padding: var(--space-4);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-md);
-    background: var(--c-bg);
-    box-shadow: var(--shadow-md);
-  }
-  /* 데스크톱: 아래 통계·글을 가리지 않게 버튼 오른쪽에 띄운다 */
-  @media (min-width: 901px) {
-    .rss-wrap {
-      position: relative;
-    }
-    .rss-pop {
-      top: 50%;
-      left: calc(100% + var(--space-3));
-      transform: translateY(-50%);
-    }
-  }
-  .rss-help {
-    margin: 0 0 var(--space-3);
-    font-size: var(--fs-xs);
-    line-height: 1.6;
-    color: var(--c-muted);
-  }
-  .rss-row {
-    display: flex;
-    align-items: stretch;
-    gap: var(--space-2);
-  }
-  .rss-url {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    padding: 0.4em 0.6em;
-    font-size: var(--fs-xs);
-    white-space: nowrap;
-    overflow-x: auto;
-  }
-  .rss-copy {
-    flex: none;
-    padding: 0.4em 0.9em;
-    border: none;
-    border-radius: var(--radius-sm);
-    background: var(--c-accent);
-    color: var(--c-accent-contrast);
-    font-family: inherit;
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .rss-copy:hover {
-    background: var(--c-accent-hover);
-  }
-
-  /* ── 통계 스트립 ── */
-  .stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-6);
-    margin: var(--space-5) 0 0;
-  }
-  .stat {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.1;
-  }
-  /* 클릭 가능한 통계: 라벨 링크가 stat 전체를 덮어 숫자까지 클릭되게 */
-  .stat-link {
-    position: relative;
-  }
-  .stat-a {
-    color: inherit;
-    text-decoration: none;
-  }
-  .stat-a::after {
-    content: "";
-    position: absolute;
-    inset: -0.2em -0.3em;
-    border-radius: var(--radius-sm);
-  }
-  .stat-link:hover .stat-label {
-    color: var(--c-accent);
-  }
-  .stat-value {
-    font-size: var(--fs-2xl);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(120deg, var(--c-accent), var(--c-accent-hover));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-  }
-  .stat-label {
-    margin: 0.15em 0 0;
-    font-size: var(--fs-xs);
-    color: var(--c-muted);
-    letter-spacing: 0.02em;
-  }
-
-  /* ── 발행 스트릭 잔디(heatmap) ── */
-  /* 2단 배치에선 오른쪽 열 하단 정렬이라 위 여백이 필요 없다(스택 시 복원) */
-  .activity {
-    position: relative;
-    margin-top: 0;
-    max-width: 100%;
-  }
-  /* 좁은 화면에선 격자가 넘칠 수 있으니 가로 스크롤 허용 */
-  .heatmap {
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-  /* 월 라벨과 칸 격자는 같은 고정 열 폭(16px)을 써서 정렬을 맞춘다 */
-  .heatmap-months {
-    display: grid;
-    grid-template-columns: repeat(var(--weeks), 16px);
-    gap: 3px;
-    margin-bottom: 5px;
-    min-width: max-content;
-  }
-  .hm-month {
-    font-size: 0.7rem;
-    line-height: 1;
-    color: var(--c-muted);
-    white-space: nowrap;
-    overflow: visible;
-  }
-  .heatmap-grid {
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: repeat(7, 16px);
-    grid-auto-columns: 16px;
-    gap: 3px;
-    min-width: max-content;
-  }
-  .hm-cell {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    background: var(--c-surface-2);
-  }
-  .hm-cell.lv1 {
-    background: color-mix(in srgb, var(--c-accent) 32%, var(--c-surface-2));
-  }
-  .hm-cell.lv2 {
-    background: color-mix(in srgb, var(--c-accent) 62%, var(--c-surface-2));
-  }
-  .hm-cell.lv3 {
-    background: var(--c-accent);
-  }
-  .hm-future {
-    visibility: hidden;
-  }
-  .heatmap-legend {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: var(--space-3);
-    font-size: 0.7rem;
-    color: var(--c-muted);
-  }
-  .heatmap-legend .hm-cell {
-    width: 13px;
-    height: 13px;
-  }
-  /* 잔디 칸/범례 호버 툴팁 */
-  .hm-cell[data-tip] {
-    cursor: pointer;
-  }
-  .hm-tip {
-    position: absolute;
-    z-index: 50;
-    padding: 0.35em 0.6em;
-    border-radius: var(--radius-sm);
-    background: var(--c-text);
-    color: var(--c-bg);
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    line-height: 1.2;
-    white-space: nowrap;
-    pointer-events: none;
-    box-shadow: var(--shadow-md);
-  }
-  .hm-tip[hidden] {
-    display: none;
-  }
-
-  .sections-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-top: var(--space-5);
-  }
-  .sec-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    padding: 0.4em 0.9em;
-    /* 실제로 칠하는 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
-    --pill-on: var(--pill-accent);
-    border: 1px solid
-      color-mix(in srgb, var(--pill-on) 35%, var(--c-border));
-    border-radius: var(--radius-pill, 999px);
-    background: color-mix(in srgb, var(--pill-on) 8%, var(--c-surface));
-    color: var(--c-text);
-    font-size: var(--fs-sm);
-    font-weight: 600;
-    text-decoration: none;
-    transition: border-color 0.15s ease, color 0.15s ease,
-      background 0.15s ease, transform 0.15s ease;
-  }
-  :root[data-theme="dark"] .sec-pill {
-    --pill-on: color-mix(in srgb, var(--pill-accent) 58%, white);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .sec-pill {
-      --pill-on: color-mix(in srgb, var(--pill-accent) 58%, white);
-    }
-  }
-  .sec-pill:hover {
-    border-color: var(--pill-on);
-    color: var(--pill-on);
-    background: color-mix(in srgb, var(--pill-on) 16%, transparent);
-    transform: translateY(-1px);
-  }
-  .sec-pill-count {
-    color: var(--pill-on);
-    font-weight: 700;
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     카드 — 스포트라이트 + 글로우 보더
-     ══════════════════════════════════════════════════════════ */
-  /* stretched-link 패턴: 카드는 div, 제목 링크가 카드 전체를 덮고,
-     태그 링크는 그 위(z-index)로 올려 별도 클릭 가능하게 유지 */
-  .featured,
-  .card {
-    position: relative;
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-lg);
-    transition: box-shadow 0.2s ease, transform 0.2s ease,
-      border-color 0.2s ease;
-    isolation: isolate;
-  }
-  /* 커서 스포트라이트: 마우스 위치(--mx/--my)에 은은한 광원 */
-  .featured::before,
-  .card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: radial-gradient(
-      420px circle at var(--mx, 50%) var(--my, 0%),
-      color-mix(in srgb, var(--c-accent) 22%, transparent),
-      transparent 45%
-    );
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-  .featured:hover::before,
-  .card:hover::before {
-    opacity: 1;
-  }
-  .featured:hover,
-  .card:hover {
-    transform: translateY(-3px);
-    border-color: color-mix(in srgb, var(--c-accent) 55%, var(--c-border));
-    box-shadow: var(--shadow-md),
-      0 0 0 1px color-mix(in srgb, var(--c-accent) 30%, transparent),
-      0 12px 40px color-mix(in srgb, var(--c-accent) 22%, transparent);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .featured:hover,
-    .card:hover {
-      transform: none;
-    }
-    .featured:hover .read-arrow,
-    .btn-cta:hover,
-    .btn-cta:hover .cta-arrow {
-      transform: none;
-    }
-  }
-  .featured-title a,
-  .card-title a {
-    color: inherit;
-    text-decoration: none;
-  }
-  .featured-title a::after,
-  .card-title a::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-  }
-  .tags {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  /* ── 카테고리 액센트(--sec-hue → --sec-on) ──
-     카드뷰·섹션 pill과 같은 hue를 쓰되, 다크 그라운드에선 밝게 보정 */
-  .featured,
-  .card {
-    --sec-on: var(--sec-hue, var(--c-accent));
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .featured,
-    :root:not([data-theme="light"]) .card {
-      --sec-on: color-mix(in srgb, var(--sec-hue, var(--c-accent)) 58%, white);
-    }
-  }
-  :root[data-theme="dark"] .featured,
-  :root[data-theme="dark"] .card {
-    --sec-on: color-mix(in srgb, var(--sec-hue, var(--c-accent)) 58%, white);
-  }
-  .card-sec {
-    position: relative;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    color: var(--sec-on);
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    text-decoration: none;
-  }
-  .card-sec:hover {
-    color: var(--sec-on);
-  }
-  .sec-dot {
-    flex: none;
-    width: 0.55em;
-    height: 0.55em;
-    border-radius: 50%;
-    background: var(--sec-on);
-  }
-
-  /* ── featured 강조 ── */
-  .featured {
-    padding: var(--space-6);
-    background: linear-gradient(
-      135deg,
-      var(--c-accent-soft),
-      var(--c-surface) 85%
-    );
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-  /* 상단 하이라이트 라인: 글의 카테고리 hue를 그대로 쓴다 */
-  .featured::after {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 3px;
-    background: linear-gradient(
-      90deg,
-      var(--sec-on),
-      color-mix(in srgb, var(--sec-on) 25%, transparent)
-    );
-    opacity: 0.9;
-  }
-  .featured-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2) var(--space-3);
-  }
-  .featured-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5em;
-    color: var(--c-accent);
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }
-  .badge-new {
-    padding: 0.15em 0.5em;
-    border-radius: var(--radius-pill);
-    background: linear-gradient(120deg, var(--grad-1), var(--grad-2));
-    /* 다크에선 배경이 밝은 램프가 되므로 대비되는 잉크로 함께 뒤집는다 */
-    color: var(--c-accent-contrast);
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-  }
-  .featured-title {
-    font-size: var(--fs-2xl);
-    margin: var(--space-2) 0 var(--space-3);
-  }
-  .featured-desc {
-    color: var(--c-muted);
-    margin: 0 0 var(--space-4);
-  }
-  .read {
-    display: inline-block;
-    color: var(--c-accent);
-    font-weight: 700;
-    margin-bottom: var(--space-4);
-  }
-  .read-arrow {
-    display: inline-block;
-    transition: transform 0.2s ease;
-  }
-  .featured:hover .read-arrow {
-    transform: translateX(4px);
-  }
-
   .section-head {
     display: flex;
     align-items: baseline;
@@ -1126,91 +199,19 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-4);
   }
-  .card {
-    padding: var(--space-5);
-    background: var(--c-surface);
-  }
-  .card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--fs-xs);
-  }
-  .card-when {
-    color: var(--c-muted);
-  }
-  .card-title {
-    font-size: var(--fs-lg);
-    margin: var(--space-1) 0 var(--space-2);
-  }
-  .card-title a:hover {
-    color: var(--c-accent);
-  }
-  .card-desc {
-    color: var(--c-muted);
-    font-size: var(--fs-sm);
-    margin: 0 0 var(--space-3);
-    /* 설명 길이 차로 카드 높이가 들쭉날쭉하지 않게 2줄에서 자른다 */
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-  }
 
-  /* ══════════════════════════════════════════════════════════
-     진입 애니메이션 — 뷰포트에 들어올 때 스크립트가 .in을 부여.
-     같은 배치로 들어온 요소끼리 --d(70ms 간격)로 stagger.
-     ══════════════════════════════════════════════════════════ */
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal {
-      opacity: 0;
-      transform: translateY(14px);
-    }
-    .reveal.in {
-      animation: reveal-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-      animation-delay: var(--d, 0ms);
-    }
-  }
-  @keyframes reveal-up {
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  /* 태블릿: 3열이 좁아지기 전에 2열로, 히어로는 1단 스택으로 */
+  /* 태블릿: 3열이 좁아지기 전에 2열로 */
   @media (max-width: 900px) {
     .grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .hero-cols {
-      grid-template-columns: minmax(0, 1fr);
-      align-items: start;
-    }
-    .activity {
-      margin-top: var(--space-6);
-    }
   }
 
-  /* ── 모바일 (#27) ── */
+  /* 모바일 (#27): 카드가 featured와 같은 폭으로 꽉 차게 + section-head 세로 스택 */
   @media (max-width: 640px) {
-    .hero {
-      padding: var(--space-6) 0 var(--space-6);
-    }
-    .stats {
-      gap: var(--space-5);
-    }
-    /* featured 카드: 좁은 화면에서 패딩을 줄여 본문 폭 확보 */
-    .featured {
-      padding: var(--space-5);
-    }
-    /* 최근 글: 카드가 featured와 같은 폭으로 꽉 차게(좌측 고정 폭 → 단일 풀폭) */
     .grid {
       grid-template-columns: 1fr;
     }
-    /* section-head: 제목과 '전체 글 보기'가 좁을 땐 세로로 */
     .section-head {
       flex-direction: column;
       align-items: flex-start;

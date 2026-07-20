@@ -21,6 +21,12 @@
   --c-accent-contrast: #ffffff;
   --c-accent-soft: #ebedf2;
 
+  /* ── 브랜드 그라디언트 램프(홈 히어로 제목·featured 카드·NEW 배지 공유) ──
+     다크 그라운드에선 어두운 네이비가 배경에 묻히므로 다크 블록에서 밝은 톤으로 스왑 */
+  --grad-1: #2b3654;
+  --grad-2: #4e618d;
+  --grad-3: #7c8fb8;
+
   /* ── 코드 ── */
   --c-code-bg: #0d1117;
   --c-code-text: #e6edf3;
@@ -87,6 +93,10 @@
     --c-accent-contrast: #12151d;
     --c-accent-soft: #1e2433;
 
+    --grad-1: #8ea3cc;
+    --grad-2: #a9bade;
+    --grad-3: #cdd9ee;
+
     --c-code-bg: #14141b;
     --c-code-text: #e6edf3;
 
@@ -111,6 +121,9 @@
   --c-accent-hover: #a9bade;
   --c-accent-contrast: #12151d;
   --c-accent-soft: #1e2433;
+  --grad-1: #8ea3cc;
+  --grad-2: #a9bade;
+  --grad-3: #cdd9ee;
   --c-code-bg: #14141b;
   --c-code-text: #e6edf3;
 }

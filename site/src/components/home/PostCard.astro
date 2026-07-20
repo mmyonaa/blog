@@ -1,0 +1,77 @@
+---
+import type { CollectionEntry } from "astro:content";
+import "../../styles/home-cards.css";
+import { tagHref } from "../../lib/tags.ts";
+import { sectionHref, sectionLabel, sectionOf, hueOf } from "../../lib/sections.ts";
+import { fmtRelative } from "../../lib/date.ts";
+import { readMin } from "../../lib/reading.ts";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+const { post } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const sec = sectionOf(post);
+---
+
+<article class="card spot-card reveal" data-spot style={`--sec-hue: ${hueOf(sec)}`}>
+  <div class="card-meta">
+    <a class="card-sec" href={sectionHref(base, sec)}>
+      <span class="sec-dot" aria-hidden="true" />
+      {sectionLabel(sec)}
+    </a>
+    <span class="card-when">
+      {fmtRelative(post.data.pubDate)} · {readMin(post.body)}분
+    </span>
+  </div>
+  <h3 class="card-title">
+    <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+  </h3>
+  {post.data.description && <p class="card-desc">{post.data.description}</p>}
+  {post.data.tags.length > 0 && (
+    <div class="tags">
+      {post.data.tags.map((t) => (
+        <a class="pill" href={tagHref(base, t)}>
+          {t}
+        </a>
+      ))}
+    </div>
+  )}
+</article>
+
+<style>
+  /* 공통 카드 룩(스포트라이트·글로우 보더·카테고리 액센트)은 styles/home-cards.css(.spot-card).
+     여기엔 '최근 글' 카드 전용 스타일만 둔다. */
+  .card {
+    padding: var(--space-5);
+    background: var(--c-surface);
+  }
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-xs);
+  }
+  .card-when {
+    color: var(--c-muted);
+  }
+  .card-title {
+    font-size: var(--fs-lg);
+    margin: var(--space-1) 0 var(--space-2);
+  }
+  .card-title a:hover {
+    color: var(--c-accent);
+  }
+  .card-desc {
+    color: var(--c-muted);
+    font-size: var(--fs-sm);
+    margin: 0 0 var(--space-3);
+    /* 설명 길이 차로 카드 높이가 들쭉날쭉하지 않게 2줄에서 자른다 */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+</style>

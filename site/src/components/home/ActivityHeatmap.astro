@@ -1,0 +1,180 @@
+---
+import { heatLevel, HEAT_LEGEND, type Activity } from "../../lib/activity.ts";
+
+interface Props {
+  activity: Activity;
+}
+const { activity } = Astro.props;
+---
+
+<section class="activity reveal" aria-label="발행 활동">
+  <div class="heatmap" role="img" aria-label={`최근 ${activity.weeks}주 발행 활동 · 총 ${activity.total}편`}>
+    <div class="heatmap-months" style={`--weeks: ${activity.weeks}`}>
+      {activity.months.map((m) => (
+        <span class="hm-month" style={`grid-column: ${m.col} / span ${m.span}`}>
+          {m.name}
+        </span>
+      ))}
+    </div>
+    <div class="heatmap-grid" style={`--weeks: ${activity.weeks}`}>
+      {activity.cells.map((c) => (
+        <span
+          class:list={["hm-cell", `lv${heatLevel(c.count)}`, { "hm-future": c.future }]}
+          data-tip={c.future ? undefined : `${c.date.getFullYear()}. ${c.date.getMonth() + 1}. ${c.date.getDate()}. · ${c.count}편`}
+        />
+      ))}
+    </div>
+  </div>
+  <div class="heatmap-legend">
+    <span>적음</span>
+    {HEAT_LEGEND.map((l) => (
+      <span class={`hm-cell lv${l.lv}`} data-tip={l.label} />
+    ))}
+    <span>많음</span>
+  </div>
+  <div class="hm-tip" role="status" aria-live="polite" hidden></div>
+</section>
+
+<script>
+  // 잔디 관련 상호작용만 이 컴포넌트가 담당. 문서 위임 + 전역 가드로 한 번만 등록
+  // (View Transitions 유지).
+  if (!(window as any).__heatmapBound) {
+    (window as any).__heatmapBound = true;
+
+    // 잔디가 컨테이너보다 넓으면(좁은 화면·2단 오른쪽 열) 최근 주가 보이도록
+    // 오른쪽 끝으로 스크롤해 둔다.
+    const scrollHeatmaps = () => {
+      document.querySelectorAll<HTMLElement>(".heatmap").forEach((el) => {
+        el.scrollLeft = el.scrollWidth;
+      });
+    };
+    document.addEventListener("astro:page-load", scrollHeatmaps);
+
+    // 잔디 칸/범례 호버 툴팁: '날짜 · N편'(칸) 또는 레벨 범위(범례)를 표시.
+    // 툴팁은 .activity 기준 absolute. (.activity가 reveal 애니메이션으로 항등 transform을
+    // 남겨 containing block이 되므로, 그 기준으로 좌표를 계산해야 어긋나지 않는다.)
+    const showTip = (cell: HTMLElement) => {
+      const tip = document.querySelector<HTMLElement>(".hm-tip");
+      const host = tip?.parentElement;
+      const text = cell.getAttribute("data-tip");
+      if (!tip || !host || !text) return;
+      tip.textContent = text;
+      tip.hidden = false;
+      const c = cell.getBoundingClientRect();
+      const h = host.getBoundingClientRect();
+      const t = tip.getBoundingClientRect();
+      tip.style.left = `${c.left - h.left + c.width / 2 - t.width / 2}px`;
+      const above = c.top - h.top - t.height - 6;
+      // 카드 위로 넘치면 칸 아래에 표시
+      tip.style.top = `${above < 0 ? c.bottom - h.top + 6 : above}px`;
+    };
+    const hideTip = () => {
+      const tip = document.querySelector<HTMLElement>(".hm-tip");
+      if (tip) tip.hidden = true;
+    };
+    document.addEventListener("pointerover", (e) => {
+      const cell = (e.target as HTMLElement)?.closest?.<HTMLElement>(".hm-cell[data-tip]");
+      if (cell) showTip(cell);
+    });
+    document.addEventListener("pointerout", (e) => {
+      const cell = (e.target as HTMLElement)?.closest?.<HTMLElement>(".hm-cell[data-tip]");
+      if (cell) hideTip();
+    });
+  }
+</script>
+
+<style>
+  /* ── 발행 스트릭 잔디(heatmap) ── */
+  /* 2단 배치에선 오른쪽 열 하단 정렬이라 위 여백이 필요 없다(스택 시 복원) */
+  .activity {
+    position: relative;
+    margin-top: 0;
+    max-width: 100%;
+  }
+  /* 좁은 화면에선 격자가 넘칠 수 있으니 가로 스크롤 허용 */
+  .heatmap {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  /* 월 라벨과 칸 격자는 같은 고정 열 폭(16px)을 써서 정렬을 맞춘다 */
+  .heatmap-months {
+    display: grid;
+    grid-template-columns: repeat(var(--weeks), 16px);
+    gap: 3px;
+    margin-bottom: 5px;
+    min-width: max-content;
+  }
+  .hm-month {
+    font-size: 0.7rem;
+    line-height: 1;
+    color: var(--c-muted);
+    white-space: nowrap;
+    overflow: visible;
+  }
+  .heatmap-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 16px);
+    grid-auto-columns: 16px;
+    gap: 3px;
+    min-width: max-content;
+  }
+  .hm-cell {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: var(--c-surface-2);
+  }
+  .hm-cell.lv1 {
+    background: color-mix(in srgb, var(--c-accent) 32%, var(--c-surface-2));
+  }
+  .hm-cell.lv2 {
+    background: color-mix(in srgb, var(--c-accent) 62%, var(--c-surface-2));
+  }
+  .hm-cell.lv3 {
+    background: var(--c-accent);
+  }
+  .hm-future {
+    visibility: hidden;
+  }
+  .heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: var(--space-3);
+    font-size: 0.7rem;
+    color: var(--c-muted);
+  }
+  .heatmap-legend .hm-cell {
+    width: 13px;
+    height: 13px;
+  }
+  /* 잔디 칸/범례 호버 툴팁 */
+  .hm-cell[data-tip] {
+    cursor: pointer;
+  }
+  .hm-tip {
+    position: absolute;
+    z-index: 50;
+    padding: 0.35em 0.6em;
+    border-radius: var(--radius-sm);
+    background: var(--c-text);
+    color: var(--c-bg);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: var(--shadow-md);
+  }
+  .hm-tip[hidden] {
+    display: none;
+  }
+
+  /* 히어로 2단이 1단으로 스택되면(≤900px) 위 블록과의 간격 복원 */
+  @media (max-width: 900px) {
+    .activity {
+      margin-top: var(--space-6);
+    }
+  }
+</style>

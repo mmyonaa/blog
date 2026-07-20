@@ -1,0 +1,133 @@
+---
+import type { CollectionEntry } from "astro:content";
+import "../../styles/home-cards.css";
+import { tagHref } from "../../lib/tags.ts";
+import { sectionHref, sectionLabel, sectionOf, hueOf } from "../../lib/sections.ts";
+import { fmtDateTime } from "../../lib/date.ts";
+import { readMin } from "../../lib/reading.ts";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+const { post } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const sec = sectionOf(post);
+
+// NEW 배지: 빌드 시점 기준 7일 이내 글일 때만.
+const NEW_BADGE_DAYS = 7;
+const isNew =
+  Date.now() - post.data.pubDate.valueOf() < NEW_BADGE_DAYS * 24 * 60 * 60 * 1000;
+---
+
+<article class="featured spot-card reveal" data-spot style={`--sec-hue: ${hueOf(sec)}`}>
+  <div class="featured-meta">
+    <span class="featured-label">
+      {isNew && <span class="badge-new">NEW</span>}
+      FEATURED · {fmtDateTime(post.data.pubDate)} · {readMin(post.body)}분
+    </span>
+    <a class="card-sec" href={sectionHref(base, sec)}>
+      <span class="sec-dot" aria-hidden="true" />
+      {sectionLabel(sec)}
+    </a>
+  </div>
+  <h2 class="featured-title">
+    <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+  </h2>
+  {post.data.description && <p class="featured-desc">{post.data.description}</p>}
+  <span class="read">읽기 <span class="read-arrow" aria-hidden="true">→</span></span>
+  {post.data.tags.length > 0 && (
+    <div class="tags">
+      {post.data.tags.map((t) => (
+        <a class="pill" href={tagHref(base, t)}>
+          {t}
+        </a>
+      ))}
+    </div>
+  )}
+</article>
+
+<style>
+  /* 공통 카드 룩(스포트라이트·글로우 보더·카테고리 액센트)은 styles/home-cards.css(.spot-card).
+     여기엔 featured 전용 강조만 둔다. 그라디언트 램프(--grad-*)는 global.css 토큰. */
+  .featured {
+    padding: var(--space-6);
+    background: linear-gradient(
+      135deg,
+      var(--c-accent-soft),
+      var(--c-surface) 85%
+    );
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  /* 상단 하이라이트 라인: 글의 카테고리 hue를 그대로 쓴다 */
+  .featured::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--sec-on),
+      color-mix(in srgb, var(--sec-on) 25%, transparent)
+    );
+    opacity: 0.9;
+  }
+  .featured-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+  .featured-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    color: var(--c-accent);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .badge-new {
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(120deg, var(--grad-1), var(--grad-2));
+    /* 다크에선 배경이 밝은 램프가 되므로 대비되는 잉크로 함께 뒤집는다 */
+    color: var(--c-accent-contrast);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+  .featured-title {
+    font-size: var(--fs-2xl);
+    margin: var(--space-2) 0 var(--space-3);
+  }
+  .featured-desc {
+    color: var(--c-muted);
+    margin: 0 0 var(--space-4);
+  }
+  .read {
+    display: inline-block;
+    color: var(--c-accent);
+    font-weight: 700;
+    margin-bottom: var(--space-4);
+  }
+  .read-arrow {
+    display: inline-block;
+    transition: transform 0.2s ease;
+  }
+  .featured:hover .read-arrow {
+    transform: translateX(4px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .featured:hover .read-arrow {
+      transform: none;
+    }
+  }
+
+  /* 모바일: 좁은 화면에서 패딩을 줄여 본문 폭 확보 */
+  @media (max-width: 640px) {
+    .featured {
+      padding: var(--space-5);
+    }
+  }
+</style>

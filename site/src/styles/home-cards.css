@@ -1,0 +1,103 @@
+/*
+ * 홈 카드 공통 룩 — 커서 스포트라이트 + 글로우 보더 + 카테고리 액센트.
+ * FeaturedCard·PostCard 두 컴포넌트가 같은 규칙을 쓰므로 전역 파일로 뺐다.
+ * 모든 선택자를 .spot-card(홈 카드에만 붙는 클래스)로 한정해 다른 페이지의
+ * .card·.card-title(예: PostCards.astro)과 충돌하지 않는다.
+ */
+
+/* stretched-link 패턴: 카드는 div, 제목 링크가 카드 전체를 덮고,
+   태그 링크는 그 위(z-index)로 올려 별도 클릭 가능하게 유지 */
+.spot-card {
+  position: relative;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  transition: box-shadow 0.2s ease, transform 0.2s ease,
+    border-color 0.2s ease;
+  isolation: isolate;
+}
+
+/* 커서 스포트라이트: 마우스 위치(--mx/--my)에 은은한 광원 */
+.spot-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, 0%),
+    color-mix(in srgb, var(--c-accent) 22%, transparent),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.spot-card:hover::before {
+  opacity: 1;
+}
+.spot-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--c-accent) 55%, var(--c-border));
+  box-shadow: var(--shadow-md),
+    0 0 0 1px color-mix(in srgb, var(--c-accent) 30%, transparent),
+    0 12px 40px color-mix(in srgb, var(--c-accent) 22%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .spot-card:hover {
+    transform: none;
+  }
+}
+
+.spot-card .featured-title a,
+.spot-card .card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.spot-card .featured-title a::after,
+.spot-card .card-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.spot-card .tags {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ── 카테고리 액센트(--sec-hue → --sec-on) ──
+   카드뷰·섹션 pill과 같은 hue를 쓰되, 다크 그라운드에선 밝게 보정 */
+.spot-card {
+  --sec-on: var(--sec-hue, var(--c-accent));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .spot-card {
+    --sec-on: color-mix(in srgb, var(--sec-hue, var(--c-accent)) 58%, white);
+  }
+}
+:root[data-theme="dark"] .spot-card {
+  --sec-on: color-mix(in srgb, var(--sec-hue, var(--c-accent)) 58%, white);
+}
+.spot-card .card-sec {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  color: var(--sec-on);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-decoration: none;
+}
+.spot-card .card-sec:hover {
+  color: var(--sec-on);
+}
+.spot-card .sec-dot {
+  flex: none;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: var(--sec-on);
+}
