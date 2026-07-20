@@ -22,8 +22,8 @@ const SECTION_ORDER = ["mcp", "jeongcheogi", "security"];
  */
 export const SECTION_HUE: Record<string, string> = {
   mcp: "#33415c",
-  jeongcheogi: "#4e618d",
-  security: "#6a7ca0",
+  jeongcheogi: "#42679b",
+  security: "#6b7fa0",
 };
 
 export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)";
