@@ -1,7 +1,7 @@
 ---
 title: "zod는 검증기가 아니라 파서다"
 pubDate: 2026-07-18T15:04:01Z
-section: "mcp"
+section: "web"
 tags: ["zod", "typescript", "validation"]
 description: "zod를 '값이 맞는지 확인하는 도구'로만 쓰면 절반만 쓰는 것이다. coerce·transform·refine으로 입력을 원하는 모양으로 바꿔 내보내고, safeParse로 에러를 값처럼 다루고, 스키마를 조합해 재사용하는 법을 정리한다."
 ---

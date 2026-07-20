@@ -15,7 +15,8 @@
  * 그 섹션의 area(아래)와 시드만 얹으면 된다. section 값을 enum으로 하드코딩하지 말 것.
  */
 export const SECTIONS = {
-  mcp: { label: "MCP·에이전트 만들기", desc: "blog-mcp를 만들며 배운 것과 MCP·에이전트 개념을 기록하는 메타 블로그" },
+  mcp: { label: "MCP·에이전트 만들기", desc: "MCP 서버·에이전트를 만들며 배운 개념과 자동화 여정을 기록하는 메타 블로그" },
+  web: { label: "블로그·웹 만들기", desc: "Astro·TypeScript 등 블로그 사이트를 만들며 배운 웹 기술" },
   jeongcheogi: { label: "정처기", desc: "정보처리기사 시험 개념 정리" },
   security: {
     label: "보안",
@@ -32,9 +33,11 @@ export type SectionId = keyof typeof SECTIONS;
  */
 export const AREAS = {
   // ── mcp 섹션 ──
-  A: { section: "mcp", label: "프로젝트 개발기", desc: "이 블로그를 만들며 배운 것을 기록" },
-  B: { section: "mcp", label: "TS·구현 기법", desc: "TypeScript/Node 기술 팁 (풀이 무한)" },
+  A: { section: "mcp", label: "프로젝트 개발기", desc: "MCP 자동화 여정 — 에이전트·CI·비용 등 프로젝트 기록" },
   C: { section: "mcp", label: "MCP·LLM 해설", desc: "MCP·LLM 생태계 개념 설명" },
+  // ── web 섹션 ──
+  B: { section: "web", label: "TS·구현 기법", desc: "TypeScript/Node 기술 팁 (풀이 무한)" },
+  W: { section: "web", label: "사이트 구축", desc: "Astro·배포 등 블로그 사이트 만들기" },
   // ── jeongcheogi 섹션 ──
   DB: { section: "jeongcheogi", label: "데이터베이스", desc: "정규화·트랜잭션·인덱스 등" },
   NET: { section: "jeongcheogi", label: "네트워크", desc: "OSI·TCP/UDP·IP 등" },
@@ -78,13 +81,13 @@ export const SEED_TOPICS: Topic[] = [
   { id: "nodenext-js-ext", area: "B", title: "TypeScript에서 import 경로에 왜 .js를 붙이나 (NodeNext)", tags: ["typescript", "esm", "tsconfig"] },
   { id: "unicode-slug", area: "B", title: "한글도 되는 슬러그 만들기 — 유니코드 정규식 \\p{L}", tags: ["typescript", "정규식"] },
   { id: "parse-vs-safeparse", area: "B", title: "zod parse vs safeParse — 언제 무엇을 쓰나", tags: ["zod", "typescript", "검증"] },
-  { id: "files-git-vs-db", area: "A", title: "왜 블로그에 DB 대신 파일 + git을 쓰나", tags: ["아키텍처", "ssg"] },
-  { id: "astro-content-collection", area: "A", title: "Astro Content Collection으로 마크다운 블로그 만들기", tags: ["astro", "ssg"] },
+  { id: "files-git-vs-db", area: "W", title: "왜 블로그에 DB 대신 파일 + git을 쓰나", tags: ["아키텍처", "ssg"] },
+  { id: "astro-content-collection", area: "W", title: "Astro Content Collection으로 마크다운 블로그 만들기", tags: ["astro", "ssg"] },
   { id: "github-actions-cron", area: "A", title: "GitHub Actions cron으로 매일 도는 자동화 짜기", tags: ["ci", "cron"] },
   { id: "agent-sdk-orchestrator", area: "A", title: "Claude Agent SDK로 MCP 서버에 오케스트레이터 붙이기", tags: ["agent-sdk", "mcp"] },
   { id: "subscription-vs-api-cost", area: "A", title: "구독 vs API 키: 자동화 비용의 진실", tags: ["비용", "인증"] },
   { id: "claude-code-testing", area: "A", title: "Claude Code에 내 MCP 서버 붙여 테스트하기", tags: ["mcp", "claude-code"] },
-  { id: "github-pages-deploy", area: "A", title: "GitHub Pages로 정적 블로그 무료 배포하기", tags: ["pages", "배포"] },
+  { id: "github-pages-deploy", area: "W", title: "GitHub Pages로 정적 블로그 무료 배포하기", tags: ["pages", "배포"] },
 
   // ── 정처기 섹션 (jeongcheogi) ──
   // DB

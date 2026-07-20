@@ -1,7 +1,7 @@
 ---
 title: "Astro Content Collection으로 마크다운 블로그 만들기"
 pubDate: 2026-07-16T12:00:00Z
-section: "mcp"
+section: "web"
 tags: ["astro", "ssg", "typescript"]
 topicId: "astro-content-collection"
 description: "마크다운 폴더를 스키마가 붙은 타입 안전한 데이터로 바꾸는 Astro Content Collection. 컬렉션 정의부터 목록·상세 페이지 렌더링까지 블로그 한 채를 통째로 만들어본다."

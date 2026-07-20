@@ -1,7 +1,7 @@
 ---
 title: "SSG란 무엇인가 — 그리고 Astro는 왜 SSG로 시작하나"
 pubDate: 2026-07-20T01:24:26Z
-section: "mcp"
+section: "web"
 tags: ["ssg", "astro", "performance", "아키텍처"]
 description: "SSG는 요청이 올 때마다 페이지를 만드는 대신, 빌드 때 HTML을 미리 다 찍어두는 방식이다. SSR·CSR과 뭐가 다른지 정리하고, Astro가 왜 기본을 SSG로 잡는지까지 짚는다."
 ---

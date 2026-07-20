@@ -9,12 +9,13 @@ export type Post = CollectionEntry<"blog">;
  */
 export const SECTION_LABELS: Record<string, string> = {
   mcp: "MCP·에이전트 만들기",
+  web: "블로그·웹 만들기",
   jeongcheogi: "정처기",
   security: "보안",
 };
 
 /** 노출 순서. 여기 없는 섹션은 뒤에 이름순으로 붙는다. */
-const SECTION_ORDER = ["mcp", "jeongcheogi", "security"];
+const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "security"];
 
 /**
  * 섹션별 액센트 hue. 랜딩의 섹션 pill과 카드뷰의 색 띠가 같은 색을 쓰도록
@@ -22,6 +23,7 @@ const SECTION_ORDER = ["mcp", "jeongcheogi", "security"];
  */
 export const SECTION_HUE: Record<string, string> = {
   mcp: "#33415c",
+  web: "#4f6d5a",
   jeongcheogi: "#42679b",
   security: "#6b7fa0",
 };
