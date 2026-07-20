@@ -51,7 +51,8 @@ const stats = [
 ];
 
 // 발행 스트릭 잔디(heatmap): 글 pubDate를 주×요일 격자로.
-const activity = buildActivity(posts.map((p) => p.data.pubDate));
+// minWeeks 25는 히어로 오른쪽 열 폭(Hero.astro의 30rem)을 채우는 주 수 — 함께 조정.
+const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 });
 ---
 
 <Base title="blog" description="MCP 서버로 글을 발행하며 배운 것을 기록하는 블로그">

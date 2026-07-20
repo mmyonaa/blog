@@ -331,10 +331,12 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, sections, base } =
     margin: 0;
   }
 
-  /* ── 히어로 2단: 왼쪽 제목·부제·CTA·통계 / 오른쪽 잔디 ── */
+  /* ── 히어로 2단: 왼쪽 제목·부제·CTA·통계 / 오른쪽 잔디 ──
+     오른쪽 열 폭은 잔디 25주(25×19px − 3px = 472px)에 맞춘 값.
+     주 수를 바꾸면 index.astro의 buildActivity minWeeks와 함께 조정한다. */
   .hero-cols {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
     gap: var(--space-6) var(--space-8);
     align-items: end;
   }

@@ -41,15 +41,6 @@ const { activity } = Astro.props;
   if (!(window as any).__heatmapBound) {
     (window as any).__heatmapBound = true;
 
-    // 잔디가 컨테이너보다 넓으면(좁은 화면·2단 오른쪽 열) 최근 주가 보이도록
-    // 오른쪽 끝으로 스크롤해 둔다.
-    const scrollHeatmaps = () => {
-      document.querySelectorAll<HTMLElement>(".heatmap").forEach((el) => {
-        el.scrollLeft = el.scrollWidth;
-      });
-    };
-    document.addEventListener("astro:page-load", scrollHeatmaps);
-
     // 잔디 칸/범례 호버 툴팁: '날짜 · N편'(칸) 또는 레벨 범위(범례)를 표시.
     // 툴팁은 .activity 기준 absolute. (.activity가 reveal 애니메이션으로 항등 transform을
     // 남겨 containing block이 되므로, 그 기준으로 좌표를 계산해야 어긋나지 않는다.)
@@ -91,18 +82,17 @@ const { activity } = Astro.props;
     margin-top: 0;
     max-width: 100%;
   }
-  /* 좁은 화면에선 격자가 넘칠 수 있으니 가로 스크롤 허용 */
   .heatmap {
-    overflow-x: auto;
     padding-bottom: 2px;
   }
-  /* 월 라벨과 칸 격자는 같은 고정 열 폭(16px)을 써서 정렬을 맞춘다 */
+  /* 월 라벨과 칸 격자는 같은 열 폭 규칙(상한 16px)을 써서 정렬을 맞춘다.
+     넓은 화면에선 16px 고정과 동일하고, 컨테이너가 그보다 좁으면 열이
+     균등하게 줄어들어 가로 스크롤 없이 항상 화면 폭에 맞는다. */
   .heatmap-months {
     display: grid;
-    grid-template-columns: repeat(var(--weeks), 16px);
+    grid-template-columns: repeat(var(--weeks), minmax(0, 16px));
     gap: 3px;
     margin-bottom: 5px;
-    min-width: max-content;
   }
   .hm-month {
     font-size: 0.7rem;
@@ -114,16 +104,18 @@ const { activity } = Astro.props;
   .heatmap-grid {
     display: grid;
     grid-auto-flow: column;
-    grid-template-rows: repeat(7, 16px);
-    grid-auto-columns: 16px;
+    grid-template-rows: repeat(7, auto);
+    grid-auto-columns: minmax(0, 16px);
     gap: 3px;
-    min-width: max-content;
   }
   .hm-cell {
-    width: 16px;
-    height: 16px;
     border-radius: 4px;
     background: var(--c-surface-2);
+  }
+  /* 격자 칸: 열 폭을 따라가되 정사각형 유지(범례 칸은 아래에서 고정 크기) */
+  .heatmap-grid .hm-cell {
+    width: 100%;
+    aspect-ratio: 1;
   }
   .hm-cell.lv1 {
     background: color-mix(in srgb, var(--c-accent) 32%, var(--c-surface-2));
