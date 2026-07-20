@@ -5,6 +5,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const repo = "https://github.com/mmyonaa/mcp";
 const profile = "https://github.com/mmyonaa";
 const year = new Date().getFullYear();
+
+// 의견 링크는 폼 활성화 시 내부(/feedback/), 아니면 외부(Discussions)로 간다.
+// 내부 링크는 같은 탭(View Transitions 유지), 외부만 새 탭으로.
+const feedbackExternal = FEEDBACK_URL.startsWith("http");
 ---
 
 <footer class="site-footer">
@@ -21,7 +25,11 @@ const year = new Date().getFullYear();
       <span aria-hidden="true"> · </span>
       <a href={profile} target="_blank" rel="noopener">@mmyonaa</a>
       <span aria-hidden="true"> · </span>
-      <a href={FEEDBACK_URL} target="_blank" rel="noopener">의견 남기기</a>
+      <a
+        href={FEEDBACK_URL}
+        target={feedbackExternal ? "_blank" : undefined}
+        rel={feedbackExternal ? "noopener" : undefined}
+      >의견 남기기</a>
     </p>
   </div>
 </footer>
