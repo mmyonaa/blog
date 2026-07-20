@@ -1,14 +1,10 @@
 ---
-import { FEEDBACK_URL } from "../lib/feedback.ts";
+import { FEEDBACK_ENABLED, DISCUSSIONS_URL } from "../lib/feedback.ts";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const repo = "https://github.com/mmyonaa/mcp";
 const profile = "https://github.com/mmyonaa";
 const year = new Date().getFullYear();
-
-// 의견 링크는 폼 활성화 시 내부(/feedback/), 아니면 외부(Discussions)로 간다.
-// 내부 링크는 같은 탭(View Transitions 유지), 외부만 새 탭으로.
-const feedbackExternal = FEEDBACK_URL.startsWith("http");
 ---
 
 <footer class="site-footer">
@@ -25,11 +21,17 @@ const feedbackExternal = FEEDBACK_URL.startsWith("http");
       <span aria-hidden="true"> · </span>
       <a href={profile} target="_blank" rel="noopener">@mmyonaa</a>
       <span aria-hidden="true"> · </span>
-      <a
-        href={FEEDBACK_URL}
-        target={feedbackExternal ? "_blank" : undefined}
-        rel={feedbackExternal ? "noopener" : undefined}
-      >의견 남기기</a>
+      {
+        FEEDBACK_ENABLED ? (
+          <button type="button" class="linklike" data-feedback-open>
+            의견 남기기
+          </button>
+        ) : (
+          <a href={DISCUSSIONS_URL} target="_blank" rel="noopener">
+            의견 남기기
+          </a>
+        )
+      }
     </p>
   </div>
 </footer>
@@ -48,5 +50,17 @@ const feedbackExternal = FEEDBACK_URL.startsWith("http");
     align-items: center;
     flex-wrap: wrap;
     gap: var(--space-2);
+  }
+  /* '의견 남기기'는 모달을 여는 버튼이지만 다른 푸터 링크와 똑같이 보이게 한다. */
+  .linklike {
+    font: inherit;
+    color: var(--c-link, var(--c-accent));
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+  .linklike:hover {
+    text-decoration: underline;
   }
 </style>

@@ -1,0 +1,246 @@
+---
+// 익명 의견 폼 본체 (#49). /feedback/ 페이지와 FeedbackModal이 공유한다.
+// 제출은 Web3Forms JSON API가 받아 이메일로 전달한다.
+import { WEB3FORMS_ACCESS_KEY } from "../lib/feedback.ts";
+---
+
+<form
+  class="feedback-form"
+  data-feedback-form
+  action="https://api.web3forms.com/submit"
+  method="POST"
+  novalidate
+>
+  <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
+  <input type="hidden" name="subject" value="[blog] 새 의견이 도착했어요" />
+  <input type="hidden" name="from_name" value="blog 의견 창구" />
+  {/* fetch가 막힐 때(네이티브 폴백)만 값을 채워 제출 후 원래 페이지로 복귀 */}
+  <input type="hidden" name="redirect" value="" />
+  {/* honeypot: 봇이 채우면 Web3Forms가 스팸으로 버린다. 사람에겐 숨김. */}
+  <input
+    type="checkbox"
+    name="botcheck"
+    class="botcheck"
+    tabindex="-1"
+    autocomplete="off"
+    aria-hidden="true"
+  />
+
+  <label class="field">
+    <span class="field-label">
+      의견 <span class="req" aria-hidden="true">*</span>
+    </span>
+    <textarea
+      name="message"
+      rows="5"
+      required
+      placeholder="어떤 이야기든 좋아요. 좋았던 점, 아쉬운 점, 다뤄줬으면 하는 주제…"
+    ></textarea>
+  </label>
+
+  <div class="field-row">
+    <label class="field">
+      <span class="field-label">이름 (선택)</span>
+      <input type="text" name="name" placeholder="비우면 익명" autocomplete="off" />
+    </label>
+    <label class="field">
+      <span class="field-label">이메일 (선택)</span>
+      <input
+        type="email"
+        name="email"
+        placeholder="답장을 원할 때만"
+        autocomplete="off"
+      />
+    </label>
+  </div>
+
+  <div class="submit-row">
+    <button type="submit" class="pill submit-btn">의견 보내기</button>
+    <p class="form-status" data-form-status role="status" aria-live="polite"></p>
+  </div>
+</form>
+
+<style>
+  .feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .botcheck {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex: 1;
+  }
+  .field-label {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--c-text);
+  }
+  .req {
+    color: var(--c-accent);
+  }
+  .field-row {
+    display: flex;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .field-row .field {
+    min-width: 12rem;
+  }
+  textarea,
+  input[type="text"],
+  input[type="email"] {
+    font: inherit;
+    font-size: var(--fs-sm);
+    color: var(--c-text);
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    outline: none;
+  }
+  textarea {
+    resize: vertical;
+    line-height: var(--lh-normal);
+  }
+  textarea:focus,
+  input:focus {
+    border-color: var(--c-accent);
+  }
+  ::placeholder {
+    color: var(--c-muted);
+  }
+
+  .submit-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .submit-btn {
+    border: 1px solid var(--c-accent);
+    background: var(--c-accent-soft);
+    color: var(--c-accent);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    padding: 0.5em 1.2em;
+    cursor: pointer;
+  }
+  .submit-btn:hover:not(:disabled) {
+    background: var(--c-accent);
+    color: var(--c-bg);
+  }
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .form-status {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--c-muted);
+  }
+  .form-status.ok {
+    color: var(--c-accent);
+    font-weight: 600;
+  }
+  .form-status.err {
+    color: #d1242f;
+  }
+  :global(:root[data-theme="dark"]) .form-status.err {
+    color: #ff7b72;
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .form-status.err {
+      color: #ff7b72;
+    }
+  }
+</style>
+
+<script>
+  // Web3Forms 제출. 문서 위임(한 번만 등록)으로 View Transitions에도 유지.
+  // 주의: 캡처 단계 필수 — ClientRouter도 document에서 submit을 가로채 폼 값을
+  // 쿼리로 붙여 내비게이션해버리는데, 버블 단계에선 라우터(먼저 등록됨)가 항상
+  // 앞선다. 캡처에서 preventDefault하면 라우터가 defaultPrevented를 보고 건너뛴다.
+  if (!(window as any).__feedbackBound) {
+    (window as any).__feedbackBound = true;
+
+    const onSubmit = async (e: SubmitEvent) => {
+      const form = (e.target as HTMLElement).closest<HTMLFormElement>(
+        "[data-feedback-form]",
+      );
+      if (!form) return;
+      e.preventDefault();
+
+      const status = form.querySelector<HTMLElement>("[data-form-status]");
+      const btn = form.querySelector<HTMLButtonElement>("button[type=submit]");
+      const say = (msg: string, cls?: "ok" | "err") => {
+        if (!status) return;
+        status.textContent = msg;
+        status.classList.remove("ok", "err");
+        if (cls) status.classList.add(cls);
+      };
+
+      const message = (
+        form.elements.namedItem("message") as HTMLTextAreaElement
+      ).value.trim();
+      if (!message) {
+        say("의견 내용을 입력해주세요.", "err");
+        return;
+      }
+
+      if (btn) btn.disabled = true;
+      say("보내는 중…");
+      try {
+        // FormData 그대로 보내 preflight(OPTIONS)를 피한다. JSON+커스텀 헤더는
+        // preflight를 유발하는데, api.web3forms.com 앞의 Cloudflare 봇 필터가
+        // 이를 챌린지로 막으면 CORS 오류가 된다.
+        const res = await fetch(form.action, {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          body: new FormData(form),
+        });
+        const json = await res.json();
+        if (json.success) {
+          form.reset();
+          say("전달됐어요. 의견 고마워요! 🙌", "ok");
+        } else {
+          say("전송에 실패했어요. 잠시 후 다시 시도해주세요.", "err");
+        }
+      } catch {
+        // fetch가 봇 필터/네트워크에 막힌 경우: 네이티브 폼 제출로 폴백.
+        // 최상위 내비게이션이라 Cloudflare 챌린지를 사람이 풀 수 있고,
+        // 완료되면 redirect 값(현재 페이지 ?sent=1)으로 돌아온다.
+        // form.submit()은 submit 이벤트를 다시 발생시키지 않는다(재진입 없음).
+        (form.elements.namedItem("redirect") as HTMLInputElement).value =
+          location.origin + location.pathname + "?sent=1";
+        form.submit();
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    };
+    document.addEventListener("submit", onSubmit, true);
+
+    // 네이티브 폴백 제출 후 ?sent=1로 복귀한 경우 성공 메시지 표시.
+    // 상태 요소가 모달 안에 있으면(글 상세 등에서 제출한 경우) 모달을 먼저 연다.
+    const showSentNotice = () => {
+      if (!new URLSearchParams(location.search).has("sent")) return;
+      const status = document.querySelector<HTMLElement>("[data-form-status]");
+      if (!status) return;
+      if (status.closest("[data-feedback-modal]"))
+        document.dispatchEvent(new CustomEvent("feedback:open"));
+      status.textContent = "전달됐어요. 의견 고마워요! 🙌";
+      status.classList.add("ok");
+      history.replaceState(null, "", location.pathname);
+    };
+    document.addEventListener("astro:page-load", showSentNotice);
+  }
+</script>

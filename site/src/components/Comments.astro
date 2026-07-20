@@ -2,7 +2,7 @@
 // 글 하단 댓글(#46, #51에서 Cusdis 전환 시도 후 복귀): giscus(GitHub Discussions).
 // 댓글은 레포 Discussions(Announcements 카테고리)에 pathname 기준으로 쌓인다.
 // 익명 의견은 비공개 의견함 /feedback/(#49)으로 안내한다.
-import { FEEDBACK_ENABLED, FEEDBACK_PAGE } from "../lib/feedback.ts";
+import { FEEDBACK_ENABLED } from "../lib/feedback.ts";
 ---
 
 <section class="comments" aria-label="댓글">
@@ -13,7 +13,9 @@ import { FEEDBACK_ENABLED, FEEDBACK_PAGE } from "../lib/feedback.ts";
       FEEDBACK_ENABLED && (
         <>
           {" "}로그인 없이 남기고 싶다면{" "}
-          <a href={FEEDBACK_PAGE}>비공개로 의견 보내기 →</a>
+          <button type="button" class="hint-link" data-feedback-open>
+            비공개로 의견 보내기 →
+          </button>
         </>
       )
     }
@@ -47,6 +49,20 @@ import { FEEDBACK_ENABLED, FEEDBACK_PAGE } from "../lib/feedback.ts";
     color: var(--c-muted);
     font-size: var(--fs-sm);
     margin: 0 0 var(--space-5);
+  }
+  /* 모달을 여는 버튼이지만 인라인 링크처럼 보이게 한다. */
+  .hint-link {
+    font: inherit;
+    color: var(--c-link, var(--c-accent));
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .hint-link:hover {
+    color: var(--c-accent);
   }
   .giscus {
     /* 지연 로딩 전 빈 영역이 0px이면 IntersectionObserver 진입이 늦어지고,
