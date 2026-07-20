@@ -22,7 +22,7 @@ const pageHref = (n: number) =>
 ---
 
 <Base title={`#${tag} — blog`} description={`${tag} 태그가 달린 글 목록`}>
-  <p class="muted"><a href={`${base}/tags/`}>← 전체 태그</a></p>
+  <p class="muted"><a href={`${base}/topics/#tags`}>← 전체 태그</a></p>
   <h1>#{tag}</h1>
   <p class="muted">
     {page.total}개의 글{page.lastPage > 1 && ` · ${page.currentPage} / ${page.lastPage} 페이지`}
