@@ -13,10 +13,10 @@ const posts = (await getCollection("blog")).sort(
 );
 const sections = await getSectionCounts();
 const tags = await getTagCounts();
-// 히어로 카테고리 아래 인기 태그: 글 수 상위 순. 2줄을 꽉 채울 만큼(어떤 폭에서도)
-// 넉넉히 넘기고, PopularTags가 CSS로 2줄만 남기고 클립한다. 클립돼 안 보이는 태그는
-// 컴포넌트 스크립트가 탭 순서·스크린리더에서 제외하므로(#4) 노출 대상만 정확히 남는다.
-const topTags = tags.slice(0, 30);
+// 히어로 카테고리 아래 인기 태그: 글 수 상위 순. 어떤 폭에서도 2줄이 꽉 차도록 전량을
+// 넘기고, PopularTags가 CSS로 2줄만 남기고 클립한다(적게 넘기면 둘째 줄이 중간에서 빈다).
+// 클립돼 안 보이는 태그는 컴포넌트 스크립트가 탭 순서·스크린리더에서 제외한다(#4).
+const topTags = tags;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 // RSS 안내 팝오버에 보여줄 절대 피드 주소(리더 앱에 그대로 등록하는 값)
