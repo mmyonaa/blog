@@ -73,11 +73,13 @@
 /* OS 다크. 단 사용자가 라이트로 강제(data-theme=light)한 경우는 제외. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --c-bg: #0b0b0f;
-    --c-surface: #16161d;
-    --c-surface-2: #1f1f28;
-    --c-border: #2a2a34;
-    --c-text: #ededf0;
+    /* 순수 검정/흰색은 대비가 과해(≈15:1) 눈부심·헤일레이션을 유발한다.
+       배경은 살짝 밝힌 짙은 회색(네이비 기운 미세), 본문은 오프화이트로 낮춰 ≈12:1. */
+    --c-bg: #111319;
+    --c-surface: #1a1c24;
+    --c-surface-2: #232630;
+    --c-border: #2e313c;
+    --c-text: #d7dae1;
     --c-muted: #a1a1aa;
 
     --c-accent: #8ea3cc;
@@ -99,11 +101,11 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --c-bg: #0b0b0f;
-  --c-surface: #16161d;
-  --c-surface-2: #1f1f28;
-  --c-border: #2a2a34;
-  --c-text: #ededf0;
+  --c-bg: #111319;
+  --c-surface: #1a1c24;
+  --c-surface-2: #232630;
+  --c-border: #2e313c;
+  --c-text: #d7dae1;
   --c-muted: #a1a1aa;
   --c-accent: #8ea3cc;
   --c-accent-hover: #a9bade;
