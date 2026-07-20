@@ -19,6 +19,12 @@ const RECENT_MAX = 6;
 const [featured, ...others] = posts;
 const rest = others.slice(0, RECENT_MAX);
 
+// NEW 배지: featured가 빌드 시점 기준 7일 이내 글일 때만.
+const NEW_BADGE_DAYS = 7;
+const isNew =
+  posts.length > 0 &&
+  Date.now() - featured.data.pubDate.valueOf() < NEW_BADGE_DAYS * 24 * 60 * 60 * 1000;
+
 // ── 히어로 통계 ──
 // 로컬 날짜 키(YYYY-MM-DD). '연속 발행'은 가장 최근 글 날짜부터 하루씩 거슬러
 // 글이 있는 날이 이어지는 최대 길이.
@@ -51,6 +57,15 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
 ---
 
 <Base title="blog" description="MCP 서버로 글을 발행하며 배운 것을 기록하는 블로그">
+  <noscript>
+    {/* reveal은 스크립트가 트리거하므로, JS 미실행 환경에선 숨김을 해제 */}
+    <style is:inline>
+      .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    </style>
+  </noscript>
   <section class="hero">
     <div class="hero-bg" aria-hidden="true">
       <span class="blob blob-1"></span>
@@ -58,13 +73,13 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
       <span class="blob blob-3"></span>
     </div>
     <div class="hero-inner">
-      <h1 class="hero-title reveal" style="--i: 0">blog</h1>
-      <p class="hero-sub reveal" style="--i: 1">
+      <h1 class="hero-title reveal">blog</h1>
+      <p class="hero-sub reveal">
         직접 만든 MCP 서버가 쓰고, 제가 배운 걸로 채웁니다.
       </p>
       {
         posts.length > 0 && (
-          <dl class="stats reveal" style="--i: 2">
+          <dl class="stats reveal">
             {stats.map((s) => (
               <div class:list={["stat", { "stat-link": s.href }]}>
                 <dt class="stat-value" data-countup={s.value}>{s.value}</dt>
@@ -82,7 +97,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
       }
       {
         posts.length > 0 && (
-          <section class="activity reveal" style="--i: 3" aria-label="발행 활동">
+          <section class="activity reveal" aria-label="발행 활동">
             <div class="heatmap" role="img" aria-label={`최근 ${activity.weeks}주 발행 활동 · 총 ${activity.total}편`}>
               <div class="heatmap-months" style={`--weeks: ${activity.weeks}`}>
                 {activity.months.map((m) => (
@@ -114,7 +129,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
       }
       {
         sections.length > 0 && (
-          <nav class="sections-strip reveal" style="--i: 4" aria-label="카테고리">
+          <nav class="sections-strip reveal" aria-label="카테고리">
             {sections.map((s) => (
               <a
                 class="sec-pill"
@@ -135,9 +150,9 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
       <>
-        <article class="featured reveal" style="--i: 5" data-spot>
+        <article class="featured reveal" data-spot>
           <span class="featured-label">
-            <span class="badge-new">NEW</span>
+            {isNew && <span class="badge-new">NEW</span>}
             FEATURED · {fmtDateTime(featured.data.pubDate)}
           </span>
           <h2 class="featured-title">
@@ -163,8 +178,8 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
               <a class="more" href={`${base}/blog/`}>전체 글 보기 →</a>
             </div>
             <div class="grid">
-              {rest.map((post, i) => (
-                <article class="card reveal" style={`--i: ${6 + i}`} data-spot>
+              {rest.map((post) => (
+                <article class="card reveal" data-spot>
                   <div class="muted card-meta">{fmtDateTime(post.data.pubDate)}</div>
                   <h3 class="card-title">
                     <a href={href(post.id)}>{post.data.title}</a>
@@ -233,6 +248,32 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     };
     // View Transitions로 홈에 재진입할 때마다 다시 실행(최초 로드 포함).
     document.addEventListener("astro:page-load", runCountUp);
+
+    // 진입 reveal: 뷰포트에 들어온 .reveal에 .in을 부여해 애니메이션 시작.
+    // 최초 로드 땐 화면 위 요소들이 한 배치로 들어와 기존과 같은 stagger,
+    // 폴드 아래 카드는 스크롤로 보일 때 각자 작은 stagger로 뜬다.
+    const runReveal = () => {
+      const els = document.querySelectorAll<HTMLElement>(".reveal:not(.in)");
+      if (reduce || !("IntersectionObserver" in window)) {
+        els.forEach((el) => el.classList.add("in"));
+        return;
+      }
+      const io = new IntersectionObserver(
+        (entries) => {
+          let batch = 0;
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const el = entry.target as HTMLElement;
+            el.style.setProperty("--d", `${batch++ * 70}ms`);
+            el.classList.add("in");
+            io.unobserve(el);
+          }
+        },
+        { threshold: 0.1 },
+      );
+      els.forEach((el) => io.observe(el));
+    };
+    document.addEventListener("astro:page-load", runReveal);
 
     // 잔디 칸/범례 호버 툴팁: '날짜 · N편'(칸) 또는 레벨 범위(범례)를 표시.
     // 툴팁은 .activity 기준 absolute. (.activity가 reveal 애니메이션으로 항등 transform을
@@ -395,6 +436,29 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     }
   }
 
+  /* 브랜드 그라디언트 램프: 다크 그라운드에선 어두운 네이비가 배경에 묻히므로
+     밝은 톤으로 스왑한다(제목·featured 라인·NEW 배지가 공유). */
+  .hero-title,
+  .featured {
+    --grad-1: #2b3654;
+    --grad-2: #4e618d;
+    --grad-3: #7c8fb8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .hero-title,
+    :root:not([data-theme="light"]) .featured {
+      --grad-1: #8ea3cc;
+      --grad-2: #a9bade;
+      --grad-3: #cdd9ee;
+    }
+  }
+  :root[data-theme="dark"] .hero-title,
+  :root[data-theme="dark"] .featured {
+    --grad-1: #8ea3cc;
+    --grad-2: #a9bade;
+    --grad-3: #cdd9ee;
+  }
+
   .hero-title {
     font-size: clamp(2.75rem, 8vw, 4rem);
     /* background-clip:text에선 배경 박스 높이가 line-height라, 너무 좁으면
@@ -402,7 +466,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     line-height: 1.18;
     padding-bottom: 0.06em;
     margin: 0 0 var(--space-3);
-    background: linear-gradient(115deg, #2b3654 0%, #4e618d 50%, #7c8fb8 100%);
+    background: linear-gradient(115deg, var(--grad-1) 0%, var(--grad-2) 50%, var(--grad-3) 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -686,7 +750,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
     position: absolute;
     inset: 0 0 auto 0;
     height: 3px;
-    background: linear-gradient(90deg, #2b3654, #4e618d, #7c8fb8);
+    background: linear-gradient(90deg, var(--grad-1), var(--grad-2), var(--grad-3));
     opacity: 0.9;
   }
   .featured-label {
@@ -701,8 +765,9 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
   .badge-new {
     padding: 0.15em 0.5em;
     border-radius: var(--radius-pill);
-    background: linear-gradient(120deg, #33415c, #56699a);
-    color: #fff;
+    background: linear-gradient(120deg, var(--grad-1), var(--grad-2));
+    /* 다크에선 배경이 밝은 램프가 되므로 대비되는 잉크로 함께 뒤집는다 */
+    color: var(--c-accent-contrast);
     font-size: 0.7rem;
     font-weight: 800;
     letter-spacing: 0.06em;
@@ -762,14 +827,17 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate));
   }
 
   /* ══════════════════════════════════════════════════════════
-     진입 애니메이션 — fade-up, --i로 stagger
+     진입 애니메이션 — 뷰포트에 들어올 때 스크립트가 .in을 부여.
+     같은 배치로 들어온 요소끼리 --d(70ms 간격)로 stagger.
      ══════════════════════════════════════════════════════════ */
   @media (prefers-reduced-motion: no-preference) {
     .reveal {
       opacity: 0;
       transform: translateY(14px);
+    }
+    .reveal.in {
       animation: reveal-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-      animation-delay: calc(var(--i, 0) * 70ms);
+      animation-delay: var(--d, 0ms);
     }
   }
   @keyframes reveal-up {
