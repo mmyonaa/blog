@@ -1,0 +1,48 @@
+---
+// 카테고리 pill 아래 인기 태그 한 줄. 카테고리(SectionPills)보다 낮은 톤으로 둔다 —
+// 색·테두리 없는 '#태그' 텍스트 링크. 전체 목록은 분류 허브(/topics/#tags)로.
+import { tagHref } from "../../lib/tags.ts";
+
+interface Props {
+  tags: { tag: string; count: number }[];
+  base: string;
+}
+const { tags, base } = Astro.props;
+---
+
+<nav class="tags-strip reveal" aria-label="인기 태그">
+  {tags.map((t) => (
+    <a class="tag-link" href={tagHref(base, t.tag)}>#{t.tag}</a>
+  ))}
+  <a class="tag-more" href={`${base}/topics/#tags`}>태그 전체 →</a>
+</nav>
+
+<style>
+  .tags-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
+  }
+  .tag-link {
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  .tag-link:hover {
+    color: var(--c-accent);
+    text-decoration: none;
+  }
+  .tag-more {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--c-accent);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .tag-more:hover {
+    text-decoration: underline;
+  }
+</style>
