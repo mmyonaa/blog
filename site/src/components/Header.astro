@@ -3,8 +3,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const pathname = Astro.url.pathname.replace(/\/$/, "");
 const isHome = pathname === base || pathname === "";
 const isBlog = pathname.startsWith(`${base}/blog`);
-const isSections = pathname.startsWith(`${base}/categories`);
-const isTags = pathname.startsWith(`${base}/tags`);
+// 분류 허브(/topics/)와 그 상세(/categories/[section]/, /tags/[tag]/) 모두 '분류' 활성.
+const isTopics =
+  pathname.startsWith(`${base}/topics`) ||
+  pathname.startsWith(`${base}/categories`) ||
+  pathname.startsWith(`${base}/tags`);
 const searchIndexUrl = `${base}/search-index.json`;
 ---
 
@@ -23,8 +26,7 @@ const searchIndexUrl = `${base}/search-index.json`;
       </button>
       <a href={`${base}/`} class:list={["pill", { active: isHome }]} aria-current={isHome ? "page" : undefined}>홈</a>
       <a href={`${base}/blog/`} class:list={["pill", { active: isBlog }]} aria-current={isBlog ? "page" : undefined}>글</a>
-      <a href={`${base}/categories/`} class:list={["pill", { active: isSections }]} aria-current={isSections ? "page" : undefined}>카테고리</a>
-      <a href={`${base}/tags/`} class:list={["pill", { active: isTags }]} aria-current={isTags ? "page" : undefined}>태그</a>
+      <a href={`${base}/topics/`} class:list={["pill", { active: isTopics }]} aria-current={isTopics ? "page" : undefined}>분류</a>
       <button type="button" class="pill theme-toggle" data-theme-toggle aria-label="테마 전환">
         <svg class="icon-moon" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
           <path d="M16 11.5A6 6 0 1 1 8.5 4a5 5 0 0 0 7.5 7.5Z" fill="currentColor"></path>

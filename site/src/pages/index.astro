@@ -46,8 +46,8 @@ if (posts.length > 0) {
 const stats = [
   { value: posts.length, label: "발행 글", href: `${base}/blog/` },
   ...(streak > 0 ? [{ value: streak, label: "일 연속 발행" }] : []),
-  { value: sections.length, label: "카테고리", href: `${base}/categories/` },
-  { value: tags.length, label: "태그", href: `${base}/tags/` },
+  { value: sections.length, label: "카테고리", href: `${base}/topics/` },
+  { value: tags.length, label: "태그", href: `${base}/topics/#tags` },
 ];
 
 // 발행 스트릭 잔디(heatmap): 글 pubDate를 주×요일 격자로.
