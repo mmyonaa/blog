@@ -4,7 +4,9 @@ import Base from "../../layouts/Base.astro";
 import { tagHref } from "../../lib/tags.ts";
 import { fmtDateTime } from "../../lib/date.ts";
 import { sectionLabel, sectionHref, hueOf, sectionOf } from "../../lib/sections.ts";
+import { relatedPosts, type Related } from "../../lib/related.ts";
 import Comments from "../../components/Comments.astro";
+import RelatedPosts from "../../components/RelatedPosts.astro";
 
 export async function getStaticPaths() {
   const posts = (await getCollection("blog")).sort(
@@ -16,6 +18,7 @@ export async function getStaticPaths() {
       post,
       newer: posts[i - 1] ?? null,
       older: posts[i + 1] ?? null,
+      related: relatedPosts(post, posts, 3),
     },
   }));
 }
@@ -25,9 +28,10 @@ interface Props {
   post: Entry;
   newer: Entry | null;
   older: Entry | null;
+  related: Related[];
 }
 
-const { post, newer, older } = Astro.props as Props;
+const { post, newer, older, related } = Astro.props as Props;
 const { Content, headings } = await render(post);
 
 // 이 글의 카테고리(섹션) — 목록/카드와 같은 라벨·색을 헤더에도 노출.
@@ -145,6 +149,8 @@ const jsonLd = {
         }
         <Content />
       </article>
+
+      <RelatedPosts items={related} />
 
       {
         (older || newer) && (

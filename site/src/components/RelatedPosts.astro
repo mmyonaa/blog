@@ -1,0 +1,152 @@
+---
+import type { Related } from "../lib/related.ts";
+import { sectionLabel, sectionHref, hueOf, sectionOf } from "../lib/sections.ts";
+import { tagHref } from "../lib/tags.ts";
+
+interface Props {
+  items: Related[];
+}
+const { items } = Astro.props as Props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const href = (id: string) => `${base}/blog/${id}/`;
+// 카드마다 겹친 태그는 앞 3개만 노출(가중치 높은 순으로 이미 정렬됨).
+const TAG_MAX = 3;
+---
+
+{
+  items.length > 0 && (
+    <section class="related" aria-label="관련 글">
+      <p class="related-title">관련 글</p>
+      <ul class="related-list">
+        {items.map(({ post, sharedTags }) => {
+          const section = sectionOf(post);
+          const tags = sharedTags.slice(0, TAG_MAX);
+          return (
+            <li class="related-item" style={`--hue: ${hueOf(section)}`}>
+              <div class="related-body">
+                <a class="related-section" href={sectionHref(base, section)}>
+                  {sectionLabel(section)}
+                </a>
+                <a class="related-post-title" href={href(post.id)}>
+                  {post.data.title}
+                </a>
+                {post.data.description && (
+                  <p class="related-desc">{post.data.description}</p>
+                )}
+                {tags.length > 0 && (
+                  <div class="related-tags">
+                    {tags.map((t) => (
+                      <a class="pill" href={tagHref(base, t)}>
+                        {t}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )
+}
+
+<style>
+  .related {
+    margin-top: var(--space-10);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--c-border);
+  }
+  .related-title {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    margin: 0 0 var(--space-4);
+  }
+  .related-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--space-4);
+  }
+  .related-item {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    background: var(--c-surface);
+    /* 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정(카드뷰와 동일 규칙). */
+    --hue-on: var(--hue);
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+  :global(:root[data-theme="dark"]) .related-item {
+    --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .related-item {
+      --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+    }
+  }
+  .related-item:hover {
+    border-color: var(--hue-on);
+    transform: translateY(-2px);
+  }
+  .related-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex: 1;
+    padding: var(--space-4);
+  }
+  .related-section {
+    align-self: start;
+    color: var(--hue-on);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+  }
+  .related-section:hover {
+    text-decoration: underline;
+  }
+  .related-post-title {
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+    color: var(--c-text);
+  }
+  .related-post-title:hover {
+    color: var(--hue-on);
+    text-decoration: none;
+  }
+  .related-desc {
+    color: var(--c-muted);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-snug);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .related-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .related-item {
+      transition: none;
+    }
+    .related-item:hover {
+      transform: none;
+    }
+  }
+</style>
