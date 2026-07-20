@@ -8,7 +8,7 @@ export type Post = CollectionEntry<"blog">;
  * 라벨을 여기 둔다. 목록에 없는 섹션은 id를 그대로 라벨로 쓴다(확장에 안전).
  */
 export const SECTION_LABELS: Record<string, string> = {
-  mcp: "MCP 만들기",
+  mcp: "MCP·에이전트 만들기",
   jeongcheogi: "정처기",
   security: "보안",
 };
@@ -21,9 +21,9 @@ const SECTION_ORDER = ["mcp", "jeongcheogi", "security"];
  * 여기 한 곳에 둔다. 목록에 없는 섹션은 기본 액센트로 폴백.
  */
 export const SECTION_HUE: Record<string, string> = {
-  mcp: "#7c3aed",
-  jeongcheogi: "#0ea5e9",
-  security: "#059669",
+  mcp: "#44506b",
+  jeongcheogi: "#3f7d74",
+  security: "#8f5f6e",
 };
 
 export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)";
@@ -38,7 +38,7 @@ export function sectionHref(base: string, id: string): string {
 }
 
 /** 글의 섹션(없으면 mcp — 구버전 글 호환). */
-const sectionOf = (post: Post): string =>
+export const sectionOf = (post: Post): string =>
   typeof post.data.section === "string" && post.data.section.trim() !== ""
     ? post.data.section
     : "mcp";

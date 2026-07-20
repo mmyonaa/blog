@@ -15,7 +15,7 @@
  * 그 섹션의 area(아래)와 시드만 얹으면 된다. section 값을 enum으로 하드코딩하지 말 것.
  */
 export const SECTIONS = {
-  mcp: { label: "MCP 만들기", desc: "blog-mcp를 만들며 배운 것을 기록하는 메타 블로그" },
+  mcp: { label: "MCP·에이전트 만들기", desc: "blog-mcp를 만들며 배운 것과 MCP·에이전트 개념을 기록하는 메타 블로그" },
   jeongcheogi: { label: "정처기", desc: "정보처리기사 시험 개념 정리" },
   security: {
     label: "보안",
