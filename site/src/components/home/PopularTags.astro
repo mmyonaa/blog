@@ -45,4 +45,23 @@ const { tags, base } = Astro.props;
   .tag-more:hover {
     text-decoration: underline;
   }
+
+  /* 노출 개수는 화면 폭에 맞춰 조절한다. 최대치(24개)는 넓은 화면 그대로,
+     좁아질수록 뒤쪽 태그를 잘라 줄 수를 억제한다. '태그 전체 →'(.tag-more)는
+     .tag-link가 아니라 어느 구간에서도 잘리지 않는다. */
+  @media (max-width: 1100px) {
+    .tag-link:nth-child(n + 17) {
+      display: none;
+    }
+  }
+  @media (max-width: 900px) {
+    .tag-link:nth-child(n + 13) {
+      display: none;
+    }
+  }
+  @media (max-width: 640px) {
+    .tag-link:nth-child(n + 10) {
+      display: none;
+    }
+  }
 </style>
