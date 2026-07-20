@@ -110,13 +110,27 @@ export function buildActivity(
 }
 
 /**
- * 발행 수 → 강도 레벨(0~3). 미래는 -1.
- * 구간: 0 / 1~4 / 5~9 / 10+.
+ * 강도 구간 상한(포함). [4, 9] → lv1: 1~4편, lv2: 5~9편, lv3: 10편 이상.
+ * heatLevel과 범례(HEAT_LEGEND)가 모두 여기서 파생된다 — 구간을 바꿀 땐 이 배열만.
  */
+const HEAT_UPPER = [4, 9];
+
+/** 발행 수 → 강도 레벨(0~HEAT_UPPER.length+1). 미래는 -1. */
 export function heatLevel(count: number): number {
   if (count < 0) return -1;
   if (count === 0) return 0;
-  if (count <= 4) return 1;
-  if (count <= 9) return 2;
-  return 3;
+  for (let i = 0; i < HEAT_UPPER.length; i++) {
+    if (count <= HEAT_UPPER[i]) return i + 1;
+  }
+  return HEAT_UPPER.length + 1;
 }
+
+/** 잔디 범례: 레벨별 라벨. */
+export const HEAT_LEGEND: { lv: number; label: string }[] = [
+  { lv: 0, label: "0편" },
+  ...HEAT_UPPER.map((upper, i) => ({
+    lv: i + 1,
+    label: `${i === 0 ? 1 : HEAT_UPPER[i - 1] + 1}~${upper}편`,
+  })),
+  { lv: HEAT_UPPER.length + 1, label: `${HEAT_UPPER[HEAT_UPPER.length - 1] + 1}편 이상` },
+];
