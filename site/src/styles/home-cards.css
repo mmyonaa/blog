@@ -9,7 +9,7 @@
 .spot-card {
   position: relative;
   isolation: isolate;
-  background: var(--c-bg);
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
