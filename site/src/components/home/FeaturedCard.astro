@@ -50,8 +50,8 @@ const isNew =
   /* 공통 카드 룩(카테고리 색 상단 룰·플랫)은 styles/home-cards.css(.spot-card).
      여기엔 featured 전용 강조만 둔다 — 배경·그림자·둥근 모서리 없이 타이포로 승부. */
   .featured {
-    /* 상단 룰만 카테고리 색으로 두껍게(3px). 나머지 여백은 신문 리드 기사처럼 넓게. */
-    border-top-width: 3px;
+    /* 리드 기사에만 카테고리 색 상단 룰을 둔다(반복 카드엔 없음). 여백은 넓게. */
+    border-top: 2px solid var(--sec-on);
     padding: var(--space-5) 0 var(--space-6);
   }
   .featured-meta {

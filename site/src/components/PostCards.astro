@@ -23,7 +23,6 @@ const TAG_MAX = 3;
       const overflow = post.data.tags.length - tags.length;
       return (
         <li class="card" style={`--hue: ${hueOf(section)}`}>
-          <span class="card-stripe" aria-hidden="true" />
           <div class="card-body">
             <div class="card-meta">
               <a class="card-section" href={sectionHref(base, section)}>
@@ -63,8 +62,8 @@ const TAG_MAX = 3;
     grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
     gap: var(--space-6) var(--space-5);
   }
-  /* 홈 카드와 동일한 에디토리얼 룩 — 배경 상자·둥근 모서리·그림자 없이
-     카테고리 색 상단 룰(card-stripe)로만 구획한다. */
+  /* 홈 카드와 동일한 에디토리얼 룩 — 배경 상자·둥근 모서리·그림자·색 룰 없이
+     여백으로만 구획한다. 카테고리 색은 카드 안의 섹션 라벨(.card-section)로만 전달. */
   .card {
     position: relative;
     display: flex;
@@ -79,11 +78,6 @@ const TAG_MAX = 3;
     :global(:root:not([data-theme="light"])) .card {
       --hue-on: color-mix(in srgb, var(--hue) 58%, white);
     }
-  }
-  /* 카테고리 색 상단 룰 — 카드의 유일한 장식이자 시각적 앵커. */
-  .card-stripe {
-    height: 2px;
-    background: var(--hue-on);
   }
   .card-body {
     display: flex;
