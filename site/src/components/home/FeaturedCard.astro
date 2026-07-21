@@ -63,15 +63,31 @@ const isNew =
     font-size: 1.4rem;
     border-radius: var(--radius-md);
   }
+  /* NEW — 배경 없이 코랄 텍스트 + 깜빡이는(펄스) 라이브 도트 */
   .badge-new {
     align-self: flex-start;
-    background: var(--sec-on);
-    color: var(--c-bg);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    color: var(--c-accent);
     font-size: var(--fs-xs);
     font-weight: 800;
-    letter-spacing: 0.04em;
-    border-radius: var(--radius-sm);
-    padding: 0.1em 0.45em;
+    letter-spacing: 0.08em;
+  }
+  .badge-new::before {
+    content: "";
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--c-accent);
+    animation: new-blink 1.3s ease-in-out infinite;
+  }
+  @keyframes new-blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.25; transform: scale(0.7); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .badge-new::before { animation: none; }
   }
   .featured-title {
     font-size: var(--fs-xl);
