@@ -15,67 +15,78 @@ const sec = sectionOf(post);
 ---
 
 <article class="card spot-card reveal" style={`--sec-hue: ${hueOf(sec)}`}>
-  <div class="card-meta">
-    <a class="card-sec" href={sectionHref(base, sec)}>
-      <span class="sec-dot" aria-hidden="true" />
-      {sectionLabel(sec)}
-    </a>
+  <div class="card-bar">
+    <span class="card-dot" aria-hidden="true" />
+    <a class="card-sec" href={sectionHref(base, sec)}>{sectionLabel(sec)}</a>
+  </div>
+  <div class="card-body">
     <span class="card-when">
       {fmtRelative(post.data.pubDate)} · {readMin(post.body)}분
     </span>
+    <h3 class="card-title">
+      <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+    </h3>
+    {post.data.description && <p class="card-desc">{post.data.description}</p>}
+    {post.data.tags.length > 0 && (
+      <div class="tags">
+        {post.data.tags.map((t) => (
+          <a class="tag" href={tagHref(base, t)}>
+            {t}
+          </a>
+        ))}
+      </div>
+    )}
   </div>
-  <h3 class="card-title">
-    <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
-  </h3>
-  {post.data.description && <p class="card-desc">{post.data.description}</p>}
-  {post.data.tags.length > 0 && (
-    <div class="tags">
-      {post.data.tags.map((t) => (
-        <a class="tag" href={tagHref(base, t)}>
-          {t}
-        </a>
-      ))}
-    </div>
-  )}
 </article>
 
 <style>
-  /* 공통 카드 룩(카테고리 색 상단 룰·플랫)은 styles/home-cards.css(.spot-card).
-     여기엔 '최근 글' 카드 전용 스타일만 둔다 — 배경 상자 없이 신문 칼럼처럼. */
+  /* 공통 터미널 룩(.spot-card·헤더 바·마커)은 styles/home-cards.css.
+     여기엔 '최근 글' 카드 전용 스타일만 둔다. */
   .card {
     /* 그리드가 같은 행 카드를 같은 높이로 늘리므로(align stretch), 내부를 세로 플렉스로
        두고 태그를 바닥에 붙이면 제목·요약 길이가 달라도 태그 정렬선이 맞는다. */
     display: flex;
     flex-direction: column;
-    padding: var(--space-4) 0 var(--space-5);
+  }
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0.85em 0.9em 1em;
+    gap: var(--space-2);
   }
   .tags {
     margin-top: auto;
-  }
-  .card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--fs-xs);
+    padding-top: var(--space-2);
   }
   .card-when {
+    font-size: var(--fs-xs);
     color: var(--c-muted);
   }
+  .card-when::before {
+    content: "// ";
+    opacity: 0.7;
+  }
   .card-title {
-    font-size: var(--fs-lg);
-    line-height: 1.3;
-    margin: var(--space-2) 0 var(--space-2);
+    font-size: var(--fs-base);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    margin: 0;
   }
   .card-desc {
     color: var(--c-muted);
     font-size: var(--fs-sm);
-    margin: 0 0 var(--space-3);
+    line-height: 1.55;
+    margin: 0;
     /* 설명 길이 차로 카드 높이가 들쭉날쭉하지 않게 2줄에서 자른다 */
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     overflow: hidden;
+  }
+  .card-desc::before {
+    content: "> ";
+    color: var(--sec-on);
   }
 </style>

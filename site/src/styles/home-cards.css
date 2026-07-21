@@ -1,21 +1,27 @@
 /*
- * 홈 카드 공통 룩 — 스위스 에디토리얼. 알약·글로우·스포트라이트·둥근 모서리·배경 상자
- * 없이 여백으로만 구획한다. 반복되는 카드마다 색 룰을 그으면 화면이 줄무늬처럼 보여서,
- * 카테고리 색은 카드 안의 점+라벨(.card-sec)로만 전달한다. 상단 룰은 리드 기사(featured)
- * 한 곳에만 둔다.
+ * 홈 카드 공통 룩 — 터미널. 고정폭 폰트 + 터미널 창 헤더 바(점 + [카테고리]) +
+ * 마커(// > #). 카테고리 색은 헤더의 점·[라벨]과 마커로 전달한다.
  * FeaturedCard·PostCard 두 컴포넌트가 같은 규칙을 쓰므로 전역 파일로 뺐다.
  * 모든 선택자를 .spot-card(홈 카드에만 붙는 클래스)로 한정해 다른 페이지의
  * .card·.card-title(예: PostCards.astro)과 충돌하지 않는다.
  */
 
-/* stretched-link 패턴: 카드는 div, 제목 링크가 카드 전체를 덮고,
-   태그 링크는 그 위(z-index)로 올려 별도 클릭 가능하게 유지. */
 .spot-card {
   position: relative;
-  transition: color 0.15s ease;
   isolation: isolate;
+  font-family: var(--font-mono);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--c-surface);
+  transition: border-color 0.15s ease;
+}
+.spot-card:hover {
+  border-color: var(--sec-on);
 }
 
+/* stretched-link 패턴: 카드는 div, 제목 링크가 카드 전체를 덮고,
+   태그 링크는 그 위(z-index)로 올려 별도 클릭 가능하게 유지. */
 .spot-card .featured-title a,
 .spot-card .card-title a {
   color: inherit;
@@ -27,17 +33,27 @@
   position: absolute;
   inset: 0;
 }
-/* 제목 hover 시 카테고리 색으로 — 상자 대신 타이포가 반응한다 */
+/* 제목 hover 시 카테고리 색으로 */
 .spot-card:hover .featured-title a,
 .spot-card:hover .card-title a {
   color: var(--sec-on);
 }
+
+/* 태그 — 카드 안에선 '#'을 카테고리 색으로(프롬프트 마커처럼) */
 .spot-card .tags {
   position: relative;
   z-index: 1;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 0.15em var(--space-3);
+}
+.spot-card .tags .tag,
+.spot-card .tags .tag-nmore {
+  font-family: var(--font-mono);
+}
+.spot-card .tags .tag::before {
+  color: var(--sec-on);
+  opacity: 1;
 }
 
 /* ── 카테고리 액센트(--sec-hue → --sec-on) ──
@@ -53,24 +69,39 @@
 :root[data-theme="dark"] .spot-card {
   --sec-on: color-mix(in srgb, var(--sec-hue, var(--c-accent)) 58%, white);
 }
+
+/* ── 터미널 창 헤더 바 — 점 + [카테고리]. 카테고리 색을 옅게 깐 바. ── */
+.spot-card .card-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0.85em;
+  border-bottom: 1px dashed var(--c-border);
+  background: color-mix(in srgb, var(--sec-on) 7%, transparent);
+}
+.spot-card .card-dot {
+  flex: none;
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  background: var(--sec-on);
+}
 .spot-card .card-sec {
   position: relative;
   z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
   color: var(--sec-on);
   font-size: var(--fs-xs);
   font-weight: 700;
   text-decoration: none;
 }
-.spot-card .card-sec:hover {
-  color: var(--sec-on);
+.spot-card .card-sec::before {
+  content: "[";
+  opacity: 0.6;
 }
-.spot-card .sec-dot {
-  flex: none;
-  width: 0.55em;
-  height: 0.55em;
-  border-radius: 50%;
-  background: var(--sec-on);
+.spot-card .card-sec::after {
+  content: "]";
+  opacity: 0.6;
+}
+.spot-card .card-sec:hover {
+  text-decoration: underline;
 }

@@ -45,7 +45,12 @@ const href = (id: string) => `${base}/blog/${id}/`;
     border-bottom: 1px solid var(--c-border);
   }
   .post-date {
+    font-family: var(--font-mono);
     font-size: var(--fs-xs);
+  }
+  .post-date::before {
+    content: "// ";
+    opacity: 0.7;
   }
   .post-title {
     font-size: var(--fs-xl);
@@ -61,6 +66,14 @@ const href = (id: string) => `${base}/blog/${id}/`;
   .post-desc {
     color: var(--c-muted);
     margin: 0 0 var(--space-3);
+  }
+  .post-desc::before {
+    content: "> ";
+    font-family: var(--font-mono);
+    color: var(--c-accent);
+  }
+  .tags .tag {
+    font-family: var(--font-mono);
   }
   .tags {
     display: flex;

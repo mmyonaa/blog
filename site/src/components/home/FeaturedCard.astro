@@ -20,99 +20,104 @@ const isNew =
 ---
 
 <article class="featured spot-card reveal" style={`--sec-hue: ${hueOf(sec)}`}>
-  <div class="featured-meta">
-    <span class="featured-label">
-      {isNew && <span class="badge-new">NEW</span>}
-      FEATURED · <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
+  <div class="card-bar featured-bar">
+    <span class="card-dot" aria-hidden="true" />
+    <a class="card-sec" href={sectionHref(base, sec)}>{sectionLabel(sec)}</a>
+    <span class="featured-kicker">
+      FEATURED{isNew && <span class="badge-new">NEW</span>}
     </span>
-    <a class="card-sec" href={sectionHref(base, sec)}>
-      <span class="sec-dot" aria-hidden="true" />
-      {sectionLabel(sec)}
-    </a>
   </div>
-  <h2 class="featured-title">
-    <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
-  </h2>
-  {post.data.description && <p class="featured-desc">{post.data.description}</p>}
-  <span class="read">읽기 <span class="read-arrow" aria-hidden="true">→</span></span>
-  {post.data.tags.length > 0 && (
-    <div class="tags">
-      {post.data.tags.map((t) => (
-        <a class="tag" href={tagHref(base, t)}>
-          {t}
-        </a>
-      ))}
-    </div>
-  )}
+  <div class="featured-body">
+    <span class="featured-when">
+      <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
+    </span>
+    <h2 class="featured-title">
+      <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+    </h2>
+    {post.data.description && <p class="featured-desc">{post.data.description}</p>}
+    {post.data.tags.length > 0 && (
+      <div class="tags">
+        {post.data.tags.map((t) => (
+          <a class="tag" href={tagHref(base, t)}>
+            {t}
+          </a>
+        ))}
+      </div>
+    )}
+    <span class="read">읽기 <span class="read-arrow" aria-hidden="true">→</span></span>
+  </div>
 </article>
 
 <style>
-  /* 공통 카드 룩(카테고리 색 상단 룰·플랫)은 styles/home-cards.css(.spot-card).
-     여기엔 featured 전용 강조만 둔다 — 배경·그림자·둥근 모서리 없이 타이포로 승부. */
-  .featured {
-    /* 리드 기사에만 카테고리 색 상단 룰을 둔다(반복 카드엔 없음). 여백은 넓게. */
-    border-top: 2px solid var(--sec-on);
-    padding: var(--space-5) 0 var(--space-6);
+  /* 공통 터미널 룩(.spot-card·헤더 바·마커)은 styles/home-cards.css.
+     featured는 그 위에 얹는 큰 '리드' 터미널 창 — 헤더에 FEATURED 킥커, 넓은 본문. */
+  .featured-bar {
+    /* 헤더 바를 리드답게 조금 더 도톰하게 */
+    padding: 0.6em 1em;
   }
-  .featured-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2) var(--space-3);
-  }
-  .featured-label {
+  .featured-kicker {
+    margin-left: auto;
     display: inline-flex;
     align-items: center;
-    gap: 0.6em;
+    gap: 0.5em;
     color: var(--c-muted);
     font-size: var(--fs-xs);
     font-weight: 700;
-    /* 신문 킥커: 대문자 + 넓은 자간 */
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: 0.14em;
   }
   .badge-new {
-    padding: 0.1em 0.45em;
-    /* 알약·그라디언트 없이 각진 잉크 라벨 */
-    background: var(--c-text);
-    color: var(--c-bg);
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
+    color: var(--sec-on);
+    letter-spacing: 0.08em;
   }
+  .badge-new::before { content: "["; opacity: 0.6; }
+  .badge-new::after { content: "]"; opacity: 0.6; }
+  .featured-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5) clamp(1em, 3vw, 1.75em) var(--space-5);
+  }
+  .featured-when {
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+  .featured-when::before { content: "// "; opacity: 0.7; }
   .featured-title {
-    font-size: var(--fs-3xl);
-    line-height: 1.15;
+    font-size: var(--fs-2xl);
+    line-height: 1.2;
     letter-spacing: -0.01em;
-    margin: var(--space-3) 0 var(--space-3);
+    margin: 0;
   }
   .featured-desc {
     color: var(--c-muted);
-    max-width: 60ch;
-    margin: 0 0 var(--space-4);
+    line-height: 1.6;
+    max-width: 70ch;
+    margin: 0;
   }
+  .featured-desc::before { content: "> "; color: var(--sec-on); }
   .read {
-    display: inline-block;
-    color: var(--c-text);
-    font-weight: 700;
-    border-bottom: 2px solid var(--sec-on);
-    padding-bottom: 0.1em;
-    margin-bottom: var(--space-4);
-  }
-  .featured:hover .read {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
     color: var(--sec-on);
+    font-weight: 700;
+    margin-top: var(--space-1);
   }
+  .read::before { content: "$ "; opacity: 0.7; }
   .read-arrow {
     display: inline-block;
+    transition: transform 0.15s ease;
+  }
+  .featured:hover .read-arrow {
+    transform: translateX(4px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .featured:hover .read-arrow { transform: none; }
   }
 
-  /* 모바일: 상단 룰과 본문 간격만 살짝 좁힘 */
   @media (max-width: 640px) {
-    .featured {
-      padding: var(--space-4) 0 var(--space-5);
-    }
     .featured-title {
-      font-size: var(--fs-2xl);
+      font-size: var(--fs-xl);
     }
   }
 </style>

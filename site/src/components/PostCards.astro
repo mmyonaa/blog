@@ -23,13 +23,14 @@ const TAG_MAX = 3;
       const overflow = post.data.tags.length - tags.length;
       return (
         <li class="card" style={`--hue: ${hueOf(section)}`}>
+          <div class="card-bar">
+            <span class="card-dot" aria-hidden="true" />
+            <a class="card-section" href={sectionHref(base, section)}>
+              {sectionLabel(section)}
+            </a>
+          </div>
           <div class="card-body">
-            <div class="card-meta">
-              <a class="card-section" href={sectionHref(base, section)}>
-                {sectionLabel(section)}
-              </a>
-              <span class="muted card-date">{fmtDateTime(post.data.pubDate)}</span>
-            </div>
+            <span class="card-date">{fmtDateTime(post.data.pubDate)}</span>
             <h2 class="card-title">
               <a href={href(post.id)}>{post.data.title}</a>
             </h2>
@@ -57,17 +58,22 @@ const TAG_MAX = 3;
     padding: 0;
     margin: var(--space-5) 0 0;
     display: grid;
-    /* 폭에 따라 1~3열. 카드 최소 폭을 두어 좁은 화면에선 자동으로 1열이 된다.
-       배경 상자 없이 상단 룰로만 구획하므로 열 간격을 넉넉히 둬 칼럼처럼 읽힌다. */
+    /* 폭에 따라 1~3열. 카드 최소 폭을 두어 좁은 화면에선 자동으로 1열이 된다. */
     grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
-    gap: var(--space-6) var(--space-5);
+    gap: var(--space-5);
   }
-  /* 홈 카드와 동일한 에디토리얼 룩 — 배경 상자·둥근 모서리·그림자·색 룰 없이
-     여백으로만 구획한다. 카테고리 색은 카드 안의 섹션 라벨(.card-section)로만 전달. */
+  /* ── 터미널 룩 ──
+     고정폭 폰트 + 터미널 창 헤더 바 + 마커(// > #). 카테고리 색은 헤더의 점·[라벨]로. */
   .card {
     position: relative;
     display: flex;
     flex-direction: column;
+    font-family: var(--font-mono);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--c-surface);
+    transition: border-color 0.15s ease;
     /* 실제로 칠하는 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
     --hue-on: var(--hue);
   }
@@ -79,30 +85,50 @@ const TAG_MAX = 3;
       --hue-on: color-mix(in srgb, var(--hue) 58%, white);
     }
   }
+  .card:hover {
+    border-color: var(--hue-on);
+  }
+  /* 터미널 창 헤더 — 점 + [카테고리]. 카테고리 색을 옅게 깐 바. */
+  .card-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.45em 0.75em;
+    border-bottom: 1px dashed var(--c-border);
+    background: color-mix(in srgb, var(--hue-on) 7%, transparent);
+  }
+  .card-dot {
+    flex: none;
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 50%;
+    background: var(--hue-on);
+  }
+  .card-section {
+    color: var(--hue-on);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .card-section::before { content: "["; opacity: 0.6; }
+  .card-section::after { content: "]"; opacity: 0.6; }
+  .card-section:hover { text-decoration: underline; }
   .card-body {
     display: flex;
     flex-direction: column;
     flex: 1;
-    padding: var(--space-4) 0 var(--space-5);
+    padding: 0.85em 0.9em 1em;
     gap: var(--space-2);
   }
-  .card-meta {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-2);
+  .card-date {
     font-size: var(--fs-xs);
+    color: var(--c-muted);
   }
-  .card-section {
-    color: var(--hue-on);
-    font-weight: 600;
-  }
-  .card-section:hover {
-    text-decoration: underline;
-  }
+  .card-date::before { content: "// "; opacity: 0.7; }
   .card-title {
-    font-size: var(--fs-lg);
+    font-size: var(--fs-base);
     line-height: 1.4;
+    letter-spacing: -0.01em;
     margin: 0;
   }
   .card-title a {
@@ -115,6 +141,7 @@ const TAG_MAX = 3;
   .card-desc {
     color: var(--c-muted);
     font-size: var(--fs-sm);
+    line-height: 1.55;
     margin: 0;
     /* 요약 길이가 제각각이라 3줄로 자른다 — 카드 높이가 들쭉날쭉해지는 걸 막는다. */
     display: -webkit-box;
@@ -122,6 +149,7 @@ const TAG_MAX = 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .card-desc::before { content: "> "; color: var(--hue-on); }
   .card-tags {
     /* 태그는 항상 카드 바닥에 붙어 정렬선이 생기게 한다. */
     margin-top: auto;
@@ -130,4 +158,8 @@ const TAG_MAX = 3;
     flex-wrap: wrap;
     gap: 0.15em var(--space-3);
   }
+  /* 터미널 카드 안에선 태그 '#'을 카테고리 색으로 — 프롬프트 마커처럼. */
+  .card-tags .tag { font-family: var(--font-mono); }
+  .card-tags .tag::before { color: var(--hue-on); opacity: 1; }
+  .card-tags .tag-nmore { font-family: var(--font-mono); }
 </style>
