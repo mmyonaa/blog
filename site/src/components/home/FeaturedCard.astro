@@ -2,7 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import "../../styles/home-cards.css";
 import { tagHref } from "../../lib/tags.ts";
-import { sectionHref, sectionLabel, sectionOf, hueOf } from "../../lib/sections.ts";
+import { sectionHref, sectionLabel, sectionOf, hueOf, initialOf } from "../../lib/sections.ts";
 import { fmtDate } from "../../lib/date.ts";
 import { readMin } from "../../lib/reading.ts";
 
@@ -20,18 +20,22 @@ const isNew =
 ---
 
 <article class="featured spot-card reveal" style={`--sec-hue: ${hueOf(sec)}`}>
-  <div class="card-top featured-top">
-    <a class="card-section" href={sectionHref(base, sec)}>{sectionLabel(sec)}</a>
-    <span class="featured-kicker">
-      FEATURED{isNew && <span class="badge-new">NEW</span>}
-    </span>
+  <div class="card-head featured-head">
+    <a class="card-badge" href={sectionHref(base, sec)} aria-label={sectionLabel(sec)}>
+      {initialOf(sec)}
+    </a>
+    <div class="card-headtext">
+      <span class="featured-kicker">
+        FEATURED{isNew && <span class="badge-new">NEW</span>}
+      </span>
+      <h2 class="featured-title">
+        <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+      </h2>
+      <span class="featured-when">
+        <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
+      </span>
+    </div>
   </div>
-  <span class="featured-when">
-    <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
-  </span>
-  <h2 class="featured-title">
-    <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
-  </h2>
   {post.data.description && <p class="featured-desc">{post.data.description}</p>}
   {post.data.tags.length > 0 && (
     <div class="tags">
@@ -46,43 +50,44 @@ const isNew =
 </article>
 
 <style>
-  /* 공통 브루탈 룩(.spot-card·보더·하드 섀도·카테고리 블록)은 styles/home-cards.css.
-     featured는 그 위에 얹는 큰 '리드' 브루탈 카드 — 도톰한 보더/섀도, 큰 굵은 제목. */
+  /* 공통 클린 카드(.spot-card·배지·헤더)는 styles/home-cards.css.
+     featured는 그 위에 얹는 큰 '리드' 카드 — 넓은 패딩, 큰 배지·제목. */
   .featured {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-4);
     padding: var(--space-5) clamp(1.1rem, 3vw, 1.9rem);
-    /* 리드답게 보더·섀도를 한 단계만 더 */
-    border-width: 2px;
-    box-shadow: 4px 4px 0 var(--bru-ink);
   }
-  .featured:hover {
-    box-shadow: 6px 6px 0 var(--sec-on);
+  /* 리드 배지는 조금 더 크게 */
+  .featured .card-badge {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.4rem;
+    border-radius: var(--radius-md);
   }
   .featured-kicker {
     display: inline-flex;
     align-items: center;
     gap: 0.5em;
     color: var(--c-muted);
-    font-family: var(--font-mono);
     font-size: var(--fs-xs);
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
   }
   .badge-new {
-    background: var(--bru-ink);
+    background: var(--sec-on);
     color: var(--c-bg);
     font-weight: 800;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
+    border-radius: var(--radius-sm);
     padding: 0.1em 0.4em;
   }
   .featured-title {
-    font-size: var(--fs-3xl);
-    line-height: 1.12;
+    font-size: var(--fs-2xl);
+    line-height: 1.18;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin: 0;
+    margin: 0.1em 0;
     text-wrap: balance;
   }
   .featured-desc {
@@ -91,25 +96,12 @@ const isNew =
     max-width: 70ch;
     margin: 0;
   }
-  /* 브루탈 CTA 버튼 — 각진 보더 + 작은 하드 섀도, hover 시 카테고리색 반전 */
   .read {
     position: relative;
     z-index: 1;
     align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    margin-top: var(--space-1);
-    padding: 0.4em 0.9em;
-    border: 1.5px solid var(--bru-ink);
-    background: var(--c-bg);
-    color: var(--c-text);
-    font-weight: 800;
-    box-shadow: 2px 2px 0 var(--bru-ink);
-  }
-  .featured:hover .read {
-    background: var(--sec-on);
-    color: var(--c-bg);
+    color: var(--sec-on);
+    font-weight: 700;
   }
   .read-arrow {
     display: inline-block;
@@ -124,7 +116,7 @@ const isNew =
 
   @media (max-width: 640px) {
     .featured-title {
-      font-size: var(--fs-2xl);
+      font-size: var(--fs-xl);
     }
   }
 </style>

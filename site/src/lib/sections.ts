@@ -33,6 +33,21 @@ export const SECTION_HUE: Record<string, string> = {
 
 export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)";
 
+/**
+ * 섹션 id → 카드 배지에 넣을 대문자 이니셜 한 글자.
+ * 한국어 라벨 대신 영문 id의 머리글자를 써서 M/W/J/S로 축약한다(중복 없음).
+ * 목록에 없는 섹션은 id 첫 글자를 대문자로 폴백.
+ */
+export const SECTION_INITIAL: Record<string, string> = {
+  mcp: "M",
+  web: "W",
+  jeongcheogi: "J",
+  security: "S",
+};
+
+export const initialOf = (id: string): string =>
+  SECTION_INITIAL[id] ?? (id.trim()[0]?.toUpperCase() ?? "?");
+
 export function sectionLabel(id: string): string {
   return SECTION_LABELS[id] ?? id;
 }

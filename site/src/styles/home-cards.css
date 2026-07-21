@@ -1,28 +1,24 @@
 /*
- * 홈 카드 공통 룩 — 네오-브루탈리즘. 굵은 잉크 보더 + 오프셋 하드 섀도(blur 0) +
- * 각진 모서리 + 솔리드 카테고리 블록. 제목은 굵은 산세리프, 날짜·태그만 고정폭.
+ * 홈 카드 공통 룩 — 심플 클린 카드(Maktub 참고). 카테고리는 색 정사각형 배지에 대문자
+ * 이니셜 한 글자(M/W/J/S)로 축약하고, 배지 옆에 제목을 둔다.
  * FeaturedCard·PostCard 두 컴포넌트가 같은 규칙을 쓰므로 전역 파일로 뺐다.
  * 모든 선택자를 .spot-card(홈 카드에만 붙는 클래스)로 한정해 다른 페이지의
  * .card·.card-title(예: PostCards.astro)과 충돌하지 않는다.
- *
- * 잉크(보더·섀도)는 var(--c-text): 라이트=near-black, 다크=near-white → 반전 브루탈.
- * 카테고리 블록 글자색 var(--c-bg): --sec-on과 명도가 항상 반대라 대비가 확보된다.
  */
 
 .spot-card {
   position: relative;
   isolation: isolate;
-  /* 브루탈 잉크를 순수 텍스트색이 아니라 부드러운 회색으로 낮춘다(진하기 완화). */
-  --bru-ink: color-mix(in srgb, var(--c-text) 55%, var(--c-bg));
-  background: var(--c-surface);
-  border: 1.5px solid var(--bru-ink);
-  border-radius: 0;
-  box-shadow: 3px 3px 0 var(--bru-ink);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 .spot-card:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 var(--sec-on);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--sec-on) 45%, var(--c-border));
+  box-shadow: var(--shadow-md);
 }
 @media (prefers-reduced-motion: reduce) {
   .spot-card,
@@ -31,7 +27,7 @@
   }
 }
 
-/* stretched-link 패턴: 제목 링크가 카드 전체를 덮고, 태그·CTA는 위(z-index)로 올린다. */
+/* stretched-link 패턴: 제목 링크가 카드 전체를 덮고, 배지·태그는 위(z-index)로 올린다. */
 .spot-card .featured-title a,
 .spot-card .card-title a {
   color: inherit;
@@ -42,6 +38,10 @@
   content: "";
   position: absolute;
   inset: 0;
+}
+.spot-card:hover .featured-title a,
+.spot-card:hover .card-title a {
+  color: var(--sec-on);
 }
 
 /* ── 카테고리 액센트(--sec-hue → --sec-on) ── 다크 그라운드에선 밝게 보정 */
@@ -57,68 +57,48 @@
   --sec-on: color-mix(in srgb, var(--sec-hue, var(--c-accent)) 58%, white);
 }
 
-/* ── 카테고리 솔리드 블록 라벨 ── */
-.spot-card .card-top {
+/* ── 헤더: 색 배지(이니셜) + 제목 ── */
+.spot-card .card-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   gap: var(--space-3);
 }
-.spot-card .card-section {
+.spot-card .card-headtext {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+}
+/* 배지 글자색은 var(--c-bg): --sec-on과 명도가 항상 반대라 대비가 확보된다. */
+.spot-card .card-badge {
   position: relative;
   z-index: 1;
-  display: inline-block;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
   background: var(--sec-on);
   color: var(--c-bg);
-  font-size: var(--fs-xs);
   font-weight: 800;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  padding: 0.2em 0.55em;
+  font-size: 1.15rem;
+  line-height: 1;
   text-decoration: none;
 }
-.spot-card .card-section:hover {
-  text-decoration: underline;
-}
 
-/* ── 날짜 — 고정폭 라벨 ── */
+/* ── 날짜·읽는 시간 ── */
 .spot-card .card-when,
 .spot-card .featured-when {
-  font-family: var(--font-mono);
   font-size: var(--fs-xs);
-  font-weight: 600;
   color: var(--c-muted);
 }
 
-/* ── 태그 — 각진 보더 칩(고정폭), '#' 없이 ── */
+/* ── 태그 — 낮은 톤 '#태그' 텍스트(전역 .tag) ── */
 .spot-card .tags {
   position: relative;
   z-index: 1;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-}
-.spot-card .tags .tag {
-  font-family: var(--font-mono);
-  border: 1px solid var(--bru-ink);
-  border-radius: 0;
-  padding: 0.05em 0.45em;
-  color: var(--c-muted);
-  font-size: var(--fs-xs);
-}
-.spot-card .tags .tag::before {
-  content: none;
-}
-.spot-card .tags .tag:hover {
-  background: var(--sec-on);
-  color: var(--c-bg);
-  border-color: var(--sec-on);
-  text-decoration: none;
-}
-.spot-card .tags .tag-nmore {
-  font-family: var(--font-mono);
-  border: 1px dashed var(--bru-ink);
-  padding: 0.05em 0.45em;
-  color: var(--c-muted);
-  font-size: var(--fs-xs);
+  gap: 0.1em var(--space-3);
 }
