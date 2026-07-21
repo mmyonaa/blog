@@ -321,7 +321,40 @@ body.shell {
   font-size: var(--fs-sm);
 }
 
-/* 태그 pill */
+/* 태그 — 에디토리얼 '#태그' 텍스트. 알약 배경 없이 낮은 톤 링크로. '#'은 ::before로
+   붙이므로 마크업에는 태그 이름만 넣는다(카운트·+N 변형은 아래). */
+.tag {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--c-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tag::before {
+  content: "#";
+  opacity: 0.55;
+}
+a.tag:hover {
+  color: var(--c-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.tag .count {
+  margin-left: 0.35em;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+/* '+N' 더보기 표식 — 태그가 아니므로 '#' 없이 낮은 톤 텍스트로만. */
+.tag-nmore {
+  color: var(--c-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/* 버튼·내비용 알약 유틸(태그가 아님) — 검색·테마토글·공유·제출·이동 링크 등. */
 .pill {
   display: inline-block;
   padding: 0.2em 0.75em;

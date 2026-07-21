@@ -19,7 +19,7 @@ const isNew =
   Date.now() - post.data.pubDate.valueOf() < NEW_BADGE_DAYS * 24 * 60 * 60 * 1000;
 ---
 
-<article class="featured spot-card reveal" data-spot style={`--sec-hue: ${hueOf(sec)}`}>
+<article class="featured spot-card reveal" style={`--sec-hue: ${hueOf(sec)}`}>
   <div class="featured-meta">
     <span class="featured-label">
       {isNew && <span class="badge-new">NEW</span>}
@@ -38,7 +38,7 @@ const isNew =
   {post.data.tags.length > 0 && (
     <div class="tags">
       {post.data.tags.map((t) => (
-        <a class="pill" href={tagHref(base, t)}>
+        <a class="tag" href={tagHref(base, t)}>
           {t}
         </a>
       ))}
@@ -47,30 +47,12 @@ const isNew =
 </article>
 
 <style>
-  /* 공통 카드 룩(스포트라이트·글로우 보더·카테고리 액센트)은 styles/home-cards.css(.spot-card).
-     여기엔 featured 전용 강조만 둔다. 그라디언트 램프(--grad-*)는 global.css 토큰. */
+  /* 공통 카드 룩(카테고리 색 상단 룰·플랫)은 styles/home-cards.css(.spot-card).
+     여기엔 featured 전용 강조만 둔다 — 배경·그림자·둥근 모서리 없이 타이포로 승부. */
   .featured {
-    padding: var(--space-6);
-    background: linear-gradient(
-      135deg,
-      var(--c-accent-soft),
-      var(--c-surface) 85%
-    );
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-  /* 상단 하이라이트 라인: 글의 카테고리 hue를 그대로 쓴다 */
-  .featured::after {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 3px;
-    background: linear-gradient(
-      90deg,
-      var(--sec-on),
-      color-mix(in srgb, var(--sec-on) 25%, transparent)
-    );
-    opacity: 0.9;
+    /* 상단 룰만 카테고리 색으로 두껍게(3px). 나머지 여백은 신문 리드 기사처럼 넓게. */
+    border-top-width: 3px;
+    padding: var(--space-5) 0 var(--space-6);
   }
   .featured-meta {
     display: flex;
@@ -81,53 +63,56 @@ const isNew =
   .featured-label {
     display: inline-flex;
     align-items: center;
-    gap: 0.5em;
-    color: var(--c-accent);
+    gap: 0.6em;
+    color: var(--c-muted);
     font-size: var(--fs-xs);
     font-weight: 700;
-    letter-spacing: 0.04em;
+    /* 신문 킥커: 대문자 + 넓은 자간 */
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
   .badge-new {
-    padding: 0.15em 0.5em;
-    border-radius: var(--radius-pill);
-    background: linear-gradient(120deg, var(--grad-1), var(--grad-2));
-    /* 다크에선 배경이 밝은 램프가 되므로 대비되는 잉크로 함께 뒤집는다 */
-    color: var(--c-accent-contrast);
-    font-size: 0.7rem;
+    padding: 0.1em 0.45em;
+    /* 알약·그라디언트 없이 각진 잉크 라벨 */
+    background: var(--c-text);
+    color: var(--c-bg);
+    font-size: 0.68rem;
     font-weight: 800;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1em;
   }
   .featured-title {
-    font-size: var(--fs-2xl);
-    margin: var(--space-2) 0 var(--space-3);
+    font-size: var(--fs-3xl);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: var(--space-3) 0 var(--space-3);
   }
   .featured-desc {
     color: var(--c-muted);
+    max-width: 60ch;
     margin: 0 0 var(--space-4);
   }
   .read {
     display: inline-block;
-    color: var(--c-accent);
+    color: var(--c-text);
     font-weight: 700;
+    border-bottom: 2px solid var(--sec-on);
+    padding-bottom: 0.1em;
     margin-bottom: var(--space-4);
+  }
+  .featured:hover .read {
+    color: var(--sec-on);
   }
   .read-arrow {
     display: inline-block;
-    transition: transform 0.2s ease;
-  }
-  .featured:hover .read-arrow {
-    transform: translateX(4px);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .featured:hover .read-arrow {
-      transform: none;
-    }
   }
 
-  /* 모바일: 좁은 화면에서 패딩을 줄여 본문 폭 확보 */
+  /* 모바일: 상단 룰과 본문 간격만 살짝 좁힘 */
   @media (max-width: 640px) {
     .featured {
-      padding: var(--space-5);
+      padding: var(--space-4) 0 var(--space-5);
+    }
+    .featured-title {
+      font-size: var(--fs-2xl);
     }
   }
 </style>

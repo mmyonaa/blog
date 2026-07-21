@@ -107,27 +107,12 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
 </Base>
 
 <script>
-  // 페이지 공통 인터랙션(커서 스포트라이트·진입 reveal)만 여기서 담당.
+  // 페이지 공통 인터랙션(진입 reveal)만 여기서 담당.
   // 히어로·잔디 등 컴포넌트 고유 동작은 각 컴포넌트의 <script>에 있다.
   // 문서 위임 + 전역 가드로 한 번만 등록(View Transitions 유지).
   if (!(window as any).__spotBound) {
     (window as any).__spotBound = true;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    // 카드 커서 스포트라이트: [data-spot] 위에서 마우스 좌표를 CSS 변수로 흘려보낸다.
-    if (!reduce) {
-      document.addEventListener(
-        "pointermove",
-        (e) => {
-          const el = (e.target as HTMLElement)?.closest?.<HTMLElement>("[data-spot]");
-          if (!el) return;
-          const r = el.getBoundingClientRect();
-          el.style.setProperty("--mx", `${e.clientX - r.left}px`);
-          el.style.setProperty("--my", `${e.clientY - r.top}px`);
-        },
-        { passive: true },
-      );
-    }
 
     // 진입 reveal: 뷰포트에 들어온 .reveal에 .in을 부여해 애니메이션 시작.
     // 최초 로드 땐 화면 위 요소들이 한 배치로 들어와 기존과 같은 stagger,
@@ -201,9 +186,10 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
   }
   .grid {
     display: grid;
-    /* 3열이 컨테이너 폭을 균등 분할 → 오른쪽 끝이 featured·'전체 글 보기'와 정렬 */
+    /* 3열이 컨테이너 폭을 균등 분할 → 오른쪽 끝이 featured·'전체 글 보기'와 정렬.
+       카드가 배경 상자 없이 상단 룰로만 구획되므로 열 간격을 넉넉히 둬 칼럼처럼 읽힌다. */
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-4);
+    gap: var(--space-6) var(--space-5);
   }
 
   /* 태블릿: 3열이 좁아지기 전에 2열로 */

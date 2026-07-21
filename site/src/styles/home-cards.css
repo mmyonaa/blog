@@ -1,50 +1,20 @@
 /*
- * 홈 카드 공통 룩 — 커서 스포트라이트 + 글로우 보더 + 카테고리 액센트.
+ * 홈 카드 공통 룩 — 스위스 에디토리얼. 알약·글로우·스포트라이트·둥근 모서리 없이,
+ * 카테고리 색은 상단 굵은 룰(hairline)로만 남긴다. 신문 칼럼처럼 카드끼리는
+ * 배경 상자가 아니라 선으로 구획한다.
  * FeaturedCard·PostCard 두 컴포넌트가 같은 규칙을 쓰므로 전역 파일로 뺐다.
  * 모든 선택자를 .spot-card(홈 카드에만 붙는 클래스)로 한정해 다른 페이지의
  * .card·.card-title(예: PostCards.astro)과 충돌하지 않는다.
  */
 
 /* stretched-link 패턴: 카드는 div, 제목 링크가 카드 전체를 덮고,
-   태그 링크는 그 위(z-index)로 올려 별도 클릭 가능하게 유지 */
+   태그 링크는 그 위(z-index)로 올려 별도 클릭 가능하게 유지.
+   카테고리 색 상단 룰(--sec-on)이 유일한 장식이다. */
 .spot-card {
   position: relative;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-lg);
-  transition: box-shadow 0.2s ease, transform 0.2s ease,
-    border-color 0.2s ease;
+  border-top: 2px solid var(--sec-on);
+  transition: color 0.15s ease;
   isolation: isolate;
-}
-
-/* 커서 스포트라이트: 마우스 위치(--mx/--my)에 은은한 광원 */
-.spot-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: radial-gradient(
-    420px circle at var(--mx, 50%) var(--my, 0%),
-    color-mix(in srgb, var(--c-accent) 22%, transparent),
-    transparent 45%
-  );
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-.spot-card:hover::before {
-  opacity: 1;
-}
-.spot-card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--c-accent) 55%, var(--c-border));
-  box-shadow: var(--shadow-md),
-    0 0 0 1px color-mix(in srgb, var(--c-accent) 30%, transparent),
-    0 12px 40px color-mix(in srgb, var(--c-accent) 22%, transparent);
-}
-@media (prefers-reduced-motion: reduce) {
-  .spot-card:hover {
-    transform: none;
-  }
 }
 
 .spot-card .featured-title a,
@@ -57,7 +27,11 @@
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: inherit;
+}
+/* 제목 hover 시 카테고리 색으로 — 상자 대신 타이포가 반응한다 */
+.spot-card:hover .featured-title a,
+.spot-card:hover .card-title a {
+  color: var(--sec-on);
 }
 .spot-card .tags {
   position: relative;
