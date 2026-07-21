@@ -1,84 +1,115 @@
 ---
 import { getCollection } from "astro:content";
 import { FEEDBACK_ENABLED, FEEDBACK_URL, DISCUSSIONS_URL } from "../lib/feedback.ts";
-import { sectionOf } from "../lib/sections.ts";
+import { sectionOf, hueOf } from "../lib/sections.ts";
+import { getTagCounts, tagHref } from "../lib/tags.ts";
+import { fmtDate } from "../lib/date.ts";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const repo = "https://github.com/mmyonaa/mcp";
 const year = new Date().getFullYear();
 
-// 사이트 규모 — 빌드 타임에 실제 글에서 센다(하드코딩 금지).
-const posts = await getCollection("blog");
+// About — 만든 사람. 이메일은 봇 스크래핑을 피해 평문으로 두지 않고,
+// data 속성으로 쪼갠 뒤 클라이언트 스크립트가 mailto로 조립한다.
+const author = {
+  name: "Hyona Lim",
+  avatar: "https://github.com/mmyonaa.png",
+  portfolio: "https://mmyonaa.github.io",
+  portfolioLabel: "mmyonaa.github.io",
+  github: "https://github.com/mmyonaa",
+  linkedin: "https://www.linkedin.com/in/hyona-lim-a3a626319/",
+  mailUser: "apddfhsajrwk",
+  mailDomain: "gmail.com",
+};
+
+// 최근 글 3편 — 빌드 타임에 실제 글에서.
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
 const postCount = posts.length;
 const sectionCount = new Set(posts.map(sectionOf)).size;
+const latest = posts.slice(0, 3).map((p) => {
+  const section = sectionOf(p);
+  return {
+    title: p.data.title,
+    href: `${base}/blog/${p.id}/`,
+    date: fmtDate(p.data.pubDate),
+    hue: hueOf(section),
+    initial: section.charAt(0).toUpperCase(),
+  };
+});
 
-// 둘러보기 컬럼 — 헤더 내비게이션과 같은 진입점.
-// 카테고리는 낱개로 나열하지 않고 '분류' 허브(/topics/) 하나로 접는다.
-// 섹션이 늘어도 푸터는 그대로고, 상세는 허브가 담당한다.
-const browse = [
-  { label: "홈", href: `${base}/` },
-  { label: "분류", href: `${base}/topics/` },
-  { label: "글 전체", href: `${base}/blog/` },
+// 태그 클라우드 — 글 많은 순 상위 8개.
+const tags = (await getTagCounts()).slice(0, 8);
+
+// Explore — 사이트 내비게이션 + 프로젝트 링크를 한 컬럼으로.
+const explore = [
+  { label: "홈", href: `${base}/`, ext: false },
+  { label: "분류", href: `${base}/topics/`, ext: false },
+  { label: "글 전체", href: `${base}/blog/`, ext: false },
+  { label: "소스 코드", href: repo, ext: true },
+  { label: "토론", href: DISCUSSIONS_URL, ext: true },
 ];
 ---
 
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-grid">
-      <!-- 브랜드 블록 -->
-      <div class="footer-brand">
-        <a href={`${base}/`} class="footer-word">blog</a>
-        <p class="footer-tag">
-          MCP 서버를 직접 만들며 매일 한 편씩 자동 발행하는 학습 블로그.
-          만드는 과정과 배운 것을 그대로 기록합니다.
-        </p>
-        <div class="footer-stats">
-          <span class="footer-badge">매일 자동 발행</span>
-          <span class="footer-stat"><b>{postCount}</b> 편</span>
-          <span class="footer-stat"><b>{sectionCount}</b> 카테고리</span>
-        </div>
-        <div class="footer-social">
-          <a href={repo} target="_blank" rel="noopener" aria-label="GitHub 저장소">
-            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
-              ></path>
-            </svg>
-          </a>
-          <a href={`${base}/rss.xml`} aria-label="RSS 피드">
-            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M3.429 12.571a1.714 1.714 0 1 1-3.429 0 1.714 1.714 0 0 1 3.429 0ZM0 6.286v2.457c1.95 0 3.82.775 5.2 2.155A7.35 7.35 0 0 1 7.357 16h2.457C9.814 10.58 5.42 6.186 0 6.286Zm0-4.06v2.46C6.79 4.686 12.314 10.21 12.314 17h2.46C14.774 8.85 8.15 2.226 0 2.226Z"
-              ></path>
-            </svg>
-          </a>
-        </div>
-      </div>
-
-      <!-- 둘러보기 -->
-      <nav class="footer-col" aria-label="둘러보기">
-        <h2 class="footer-head">둘러보기</h2>
-        <ul>
+      <!-- Latest -->
+      <section class="footer-col footer-latest" aria-label="최근 글">
+        <h2 class="footer-head">Latest</h2>
+        <ul class="latest-list">
           {
-            browse.map((b) => (
+            latest.map((p) => (
               <li>
-                <a href={b.href}>{b.label}</a>
+                <a class="latest-item" href={p.href}>
+                  <span class="latest-tile" style={`--tile:${p.hue}`}>
+                    {p.initial}
+                  </span>
+                  <span class="latest-text">
+                    <span class="latest-title">{p.title}</span>
+                    <span class="latest-date">{p.date}</span>
+                  </span>
+                </a>
               </li>
             ))
           }
         </ul>
-      </nav>
+      </section>
 
-      <!-- 프로젝트 -->
-      <nav class="footer-col" aria-label="프로젝트">
-        <h2 class="footer-head">프로젝트</h2>
-        <ul>
-          <li><a href={repo} target="_blank" rel="noopener">소스 코드</a></li>
-          <li>
-            <a href={DISCUSSIONS_URL} target="_blank" rel="noopener">토론</a>
-          </li>
+      <!-- Tags -->
+      <section class="footer-col" aria-label="태그">
+        <h2 class="footer-head">Top Tags</h2>
+        <ul class="tag-cloud">
+          {
+            tags.map((t) => (
+              <li>
+                <a class="tag-pill" href={tagHref(base, t.tag)}>
+                  #{t.tag}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <!-- Explore -->
+      <nav class="footer-col" aria-label="둘러보기">
+        <h2 class="footer-head">Explore</h2>
+        <ul class="link-list">
+          {
+            explore.map((l) => (
+              <li>
+                {l.ext ? (
+                  <a href={l.href} target="_blank" rel="noopener">
+                    {l.label}
+                  </a>
+                ) : (
+                  <a href={l.href}>{l.label}</a>
+                )}
+              </li>
+            ))
+          }
           <li>
             {
               FEEDBACK_ENABLED ? (
@@ -94,13 +125,83 @@ const browse = [
           </li>
         </ul>
       </nav>
+
+      <!-- About -->
+      <section class="footer-col footer-about" aria-label="만든 사람">
+        <h2 class="footer-head">About</h2>
+        <div class="about-head">
+          <img
+            class="about-avatar"
+            src={author.avatar}
+            alt=""
+            width="44"
+            height="44"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="about-id">
+            <a class="about-name" href={author.portfolio} target="_blank" rel="noopener">
+              {author.name}
+            </a>
+            <a class="about-portfolio" href={author.portfolio} target="_blank" rel="noopener">
+              {author.portfolioLabel}
+            </a>
+          </div>
+        </div>
+        <div class="about-social">
+          <a href={author.github} target="_blank" rel="noopener" aria-label="GitHub">
+            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+              ></path>
+            </svg>
+          </a>
+          <a href={author.linkedin} target="_blank" rel="noopener" aria-label="LinkedIn">
+            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M13.632 13.635h-2.37V9.922c0-.886-.018-2.025-1.234-2.025-1.235 0-1.424.964-1.424 1.96v3.778h-2.37V6H8.51v1.04h.032c.317-.6 1.09-1.233 2.244-1.233 2.4 0 2.845 1.58 2.845 3.637v4.19zM3.558 4.955a1.376 1.376 0 1 1 .002-2.752 1.376 1.376 0 0 1-.002 2.752zm1.188 8.68H2.368V6h2.378v7.635zM14.816 0H1.18C.528 0 0 .516 0 1.153v13.694C0 15.484.528 16 1.18 16h13.635c.652 0 1.185-.516 1.185-1.153V1.153C16 .516 15.467 0 14.815 0z"
+              ></path>
+            </svg>
+          </a>
+          <a href={`${base}/rss.xml`} aria-label="RSS 피드">
+            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M3.429 12.571a1.714 1.714 0 1 1-3.429 0 1.714 1.714 0 0 1 3.429 0ZM0 6.286v2.457c1.95 0 3.82.775 5.2 2.155A7.35 7.35 0 0 1 7.357 16h2.457C9.814 10.58 5.42 6.186 0 6.286Zm0-4.06v2.46C6.79 4.686 12.314 10.21 12.314 17h2.46C14.774 8.85 8.15 2.226 0 2.226Z"
+              ></path>
+            </svg>
+          </a>
+          <a
+            class="about-mail"
+            href="#"
+            data-mail-user={author.mailUser}
+            data-mail-domain={author.mailDomain}
+            aria-label="이메일 보내기"
+          >
+            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M2 3h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm0 1v.4l6 3.6 6-3.6V4H2Zm12 1.567-5.74 3.444a.5.5 0 0 1-.52 0L2 5.567V12h12V5.567Z"
+              ></path>
+            </svg>
+          </a>
+        </div>
+      </section>
     </div>
 
-    <!-- 하단 바 -->
+    <!-- 하단 밴드: 브랜드 + 규모 + 저작권 -->
     <div class="footer-bottom">
-      <p class="muted">© {year} blog · MCP로 쓰고 발행합니다</p>
+      <div class="footer-brand-line">
+        <a href={`${base}/`} class="footer-word">blog</a>
+        <span class="footer-badge">매일 자동 발행</span>
+        <span class="footer-stat"><b>{postCount}</b> 편</span>
+        <span class="footer-stat"><b>{sectionCount}</b> 카테고리</span>
+      </div>
       <p class="muted footer-built">
-        Astro로 빌드 · <a href={repo} target="_blank" rel="noopener">GitHub</a>에 공개
+        © {year} · Astro로 빌드 ·
+        <a href={repo} target="_blank" rel="noopener">GitHub</a>에 공개
       </p>
     </div>
   </div>
@@ -118,13 +219,214 @@ const browse = [
     padding: var(--space-8) var(--space-5) var(--space-5);
   }
 
-  /* 브랜드 넓게 + 메뉴 2열. 좁아지면 접힌다. */
+  /* 4컬럼: Latest(넓게) · Tags · Explore · About */
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.8fr repeat(2, 1fr);
+    grid-template-columns: 1.7fr 1fr 0.9fr 1.2fr;
     gap: var(--space-6) var(--space-5);
   }
 
+  /* 모든 컬럼 헤딩 — 영어 + mono로 통일(한글 폴백으로 About만 달라 보이던 문제 해결) */
+  .footer-head {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+  }
+
+  /* ── Latest ── */
+  .latest-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .latest-item {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    text-decoration: none;
+  }
+  .latest-tile {
+    flex-shrink: 0;
+    width: 2.4rem;
+    height: 2.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: var(--tile, var(--c-accent));
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: var(--fs-base);
+    font-weight: 700;
+  }
+  .latest-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+    min-width: 0;
+  }
+  .latest-title {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--c-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .latest-item:hover .latest-title {
+    color: var(--c-accent);
+  }
+  .latest-date {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  /* ── Tags ── */
+  .tag-cloud {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .tag-pill {
+    display: inline-flex;
+    padding: 0.2em 0.6em;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    background: var(--c-bg);
+    color: var(--c-muted);
+    font-size: var(--fs-xs);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .tag-pill:hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+    background: var(--c-accent-soft);
+  }
+
+  /* ── Explore ── */
+  .link-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .link-list a,
+  .linklike {
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+  }
+  .link-list a:hover,
+  .linklike:hover {
+    color: var(--c-accent);
+    text-decoration: underline;
+  }
+  /* '의견 남기기'는 모달을 여는 버튼이지만 다른 링크와 똑같이 보이게 한다. */
+  .linklike {
+    font: inherit;
+    font-size: var(--fs-sm);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  /* ── About ── */
+  .about-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  .about-avatar {
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--c-border);
+    background: var(--c-surface-2);
+    object-fit: cover;
+  }
+  .about-id {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+    min-width: 0;
+  }
+  .about-name {
+    font-size: var(--fs-base);
+    font-weight: 700;
+    color: var(--c-text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .about-name:hover {
+    color: var(--c-accent);
+  }
+  .about-portfolio {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    text-decoration: none;
+  }
+  .about-portfolio:hover {
+    color: var(--c-accent);
+    text-decoration: underline;
+  }
+  .about-social {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .about-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-sm);
+    background: var(--c-bg);
+    color: var(--c-muted);
+  }
+  .about-social a:hover {
+    color: var(--c-accent);
+    border-color: var(--c-accent);
+  }
+
+  /* ── 하단 밴드 ── */
+  .footer-bottom {
+    margin-top: var(--space-8);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--c-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .footer-brand-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+  }
   .footer-word {
     font-size: var(--fs-lg);
     font-weight: 800;
@@ -134,21 +436,6 @@ const browse = [
   .footer-word:hover {
     color: var(--c-accent);
     text-decoration: none;
-  }
-  .footer-tag {
-    margin: var(--space-3) 0 var(--space-4);
-    max-width: 34ch;
-    color: var(--c-muted);
-    font-size: var(--fs-sm);
-    line-height: 1.6;
-  }
-  /* 운영 방식·규모 배지 — 이 블로그의 특이점(자동 발행)과 규모를 한눈에. */
-  .footer-stats {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-4);
   }
   .footer-badge {
     display: inline-flex;
@@ -173,78 +460,7 @@ const browse = [
     color: var(--c-text);
     font-weight: 700;
   }
-
-  .footer-social {
-    display: flex;
-    gap: var(--space-2);
-  }
-  .footer-social a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.1rem;
-    height: 2.1rem;
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-sm);
-    background: var(--c-bg);
-    color: var(--c-muted);
-  }
-  .footer-social a:hover {
-    color: var(--c-accent);
-    border-color: var(--c-accent);
-  }
-
-  .footer-head {
-    margin: 0 0 var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--c-muted);
-  }
-  .footer-col ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-  .footer-col a,
-  .linklike {
-    color: var(--c-text);
-    font-size: var(--fs-sm);
-    text-decoration: none;
-  }
-  .footer-col a:hover,
-  .linklike:hover {
-    color: var(--c-accent);
-    text-decoration: underline;
-  }
-
-  /* '의견 남기기'는 모달을 여는 버튼이지만 다른 링크와 똑같이 보이게 한다. */
-  .linklike {
-    font: inherit;
-    font-size: var(--fs-sm);
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    text-align: left;
-  }
-
-  .footer-bottom {
-    margin-top: var(--space-6);
-    padding-top: var(--space-4);
-    border-top: 1px solid var(--c-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-  .footer-bottom p {
+  .footer-built {
     margin: 0;
     font-size: var(--fs-xs);
   }
@@ -256,20 +472,49 @@ const browse = [
     color: var(--c-accent);
   }
 
-  /* 태블릿: 브랜드 한 줄, 메뉴 2열 */
-  @media (max-width: 720px) {
+  /* 태블릿: 2열 (Latest·About은 넓게 한 줄 차지) */
+  @media (max-width: 900px) {
     .footer-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr 1fr;
     }
-    .footer-brand {
+    .footer-latest,
+    .footer-about {
       grid-column: 1 / -1;
     }
   }
 
-  /* 모바일: 여백만 줄인다(2열 유지) */
-  @media (max-width: 480px) {
+  /* 모바일: 1열 */
+  @media (max-width: 520px) {
     .footer-inner {
       padding: var(--space-6) var(--space-4) var(--space-5);
     }
+    .footer-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
+
+<script>
+  // 이메일 난독화: 주소를 정적 HTML에 평문으로 남기지 않고,
+  // data 속성(user/domain)에서 클라이언트가 mailto를 조립한다.
+  // 아이콘 링크라 텍스트는 덮어쓰지 않는다(svg 보존).
+  // View Transitions로 페이지가 바뀌어도 다시 조립되도록 astro:page-load에도 건다.
+  if (!(window as any).__footerMailBound) {
+    (window as any).__footerMailBound = true;
+    const bind = () => {
+      document
+        .querySelectorAll<HTMLAnchorElement>(".about-mail:not([data-bound])")
+        .forEach((el) => {
+          const user = el.dataset.mailUser;
+          const domain = el.dataset.mailDomain;
+          if (!user || !domain) return;
+          const addr = `${user}@${domain}`;
+          el.setAttribute("href", `mailto:${addr}`);
+          if (!el.querySelector("*")) el.textContent = addr;
+          el.setAttribute("data-bound", "");
+        });
+    };
+    bind();
+    document.addEventListener("astro:page-load", bind);
+  }
+</script>
