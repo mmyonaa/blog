@@ -23,29 +23,26 @@ const TAG_MAX = 3;
       const overflow = post.data.tags.length - tags.length;
       return (
         <li class="card" style={`--hue: ${hueOf(section)}`}>
-          <div class="card-bar">
-            <span class="card-dot" aria-hidden="true" />
+          <div class="card-top">
             <a class="card-section" href={sectionHref(base, section)}>
               {sectionLabel(section)}
             </a>
-          </div>
-          <div class="card-body">
             <span class="card-date">{fmtDateTime(post.data.pubDate)}</span>
-            <h2 class="card-title">
-              <a href={href(post.id)}>{post.data.title}</a>
-            </h2>
-            {post.data.description && <p class="card-desc">{post.data.description}</p>}
-            {tags.length > 0 && (
-              <div class="tags card-tags">
-                {tags.map((t) => (
-                  <a class="tag" href={tagHref(base, t)}>
-                    {t}
-                  </a>
-                ))}
-                {overflow > 0 && <span class="tag-nmore">+{overflow}</span>}
-              </div>
-            )}
           </div>
+          <h2 class="card-title">
+            <a href={href(post.id)}>{post.data.title}</a>
+          </h2>
+          {post.data.description && <p class="card-desc">{post.data.description}</p>}
+          {tags.length > 0 && (
+            <div class="tags card-tags">
+              {tags.map((t) => (
+                <a class="tag" href={tagHref(base, t)}>
+                  {t}
+                </a>
+              ))}
+              {overflow > 0 && <span class="tag-nmore">+{overflow}</span>}
+            </div>
+          )}
         </li>
       );
     })
@@ -60,20 +57,24 @@ const TAG_MAX = 3;
     display: grid;
     /* 폭에 따라 1~3열. 카드 최소 폭을 두어 좁은 화면에선 자동으로 1열이 된다. */
     grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
-    gap: var(--space-5);
+    gap: var(--space-5) var(--space-5);
   }
-  /* ── 터미널 룩 ──
-     고정폭 폰트 + 터미널 창 헤더 바 + 마커(// > #). 카테고리 색은 헤더의 점·[라벨]로. */
+  /* ── 네오-브루탈 룩 ──
+     굵은 잉크 보더 + 오프셋 하드 섀도 + 각진 모서리 + 솔리드 카테고리 블록.
+     잉크(보더·섀도)=var(--c-text)로 라이트/다크 반전. 카테고리 글자색=var(--c-bg). */
   .card {
     position: relative;
     display: flex;
     flex-direction: column;
-    font-family: var(--font-mono);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
+    gap: var(--space-2);
+    padding: var(--space-4);
     background: var(--c-surface);
-    transition: border-color 0.15s ease;
+    /* 브루탈 잉크를 순수 텍스트색이 아니라 부드러운 회색으로 낮춘다(진하기 완화). */
+    --bru-ink: color-mix(in srgb, var(--c-text) 55%, var(--c-bg));
+    border: 1.5px solid var(--bru-ink);
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--bru-ink);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
     /* 실제로 칠하는 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
     --hue-on: var(--hue);
   }
@@ -86,56 +87,48 @@ const TAG_MAX = 3;
     }
   }
   .card:hover {
-    border-color: var(--hue-on);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--hue-on);
   }
-  /* 터미널 창 헤더 — 점 + [카테고리]. 카테고리 색을 옅게 깐 바. */
-  .card-bar {
+  @media (prefers-reduced-motion: reduce) {
+    .card, .card:hover { transform: none; }
+  }
+  .card-top {
     display: flex;
     align-items: center;
-    gap: 0.5em;
-    padding: 0.45em 0.75em;
-    border-bottom: 1px dashed var(--c-border);
-    background: color-mix(in srgb, var(--hue-on) 7%, transparent);
+    justify-content: space-between;
+    gap: var(--space-3);
   }
-  .card-dot {
-    flex: none;
-    width: 0.6em;
-    height: 0.6em;
-    border-radius: 50%;
-    background: var(--hue-on);
-  }
+  /* 카테고리 솔리드 블록 */
   .card-section {
-    color: var(--hue-on);
+    display: inline-block;
+    background: var(--hue-on);
+    color: var(--c-bg);
     font-size: var(--fs-xs);
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 0.2em 0.55em;
     text-decoration: none;
   }
-  .card-section::before { content: "["; opacity: 0.6; }
-  .card-section::after { content: "]"; opacity: 0.6; }
   .card-section:hover { text-decoration: underline; }
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    padding: 0.85em 0.9em 1em;
-    gap: var(--space-2);
-  }
   .card-date {
+    font-family: var(--font-mono);
     font-size: var(--fs-xs);
+    font-weight: 600;
     color: var(--c-muted);
   }
-  .card-date::before { content: "// "; opacity: 0.7; }
   .card-title {
-    font-size: var(--fs-base);
-    line-height: 1.4;
+    font-size: var(--fs-lg);
+    line-height: 1.25;
+    font-weight: 800;
     letter-spacing: -0.01em;
-    margin: 0;
+    margin: 0.15em 0 0;
   }
   .card-title a {
     color: var(--c-text);
   }
   .card-title a:hover {
-    color: var(--hue-on);
     text-decoration: none;
   }
   .card-desc {
@@ -149,17 +142,34 @@ const TAG_MAX = 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .card-desc::before { content: "> "; color: var(--hue-on); }
+  /* 태그 — 각진 보더 칩(고정폭), '#' 없이 */
   .card-tags {
-    /* 태그는 항상 카드 바닥에 붙어 정렬선이 생기게 한다. */
     margin-top: auto;
-    padding-top: var(--space-2);
+    padding-top: var(--space-1);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.15em var(--space-3);
+    gap: 0.4rem;
   }
-  /* 터미널 카드 안에선 태그 '#'을 카테고리 색으로 — 프롬프트 마커처럼. */
-  .card-tags .tag { font-family: var(--font-mono); }
-  .card-tags .tag::before { color: var(--hue-on); opacity: 1; }
-  .card-tags .tag-nmore { font-family: var(--font-mono); }
+  .card-tags .tag {
+    font-family: var(--font-mono);
+    border: 1px solid var(--bru-ink);
+    border-radius: 0;
+    padding: 0.05em 0.45em;
+    color: var(--c-muted);
+    font-size: var(--fs-xs);
+  }
+  .card-tags .tag::before { content: none; }
+  .card-tags .tag:hover {
+    background: var(--hue-on);
+    color: var(--c-bg);
+    border-color: var(--hue-on);
+    text-decoration: none;
+  }
+  .card-tags .tag-nmore {
+    font-family: var(--font-mono);
+    border: 1px dashed var(--bru-ink);
+    padding: 0.05em 0.45em;
+    color: var(--c-muted);
+    font-size: var(--fs-xs);
+  }
 </style>

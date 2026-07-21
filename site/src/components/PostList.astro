@@ -41,19 +41,21 @@ const href = (id: string) => `${base}/blog/${id}/`;
     margin: 0;
   }
   .post-item {
+    /* 브루탈 잉크를 부드러운 회색으로 낮춘다(진하기 완화). */
+    --bru-ink: color-mix(in srgb, var(--c-text) 55%, var(--c-bg));
     padding: var(--space-5) 0;
-    border-bottom: 1px solid var(--c-border);
+    border-bottom: 1.5px solid var(--bru-ink);
   }
   .post-date {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
-  }
-  .post-date::before {
-    content: "// ";
-    opacity: 0.7;
+    font-weight: 600;
+    color: var(--c-muted);
   }
   .post-title {
     font-size: var(--fs-xl);
+    font-weight: 800;
+    letter-spacing: -0.01em;
     margin: var(--space-1) 0 var(--space-2);
   }
   .post-title a {
@@ -67,13 +69,21 @@ const href = (id: string) => `${base}/blog/${id}/`;
     color: var(--c-muted);
     margin: 0 0 var(--space-3);
   }
-  .post-desc::before {
-    content: "> ";
-    font-family: var(--font-mono);
-    color: var(--c-accent);
-  }
+  /* 태그 — 각진 보더 칩(고정폭), '#' 없이 */
   .tags .tag {
     font-family: var(--font-mono);
+    border: 1px solid var(--bru-ink);
+    border-radius: 0;
+    padding: 0.05em 0.45em;
+    color: var(--c-muted);
+    font-size: var(--fs-xs);
+  }
+  .tags .tag::before { content: none; }
+  .tags .tag:hover {
+    background: var(--bru-ink);
+    color: var(--c-bg);
+    border-color: var(--bru-ink);
+    text-decoration: none;
   }
   .tags {
     display: flex;

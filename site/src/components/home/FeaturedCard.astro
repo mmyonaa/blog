@@ -20,73 +20,70 @@ const isNew =
 ---
 
 <article class="featured spot-card reveal" style={`--sec-hue: ${hueOf(sec)}`}>
-  <div class="card-bar featured-bar">
-    <span class="card-dot" aria-hidden="true" />
-    <a class="card-sec" href={sectionHref(base, sec)}>{sectionLabel(sec)}</a>
+  <div class="card-top featured-top">
+    <a class="card-section" href={sectionHref(base, sec)}>{sectionLabel(sec)}</a>
     <span class="featured-kicker">
       FEATURED{isNew && <span class="badge-new">NEW</span>}
     </span>
   </div>
-  <div class="featured-body">
-    <span class="featured-when">
-      <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
-    </span>
-    <h2 class="featured-title">
-      <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
-    </h2>
-    {post.data.description && <p class="featured-desc">{post.data.description}</p>}
-    {post.data.tags.length > 0 && (
-      <div class="tags">
-        {post.data.tags.map((t) => (
-          <a class="tag" href={tagHref(base, t)}>
-            {t}
-          </a>
-        ))}
-      </div>
-    )}
-    <span class="read">읽기 <span class="read-arrow" aria-hidden="true">→</span></span>
-  </div>
+  <span class="featured-when">
+    <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
+  </span>
+  <h2 class="featured-title">
+    <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+  </h2>
+  {post.data.description && <p class="featured-desc">{post.data.description}</p>}
+  {post.data.tags.length > 0 && (
+    <div class="tags">
+      {post.data.tags.map((t) => (
+        <a class="tag" href={tagHref(base, t)}>
+          {t}
+        </a>
+      ))}
+    </div>
+  )}
+  <span class="read">읽기 <span class="read-arrow" aria-hidden="true">→</span></span>
 </article>
 
 <style>
-  /* 공통 터미널 룩(.spot-card·헤더 바·마커)은 styles/home-cards.css.
-     featured는 그 위에 얹는 큰 '리드' 터미널 창 — 헤더에 FEATURED 킥커, 넓은 본문. */
-  .featured-bar {
-    /* 헤더 바를 리드답게 조금 더 도톰하게 */
-    padding: 0.6em 1em;
+  /* 공통 브루탈 룩(.spot-card·보더·하드 섀도·카테고리 블록)은 styles/home-cards.css.
+     featured는 그 위에 얹는 큰 '리드' 브루탈 카드 — 도톰한 보더/섀도, 큰 굵은 제목. */
+  .featured {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5) clamp(1.1rem, 3vw, 1.9rem);
+    /* 리드답게 보더·섀도를 한 단계만 더 */
+    border-width: 2px;
+    box-shadow: 4px 4px 0 var(--bru-ink);
+  }
+  .featured:hover {
+    box-shadow: 6px 6px 0 var(--sec-on);
   }
   .featured-kicker {
-    margin-left: auto;
     display: inline-flex;
     align-items: center;
     gap: 0.5em;
     color: var(--c-muted);
+    font-family: var(--font-mono);
     font-size: var(--fs-xs);
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
   }
   .badge-new {
-    color: var(--sec-on);
-    letter-spacing: 0.08em;
+    background: var(--bru-ink);
+    color: var(--c-bg);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 0.1em 0.4em;
   }
-  .badge-new::before { content: "["; opacity: 0.6; }
-  .badge-new::after { content: "]"; opacity: 0.6; }
-  .featured-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-5) clamp(1em, 3vw, 1.75em) var(--space-5);
-  }
-  .featured-when {
-    font-size: var(--fs-xs);
-    color: var(--c-muted);
-  }
-  .featured-when::before { content: "// "; opacity: 0.7; }
   .featured-title {
-    font-size: var(--fs-2xl);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    font-size: var(--fs-3xl);
+    line-height: 1.12;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     margin: 0;
+    text-wrap: balance;
   }
   .featured-desc {
     color: var(--c-muted);
@@ -94,22 +91,32 @@ const isNew =
     max-width: 70ch;
     margin: 0;
   }
-  .featured-desc::before { content: "> "; color: var(--sec-on); }
+  /* 브루탈 CTA 버튼 — 각진 보더 + 작은 하드 섀도, hover 시 카테고리색 반전 */
   .read {
     position: relative;
     z-index: 1;
     align-self: flex-start;
-    color: var(--sec-on);
-    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
     margin-top: var(--space-1);
+    padding: 0.4em 0.9em;
+    border: 1.5px solid var(--bru-ink);
+    background: var(--c-bg);
+    color: var(--c-text);
+    font-weight: 800;
+    box-shadow: 2px 2px 0 var(--bru-ink);
   }
-  .read::before { content: "$ "; opacity: 0.7; }
+  .featured:hover .read {
+    background: var(--sec-on);
+    color: var(--c-bg);
+  }
   .read-arrow {
     display: inline-block;
     transition: transform 0.15s ease;
   }
   .featured:hover .read-arrow {
-    transform: translateX(4px);
+    transform: translateX(3px);
   }
   @media (prefers-reduced-motion: reduce) {
     .featured:hover .read-arrow { transform: none; }
@@ -117,7 +124,7 @@ const isNew =
 
   @media (max-width: 640px) {
     .featured-title {
-      font-size: var(--fs-xl);
+      font-size: var(--fs-2xl);
     }
   }
 </style>

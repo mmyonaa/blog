@@ -15,63 +15,48 @@ const sec = sectionOf(post);
 ---
 
 <article class="card spot-card reveal" style={`--sec-hue: ${hueOf(sec)}`}>
-  <div class="card-bar">
-    <span class="card-dot" aria-hidden="true" />
-    <a class="card-sec" href={sectionHref(base, sec)}>{sectionLabel(sec)}</a>
-  </div>
-  <div class="card-body">
+  <div class="card-top">
+    <a class="card-section" href={sectionHref(base, sec)}>{sectionLabel(sec)}</a>
     <span class="card-when">
       {fmtRelative(post.data.pubDate)} · {readMin(post.body)}분
     </span>
-    <h3 class="card-title">
-      <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
-    </h3>
-    {post.data.description && <p class="card-desc">{post.data.description}</p>}
-    {post.data.tags.length > 0 && (
-      <div class="tags">
-        {post.data.tags.map((t) => (
-          <a class="tag" href={tagHref(base, t)}>
-            {t}
-          </a>
-        ))}
-      </div>
-    )}
   </div>
+  <h3 class="card-title">
+    <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+  </h3>
+  {post.data.description && <p class="card-desc">{post.data.description}</p>}
+  {post.data.tags.length > 0 && (
+    <div class="tags">
+      {post.data.tags.map((t) => (
+        <a class="tag" href={tagHref(base, t)}>
+          {t}
+        </a>
+      ))}
+    </div>
+  )}
 </article>
 
 <style>
-  /* 공통 터미널 룩(.spot-card·헤더 바·마커)은 styles/home-cards.css.
+  /* 공통 브루탈 룩(.spot-card·보더·하드 섀도·카테고리 블록)은 styles/home-cards.css.
      여기엔 '최근 글' 카드 전용 스타일만 둔다. */
   .card {
     /* 그리드가 같은 행 카드를 같은 높이로 늘리므로(align stretch), 내부를 세로 플렉스로
        두고 태그를 바닥에 붙이면 제목·요약 길이가 달라도 태그 정렬선이 맞는다. */
     display: flex;
     flex-direction: column;
-  }
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    padding: 0.85em 0.9em 1em;
     gap: var(--space-2);
+    padding: var(--space-4);
   }
   .tags {
     margin-top: auto;
-    padding-top: var(--space-2);
-  }
-  .card-when {
-    font-size: var(--fs-xs);
-    color: var(--c-muted);
-  }
-  .card-when::before {
-    content: "// ";
-    opacity: 0.7;
+    padding-top: var(--space-1);
   }
   .card-title {
-    font-size: var(--fs-base);
-    line-height: 1.4;
+    font-size: var(--fs-lg);
+    line-height: 1.25;
+    font-weight: 800;
     letter-spacing: -0.01em;
-    margin: 0;
+    margin: 0.15em 0 0;
   }
   .card-desc {
     color: var(--c-muted);
@@ -84,9 +69,5 @@ const sec = sectionOf(post);
     -webkit-line-clamp: 2;
     line-clamp: 2;
     overflow: hidden;
-  }
-  .card-desc::before {
-    content: "> ";
-    color: var(--sec-on);
   }
 </style>
