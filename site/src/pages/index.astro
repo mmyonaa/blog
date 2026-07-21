@@ -3,9 +3,10 @@ import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import Hero from "../components/home/Hero.astro";
 import FeaturedCard from "../components/home/FeaturedCard.astro";
+import TopReads from "../components/home/TopReads.astro";
 import PostCard from "../components/home/PostCard.astro";
 import { getTagCounts } from "../lib/tags.ts";
-import { getSectionCounts } from "../lib/sections.ts";
+import { getSectionCounts, sectionOf } from "../lib/sections.ts";
 import { buildActivity } from "../lib/activity.ts";
 
 const posts = (await getCollection("blog")).sort(
@@ -22,10 +23,26 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 // RSS 안내 팝오버에 보여줄 절대 피드 주소(리더 앱에 그대로 등록하는 값)
 const feedUrl = new URL(`${base}/rss.xml`, Astro.site ?? Astro.url).href;
 
-// 랜딩엔 최신 글만: featured 1개 + 최근 글 최대 6개. 나머지는 '전체 글 보기'로.
+// 랜딩 상단: 왼쪽 '최신 글'(featured 1개) + 오른쪽 'Top Reads'(카테고리별 최신).
+// 조회수 데이터가 없으므로 오른쪽은 가짜 인기순 대신 카테고리별 최신 글로 채운다
+// (스프레드 → 사실상 '읽을거리 top picks'). 그 아래 '최근 글' 그리드가 이어진다.
 const RECENT_MAX = 6;
+const TOP_READS_MAX = 4;
 const [featured, ...others] = posts;
-const rest = others.slice(0, RECENT_MAX);
+
+// 오른쪽: 카테고리(getSectionCounts 순서)별 최신 글, featured 제외, 최대 4개.
+const usedIds = new Set([featured?.id]);
+const topReads: typeof others = [];
+for (const s of sections) {
+  if (topReads.length >= TOP_READS_MAX) break;
+  const p = others.find((o) => sectionOf(o) === s.id && !usedIds.has(o.id));
+  if (p) {
+    topReads.push(p);
+    usedIds.add(p.id);
+  }
+}
+// 그 아래 '최근 글' 그리드: featured·topReads에 안 쓰인 최신 글.
+const rest = others.filter((o) => !usedIds.has(o.id)).slice(0, RECENT_MAX);
 
 // ── 히어로 통계 ──
 // 로컬 날짜 키(YYYY-MM-DD). '연속 발행'은 가장 최근 글 날짜부터 하루씩 거슬러
@@ -86,7 +103,22 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
       <>
-        <FeaturedCard post={featured} />
+        <section class="top-section">
+          <div class="latest-col">
+            <div class="section-head">
+              <h2 class="section-title">최신 글</h2>
+            </div>
+            <FeaturedCard post={featured} />
+          </div>
+          {topReads.length > 0 && (
+            <aside class="reads-col">
+              <div class="section-head">
+                <h2 class="section-title">카테고리별 새 글</h2>
+              </div>
+              <TopReads posts={topReads} />
+            </aside>
+          )}
+        </section>
 
         {rest.length > 0 && (
           <>
@@ -184,6 +216,33 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     font-weight: 600;
     white-space: nowrap;
   }
+  /* ── 상단 2단: 왼쪽 '최신 글'(대표) + 오른쪽 'Top Reads' 리스트 ── */
+  .top-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+    margin-top: var(--space-6);
+  }
+  .top-section .section-head {
+    /* 두 열 제목을 상단에 맞춘다(기본 section-head의 큰 top 마진 제거) */
+    margin: 0 0 var(--space-4);
+  }
+  /* 오른쪽 리스트가 왼쪽 대표 카드와 세로로 맞물리게 카드처럼 감싼다 */
+  .reads-col :global(.top-reads) {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4) var(--space-5);
+  }
+  @media (max-width: 900px) {
+    .top-section {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+  }
+
   .grid {
     display: grid;
     /* 3열이 컨테이너 폭을 균등 분할 → 오른쪽 끝이 featured·'전체 글 보기'와 정렬.

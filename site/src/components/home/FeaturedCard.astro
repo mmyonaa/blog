@@ -25,9 +25,7 @@ const isNew =
       {initialOf(sec)}
     </a>
     <div class="card-headtext">
-      <span class="featured-kicker">
-        FEATURED{isNew && <span class="badge-new">NEW</span>}
-      </span>
+      {isNew && <span class="badge-new">NEW</span>}
       <h2 class="featured-title">
         <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
       </h2>
@@ -65,26 +63,19 @@ const isNew =
     font-size: 1.4rem;
     border-radius: var(--radius-md);
   }
-  .featured-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5em;
-    color: var(--c-muted);
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-  }
   .badge-new {
+    align-self: flex-start;
     background: var(--sec-on);
     color: var(--c-bg);
+    font-size: var(--fs-xs);
     font-weight: 800;
     letter-spacing: 0.04em;
     border-radius: var(--radius-sm);
-    padding: 0.1em 0.4em;
+    padding: 0.1em 0.45em;
   }
   .featured-title {
-    font-size: var(--fs-2xl);
-    line-height: 1.18;
+    font-size: var(--fs-xl);
+    line-height: 1.25;
     font-weight: 800;
     letter-spacing: -0.02em;
     margin: 0.1em 0;
@@ -116,7 +107,7 @@ const isNew =
 
   @media (max-width: 640px) {
     .featured-title {
-      font-size: var(--fs-xl);
+      font-size: var(--fs-lg);
     }
   }
 </style>
