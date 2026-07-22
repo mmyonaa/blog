@@ -1,7 +1,6 @@
 ---
 import type { Activity } from "../../lib/activity.ts";
 import ActivityHeatmap from "./ActivityHeatmap.astro";
-import SectionPills from "./SectionPills.astro";
 import PopularTags from "./PopularTags.astro";
 
 interface Props {
@@ -12,12 +11,11 @@ interface Props {
   feedUrl: string;
   stats: { value: number; label: string; href?: string }[];
   activity: Activity;
-  sections: { id: string; label: string; count: number }[];
-  /** 카테고리 pill 아래 보여줄 인기 태그(글 수 상위). 전체는 /topics/#tags. */
+  /** 히어로 하단에 보여줄 인기 태그(글 수 상위). 전체는 /topics/#tags. */
   topTags: { tag: string; count: number }[];
   base: string;
 }
-const { hasPosts, featuredHref, feedUrl, stats, activity, sections, topTags, base } =
+const { hasPosts, featuredHref, feedUrl, stats, activity, topTags, base } =
   Astro.props;
 ---
 
@@ -80,7 +78,6 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, sections, topTags, bas
       </div>
       {hasPosts && <ActivityHeatmap activity={activity} />}
     </div>
-    {sections.length > 0 && <SectionPills sections={sections} base={base} />}
     {topTags.length > 0 && <PopularTags tags={topTags} base={base} />}
   </div>
 </section>
