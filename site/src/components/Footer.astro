@@ -4,23 +4,10 @@ import { FEEDBACK_ENABLED, FEEDBACK_URL, DISCUSSIONS_URL } from "../lib/feedback
 import { sectionOf, hueOf } from "../lib/sections.ts";
 import { getTagCounts, tagHref } from "../lib/tags.ts";
 import { fmtDate } from "../lib/date.ts";
+import { AUTHOR as author, REPO_URL as repo } from "../lib/author.ts";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const repo = "https://github.com/mmyonaa/mcp";
 const year = new Date().getFullYear();
-
-// About — 만든 사람. 이메일은 봇 스크래핑을 피해 평문으로 두지 않고,
-// data 속성으로 쪼갠 뒤 클라이언트 스크립트가 mailto로 조립한다.
-const author = {
-  name: "Hyona Lim",
-  avatar: "https://github.com/mmyonaa.png",
-  portfolio: "https://mmyonaa.github.io",
-  portfolioLabel: "mmyonaa.github.io",
-  github: "https://github.com/mmyonaa",
-  linkedin: "https://www.linkedin.com/in/hyona-lim-a3a626319/",
-  mailUser: "apddfhsajrwk",
-  mailDomain: "gmail.com",
-};
 
 // 최근 글 3편 — 빌드 타임에 실제 글에서.
 const posts = (await getCollection("blog")).sort(
@@ -47,6 +34,8 @@ const explore = [
   { label: "홈", href: `${base}/`, ext: false },
   { label: "분류", href: `${base}/topics/`, ext: false },
   { label: "글 전체", href: `${base}/blog/`, ext: false },
+  { label: "아카이브", href: `${base}/archive/`, ext: false },
+  { label: "소개", href: `${base}/about/`, ext: false },
   { label: "소스 코드", href: repo, ext: true },
   { label: "토론", href: DISCUSSIONS_URL, ext: true },
 ];

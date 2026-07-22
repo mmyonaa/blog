@@ -1,0 +1,215 @@
+---
+// 아카이브 — 매일 발행을 시간축으로 훑는 타임라인. 히트맵(홈)이 밀도라면
+// 여기는 목록. 연·월로 묶어 최신순으로 쌓는다. 꾸준함 자체가 콘텐츠.
+import Base from "../../layouts/Base.astro";
+import { getCollection } from "astro:content";
+import { sectionOf, sectionHref, sectionLabel, hueOf } from "../../lib/sections.ts";
+import { fmtDate } from "../../lib/date.ts";
+import { readMin } from "../../lib/reading.ts";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const postCount = posts.length;
+
+// KST 기준 'YYYY-MM-DD'에서 연·월·일을 뽑아 그룹핑(표시 날짜와 어긋나지 않게).
+type Row = {
+  id: string;
+  title: string;
+  sec: string;
+  day: string; // "DD"
+  min: number;
+};
+type MonthGroup = { key: string; label: string; rows: Row[] };
+type YearGroup = { year: string; count: number; months: MonthGroup[] };
+
+const years: YearGroup[] = [];
+for (const p of posts) {
+  const ymd = fmtDate(p.data.pubDate); // YYYY-MM-DD
+  const [y, m, d] = ymd.split("-");
+  let yg = years.find((g) => g.year === y);
+  if (!yg) {
+    yg = { year: y, count: 0, months: [] };
+    years.push(yg);
+  }
+  yg.count++;
+  const mKey = `${y}-${m}`;
+  let mg = yg.months.find((g) => g.key === mKey);
+  if (!mg) {
+    mg = { key: mKey, label: `${Number(m)}월`, rows: [] };
+    yg.months.push(mg);
+  }
+  mg.rows.push({
+    id: p.id,
+    title: p.data.title,
+    sec: sectionOf(p),
+    day: d,
+    min: readMin(p.body),
+  });
+}
+---
+
+<Base
+  title="아카이브 — blog"
+  description="발행한 모든 글을 시간순으로 훑어봅니다"
+>
+  <h1>아카이브</h1>
+  <p class="muted">
+    발행한 <strong>{postCount}편</strong>을 시간순으로 훑어봅니다. 매일 한 편씩, 쌓인 기록.
+  </p>
+  <hr />
+
+  {
+    posts.length === 0 ? (
+      <p class="muted">아직 발행된 글이 없습니다.</p>
+    ) : (
+      <div class="timeline">
+        {years.map((yg) => (
+          <section class="year">
+            <div class="year-head">
+              <h2 class="year-label">{yg.year}</h2>
+              <span class="year-count">{yg.count}편</span>
+            </div>
+            {yg.months.map((mg) => (
+              <div class="month">
+                <h3 class="month-label">{mg.label}</h3>
+                <ol class="rows">
+                  {mg.rows.map((r) => (
+                    <li class="row" style={`--hue: ${hueOf(r.sec)}`}>
+                      <span class="row-day">{r.day}</span>
+                      <a
+                        class="row-cat"
+                        href={sectionHref(base, r.sec)}
+                        aria-label={sectionLabel(r.sec)}
+                      />
+                      <a class="row-title" href={`${base}/blog/${r.id}/`}>
+                        {r.title}
+                      </a>
+                      <span class="row-min">{r.min}분</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ))}
+          </section>
+        ))}
+      </div>
+    )
+  }
+</Base>
+
+<style>
+  h1 {
+    margin-bottom: var(--space-2);
+  }
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  /* ── 연도 ── */
+  .year-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    border-bottom: 2px solid var(--c-border);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .year-label {
+    margin: 0;
+    font-size: var(--fs-2xl);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .year-count {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--c-muted);
+  }
+
+  /* ── 월 ── */
+  .month {
+    margin-bottom: var(--space-5);
+  }
+  .month-label {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--c-muted);
+  }
+
+  /* ── 행 ── */
+  .rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .row {
+    --hue-on: var(--hue, var(--c-accent));
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--c-border);
+  }
+  .row:first-child {
+    border-top: none;
+  }
+  :global(:root[data-theme="dark"]) .row {
+    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .row {
+      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+    }
+  }
+  .row-day {
+    flex: none;
+    width: 2ch;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    color: var(--c-muted);
+  }
+  /* 카테고리 색 점 — 클릭하면 그 카테고리 목록으로 */
+  .row-cat {
+    flex: none;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: var(--hue-on);
+  }
+  .row-title {
+    flex: 1;
+    min-width: 0;
+    color: var(--c-text);
+    text-decoration: none;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .row-title:hover {
+    color: var(--hue-on);
+  }
+  .row-min {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+
+  @media (max-width: 520px) {
+    /* 좁은 화면: 제목이 줄바꿈되게 ellipsis 해제 */
+    .row-title {
+      white-space: normal;
+    }
+  }
+</style>
