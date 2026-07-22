@@ -18,6 +18,26 @@ export const SECTION_LABELS: Record<string, string> = {
 const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "security"];
 
 /**
+ * area id → 한국어 라벨. 서버(server/src/topics.ts)의 AREAS와 맞춘다(사이트는 서버를
+ * import하지 않으므로 라벨을 여기 둔다). 글 프론트매터의 area는 이 세부 영역 코드다.
+ * 목록에 없는 area는 코드를 그대로 라벨로 쓴다.
+ */
+export const AREA_LABELS: Record<string, string> = {
+  A: "프로젝트 개발기",
+  C: "MCP·LLM 해설",
+  B: "TS·구현 기법",
+  W: "사이트 구축",
+  DB: "데이터베이스",
+  NET: "네트워크",
+  OS: "운영체제",
+  SE: "소프트웨어공학",
+  SEC: "정보보안",
+};
+
+export const areaLabel = (id: string | undefined): string =>
+  id ? (AREA_LABELS[id] ?? id) : "";
+
+/**
  * 섹션별 액센트 hue. 랜딩의 섹션 pill·카드 배지·분류 카드 좌측 보더가 같은 색을
  * 쓰도록 여기 한 곳에 둔다. 목록에 없는 섹션은 기본 액센트로 폴백.
  *

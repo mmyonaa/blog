@@ -8,6 +8,8 @@ import {
   AREAS,
   SECTIONS,
   SEED_TOPICS,
+  areaOfTopicId,
+  isAreaId,
   sectionOfArea,
   type AreaId,
   type SectionId,
@@ -65,7 +67,13 @@ interface Frontmatter {
   pubDate: string;
   tags: string[];
   section: string;
+  /** 세부 영역(AreaId). topicId에서 자동 도출되거나 입력으로 온다. 그래프의 세부 분기축. */
+  area?: string | undefined;
   topicId?: string | undefined;
+  /** 이 글이 잇는 부모 글의 slug(정규화된 값). 그래프의 후속 간선. */
+  follows?: string | undefined;
+  /** 관련 글 slug 목록(정규화). RelatedPosts·그래프가 참조. */
+  related?: string[] | undefined;
   description?: string | undefined;
 }
 
@@ -78,7 +86,12 @@ function buildFrontmatter(fm: Frontmatter): string {
     `section: ${yamlString(fm.section)}`,
     `tags: [${fm.tags.map(yamlString).join(", ")}]`,
   ];
+  if (fm.area) lines.push(`area: ${yamlString(fm.area)}`);
   if (fm.topicId) lines.push(`topicId: ${yamlString(fm.topicId)}`);
+  if (fm.follows) lines.push(`follows: ${yamlString(fm.follows)}`);
+  if (fm.related && fm.related.length > 0) {
+    lines.push(`related: [${fm.related.map(yamlString).join(", ")}]`);
+  }
   if (fm.description) lines.push(`description: ${yamlString(fm.description)}`);
   lines.push("---");
   return lines.join("\n");
@@ -117,6 +130,25 @@ export function registerPublishPost(server: McpServer): void {
           .describe(
             "이 글이 어떤 시드 주제(suggest_topic의 id)를 다뤘는지. 지정하면 그 주제는 다시 제안되지 않는다. 시드 밖 주제면 생략.",
           ),
+        area: z
+          .string()
+          .optional()
+          .describe(
+            `세부 영역(대분류 안의 갈래). ${Object.keys(AREAS).join(" | ")} 중 하나. ` +
+              "topicId가 시드면 자동으로 도출되니 대개 생략. 시드 밖 주제에 영역을 달고 싶을 때만 지정. area의 소속 섹션과 section이 다르면 거부된다.",
+          ),
+        follows: z
+          .string()
+          .optional()
+          .describe(
+            "이 글이 잇는(후속) 이전 글. 그 글의 slug·topicId·주제슬러그 중 무엇으로 가리켜도 실제 slug로 정규화된다. 존재하지 않는 글을 가리키면 발행이 거부된다. 그래프의 후속 간선이 된다.",
+          ),
+        related: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "관련 글 목록(slug·topicId·주제슬러그). 각 참조의 실존을 검증하고 실제 slug로 정규화한다. follows는 '직계 후속' 한 편, related는 '엮인 글들'.",
+          ),
         minChars: z
           .number()
           .int()
@@ -128,7 +160,7 @@ export function registerPublishPost(server: McpServer): void {
         description: z.string().optional().describe("요약(메타 설명)"),
       },
     },
-    async ({ title, body, tags, date, slug, topicId, minChars, section, description }) => {
+    async ({ title, body, tags, date, slug, topicId, area, follows, related, minChars, section, description }) => {
       // section이 레지스트리에 있는지 검증(하드코딩 대신 SECTIONS 파생).
       if (!isSectionId(section)) {
         return {
@@ -140,6 +172,34 @@ export function registerPublishPost(server: McpServer): void {
             },
           ],
         };
+      }
+
+      // area 결정: 입력이 있으면 그것을, 없으면 topicId(시드)에서 도출. 있으면 유효성 +
+      // 소속 섹션이 section과 같은지 검증(불일치는 데이터 오염이므로 거부).
+      const resolvedArea = area ?? (topicId ? areaOfTopicId(topicId) : undefined);
+      if (resolvedArea !== undefined) {
+        if (!isAreaId(resolvedArea)) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text" as const,
+                text: `알 수 없는 area "${resolvedArea}". 사용 가능: ${Object.keys(AREAS).join(", ")}`,
+              },
+            ],
+          };
+        }
+        if (sectionOfArea(resolvedArea) !== section) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text" as const,
+                text: `area "${resolvedArea}"는 "${sectionOfArea(resolvedArea)}" 섹션 소속인데 section은 "${section}"입니다. 둘을 맞춰주세요.`,
+              },
+            ],
+          };
+        }
       }
 
       // 본문을 가볍게 검증한다. 문제가 있으면 파일을 쓰지 않고 이유를 돌려준다.
@@ -175,12 +235,76 @@ export function registerPublishPost(server: McpServer): void {
         };
       }
 
-      const frontmatter = buildFrontmatter({ title, pubDate, tags, section, topicId, description });
+      // follows/related 참조를 실존 검증하고 실제 slug로 정규화한다. 참조는 slug·topicId·
+      // 주제슬러그 중 무엇으로 와도 받되, 하나라도 못 찾으면 발행을 거부한다(끊긴 간선 방지).
+      const newSlug = fileName.replace(/\.md$/, "");
+      let resolvedFollows: string | undefined;
+      let resolvedRelated: string[] | undefined;
+      if (follows !== undefined || (related && related.length > 0)) {
+        const existingPosts = await listPosts();
+        const resolveRef = (ref: string): string | null => {
+          const r = ref.trim();
+          const hit = existingPosts.find(
+            (p) => p.slug === r || p.topicSlug === r || p.topicId === r,
+          );
+          return hit ? hit.slug : null;
+        };
+
+        const bad: string[] = [];
+        if (follows !== undefined) {
+          const f = resolveRef(follows);
+          if (!f) bad.push(`follows: "${follows}"`);
+          else if (f === newSlug) bad.push(`follows가 자기 자신을 가리킵니다: "${follows}"`);
+          else resolvedFollows = f;
+        }
+        if (related && related.length > 0) {
+          const out: string[] = [];
+          for (const ref of related) {
+            const r = resolveRef(ref);
+            if (!r) bad.push(`related: "${ref}"`);
+            else if (r !== newSlug && r !== resolvedFollows && !out.includes(r)) out.push(r);
+          }
+          if (out.length > 0) resolvedRelated = out;
+        }
+
+        if (bad.length > 0) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text" as const,
+                text:
+                  `존재하지 않는 글을 참조합니다:\n${bad.map((b) => `- ${b}`).join("\n")}\n` +
+                  `blog://posts 리소스로 실제 slug/topicId를 확인해 다시 넘겨주세요.`,
+              },
+            ],
+          };
+        }
+      }
+
+      const frontmatter = buildFrontmatter({
+        title,
+        pubDate,
+        tags,
+        section,
+        area: resolvedArea,
+        topicId,
+        follows: resolvedFollows,
+        related: resolvedRelated,
+        description,
+      });
       await writeFile(filePath, `${frontmatter}\n\n${body.trimEnd()}\n`, "utf8");
+
+      const meta = [
+        resolvedArea ? `area=${resolvedArea}` : null,
+        resolvedFollows ? `follows→${resolvedFollows}` : null,
+        resolvedRelated ? `related→${resolvedRelated.join(", ")}` : null,
+      ].filter(Boolean);
+      const metaLine = meta.length ? `\n관계: ${meta.join(" · ")}` : "";
 
       return {
         content: [
-          { type: "text" as const, text: `발행 완료: ${fileName}\n경로: ${filePath}` },
+          { type: "text" as const, text: `발행 완료: ${fileName}\n경로: ${filePath}${metaLine}` },
         ],
       };
     },
@@ -280,10 +404,29 @@ export function registerSuggestTopic(server: McpServer): void {
         if (next) picked.push(next);
       }
 
+      // 각 후보에 관계 힌트를 붙인다: 태그가 겹치는 지난 글(같은 섹션 우선)과 추천 follows.
+      // 결정론적(태그 교집합 크기 → 최신순). LLM 호출 없음. 발행 시 follows/related 근거가 된다.
+      const hintFor = (t: Topic): string => {
+        const scored = posts
+          .map((p) => ({ p, shared: p.tags.filter((tag) => t.tags.includes(tag)) }))
+          .filter((x) => x.shared.length > 0)
+          .sort(
+            (a, b) => b.shared.length - a.shared.length || b.p.pubDate.localeCompare(a.p.pubDate),
+          )
+          .slice(0, 3);
+        if (scored.length === 0) return "";
+        const ref = (p: (typeof scored)[number]["p"]) => p.topicId ?? p.slug;
+        const list = scored
+          .map(({ p, shared }) => `${p.title} (${ref(p)}) [겹침: ${shared.join(", ")}]`)
+          .join("; ");
+        const top = scored[0]!.p;
+        return `\n   ↳ 관련 지난 글: ${list}\n   ↳ 추천 follows: ${ref(top)}`;
+      };
+
       const suggestions = picked
         .map(
           (t, i) =>
-            `${i + 1}. [${t.area}·${AREAS[t.area].label}] [id: ${t.id}] ${t.title}  [${t.tags.join(", ")}]`,
+            `${i + 1}. [${t.area}·${AREAS[t.area].label}] [id: ${t.id}] ${t.title}  [${t.tags.join(", ")}]${hintFor(t)}`,
         )
         .join("\n");
 
@@ -291,7 +434,7 @@ export function registerSuggestTopic(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: `[${sectionLabel}] 안 겹치는 후보 주제 (영역 섞음, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로, section은 "${section}"로 넘긴다.\n이 후보가 마음에 안 들면 시드 밖 자유 주제로 써도 됩니다(topicId 생략, section 유지).\n\n최근 발행 글(참고):\n${recentText}`,
+            text: `[${sectionLabel}] 안 겹치는 후보 주제 (영역 섞음, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로, section은 "${section}"로 넘긴다.\n위 '추천 follows'가 이 글의 직계 선행 글이라면 publish_post의 follows로, 더 엮인 글들은 related로 넘기면 관계 그래프가 이어진다(참조는 실존 검증됨). area는 topicId에서 자동 도출되니 대개 생략.\n이 후보가 마음에 안 들면 시드 밖 자유 주제로 써도 됩니다(topicId 생략, section 유지).\n\n최근 발행 글(참고):\n${recentText}`,
           },
         ],
       };

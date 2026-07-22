@@ -3,6 +3,7 @@ title: "MCP Resource로 LLM에게 컨텍스트 읽히기"
 pubDate: 2026-07-17T05:35:41Z
 section: "mcp"
 tags: ["mcp", "resources", "개념"]
+area: "C"
 topicId: "resources-context"
 description: "MCP Resource는 도구가 아니라 LLM이 읽어들이는 데이터다. 도구와 무엇이 다른지, URI로 무엇을 노출하는지, 그리고 실제 서버에서 어떻게 구현하는지 살펴본다."
 ---

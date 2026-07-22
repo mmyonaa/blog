@@ -3,6 +3,7 @@ title: "트랜잭션과 ACID 원칙"
 pubDate: 2026-07-18T14:39:52Z
 section: "jeongcheogi"
 tags: ["정처기", "데이터베이스", "트랜잭션", "ACID"]
+area: "DB"
 topicId: "transaction-acid"
 description: "트랜잭션의 정의와 상태 변화, ACID 4원칙, 격리 수준과 그에 따른 이상 현상까지 정처기 시험 관점에서 정리한다."
 ---

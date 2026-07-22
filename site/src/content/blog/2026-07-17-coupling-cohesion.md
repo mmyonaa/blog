@@ -3,6 +3,7 @@ title: "결합도와 응집도 — 좋은 모듈의 두 잣대"
 pubDate: 2026-07-17T06:06:47Z
 section: "jeongcheogi"
 tags: ["정처기", "소프트웨어공학", "설계"]
+area: "SE"
 topicId: "coupling-cohesion"
 description: "좋은 설계는 모듈을 어떻게 나누느냐로 갈린다. 결합도는 모듈 사이의 의존을, 응집도는 모듈 안의 뭉침을 잰다. 각각의 단계와 \"낮은 결합·높은 응집\"이 왜 목표인지 정리한다."
 ---

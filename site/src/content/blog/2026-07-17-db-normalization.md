@@ -3,6 +3,7 @@ title: "데이터베이스 정규화 — 1NF부터 BCNF까지"
 pubDate: 2026-07-17T05:37:12Z
 section: "jeongcheogi"
 tags: ["정처기", "데이터베이스", "정규화"]
+area: "DB"
 topicId: "db-normalization"
 description: "정규화는 데이터 중복과 이상현상을 없애기 위해 테이블을 단계적으로 쪼개는 과정이다. 이상현상이 왜 생기는지부터 1NF·2NF·3NF·BCNF를 예제로 하나씩 밟아본다."
 ---

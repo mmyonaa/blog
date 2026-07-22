@@ -3,6 +3,7 @@ title: "TypeScript로 첫 stdio MCP 서버 만들기"
 pubDate: 2026-07-16T11:15:00Z
 section: "mcp"
 tags: ["mcp", "typescript", "stdio"]
+area: "B"
 topicId: "first-stdio-server-ts"
 description: "도구 하나를 가진 가장 작은 MCP 서버를 TypeScript로 처음부터 만든다. 패키지 준비부터 Claude Code에 붙여 굴리기까지 단계별로 따라간다."
 ---

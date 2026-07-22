@@ -3,6 +3,7 @@ title: "zod로 MCP 도구 입력 스키마 정의하기"
 pubDate: 2026-07-17T06:05:59Z
 section: "mcp"
 tags: ["mcp", "zod", "typescript"]
+area: "B"
 topicId: "zod-input-schema"
 description: "MCP 도구는 LLM이 채워 보내는 인자를 받는다. zod로 입력 스키마를 선언하면 JSON Schema 생성·런타임 검증·타입 추론을 한 번에 얻는다. 왜 필요한지와 실제 정의 방법을 정리한다."
 ---

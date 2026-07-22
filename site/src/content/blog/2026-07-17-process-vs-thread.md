@@ -3,6 +3,7 @@ title: "프로세스 vs 스레드"
 pubDate: 2026-07-17T09:00:00Z
 section: "jeongcheogi"
 tags: ["정처기", "운영체제", "프로세스"]
+area: "OS"
 topicId: "process-vs-thread"
 description: "운영체제 단골 비교인 프로세스와 스레드를, 무엇을 공유하고 무엇을 따로 갖는지 중심으로 정리한다."
 ---

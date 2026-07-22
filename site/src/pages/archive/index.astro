@@ -9,6 +9,7 @@ import {
   sectionHref,
   hueOf,
   getSectionCounts,
+  areaLabel,
 } from "../../lib/sections.ts";
 import { fmtDate } from "../../lib/date.ts";
 import { charCount, fmtCount } from "../../lib/reading.ts";
@@ -19,6 +20,10 @@ const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 const postCount = posts.length;
+
+// follows(부모 글 id) → 제목 조회용. publish_post가 follows를 실제 slug(=post.id)로
+// 정규화해 저장하므로 id로 바로 찾는다. 없는 참조는 무시(끊긴 간선은 표시하지 않음).
+const titleById = new Map(posts.map((p) => [p.id, p.data.title]));
 
 // 레인 = 카테고리(정의된 순서). 각 레인의 고정 열 인덱스와 색.
 const lanes = (await getSectionCounts()).map((s) => ({
@@ -35,8 +40,11 @@ type PostRow = {
   id: string;
   title: string;
   sec: string;
+  area: string; // area 라벨(없으면 "")
   date: string; // "M/D"
   chars: number;
+  followsTitle: string | null; // 잇는(선행) 글 제목, 있으면
+  followsId: string | null;
 };
 type MonthRow = { type: "month"; label: string };
 type Row = PostRow | MonthRow;
@@ -53,13 +61,17 @@ for (const p of posts) {
     prevYM = ym;
     prevYear = y;
   }
+  const follows = p.data.follows ?? null;
   rows.push({
     type: "post",
     id: p.id,
     title: p.data.title,
     sec: sectionOf(p),
+    area: areaLabel(p.data.area),
     date: `${Number(m)}/${Number(d)}`,
     chars: charCount(p.body),
+    followsTitle: follows ? (titleById.get(follows) ?? null) : null,
+    followsId: follows && titleById.has(follows) ? follows : null,
   });
 }
 
@@ -144,13 +156,21 @@ const railOf = (rowIdx: number, rowSec: string | null): Cell[] =>
                   </span>
                 ))}
               </div>
-              <a class="content" href={`${base}/blog/${r.id}/`}>
-                <span class="ptitle">{r.title}</span>
-                <span class="pmeta">
-                  <span class="pdate">{r.date}</span>
-                  <span class="pchars">{fmtCount(r.chars)}자</span>
-                </span>
-              </a>
+              <div class="content">
+                <a class="cmain" href={`${base}/blog/${r.id}/`}>
+                  <span class="ptitle">{r.title}</span>
+                  <span class="pmeta">
+                    {r.area && <span class="parea">{r.area}</span>}
+                    <span class="pdate">{r.date}</span>
+                    <span class="pchars">{fmtCount(r.chars)}자</span>
+                  </span>
+                </a>
+                {r.followsId && (
+                  <a class="pfollows" href={`${base}/blog/${r.followsId}/`}>
+                    <span class="pf-arrow" aria-hidden="true">↳</span> 잇는 글: {r.followsTitle}
+                  </a>
+                )}
+              </div>
             </div>
           ),
         )}
@@ -277,13 +297,11 @@ const railOf = (rowIdx: number, rowSec: string | null): Cell[] =>
     flex: 1;
     min-width: 0;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15em;
     padding: var(--space-2) 0;
     border-bottom: 1px solid var(--c-border);
-    color: var(--c-text);
-    text-decoration: none;
   }
   :global(:root[data-theme="dark"]) .content {
     --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
@@ -293,7 +311,16 @@ const railOf = (rowIdx: number, rowSec: string | null): Cell[] =>
       --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
     }
   }
-  .content:hover .ptitle {
+  .cmain {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-width: 0;
+    color: var(--c-text);
+    text-decoration: none;
+  }
+  .cmain:hover .ptitle {
     color: var(--hue-on);
   }
   .ptitle {
@@ -313,9 +340,37 @@ const railOf = (rowIdx: number, rowSec: string | null): Cell[] =>
     color: var(--c-muted);
     font-variant-numeric: tabular-nums;
   }
+  /* area 세부 영역 칩 — 색 테두리로 카테고리보다 잘게 나뉜 갈래를 표시 */
+  .parea {
+    padding: 0.05em 0.5em;
+    border: 1px solid color-mix(in srgb, var(--hue-on) 40%, var(--c-border));
+    border-radius: var(--radius-pill);
+    color: var(--hue-on);
+    letter-spacing: 0;
+  }
   .pdate {
     color: var(--hue-on);
     opacity: 0.85;
+  }
+  /* follows: 잇는(선행) 글 링크 — 그래프의 후속 간선을 텍스트로 */
+  .pfollows {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35em;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    text-decoration: none;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pfollows:hover {
+    color: var(--hue-on);
+  }
+  .pf-arrow {
+    color: var(--hue-on);
+    font-weight: 700;
   }
 
   /* ── 월 마커 행 ── */

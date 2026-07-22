@@ -3,6 +3,7 @@ title: "TypeScript에서 import 경로에 왜 .js를 붙일까 — NodeNext 모�
 pubDate: 2026-07-15T09:12:00Z
 section: "web"
 tags: ["typescript", "esm", "tsconfig"]
+area: "B"
 topicId: "nodenext-js-ext"
 description: "TS 파일인데 import에는 .js를 쓴다. 어색해 보이는 이 규칙이 사실 Node ESM과 tsc 동작의 필연적 결과임을 짚는다."
 ---

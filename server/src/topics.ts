@@ -53,6 +53,11 @@ export function sectionOfArea(area: AreaId): SectionId {
   return AREAS[area].section;
 }
 
+/** 문자열이 유효한 area인지 좁힌다. */
+export function isAreaId(value: string): value is AreaId {
+  return Object.prototype.hasOwnProperty.call(AREAS, value);
+}
+
 export interface Topic {
   /**
    * 안 바뀌는 안정적 식별자(kebab-case). 발행 시 글 프론트매터에 `topicId`로 기록되어,
@@ -116,3 +121,9 @@ export const SEED_TOPICS: Topic[] = [
   { id: "hash-digital-signature", area: "SEC", title: "해시 함수와 전자서명", tags: ["정처기", "정보보안", "해시"] },
   { id: "access-control", area: "SEC", title: "접근통제 모델 — DAC·MAC·RBAC", tags: ["정처기", "정보보안", "접근통제"] },
 ];
+
+/** topicId(시드 id) → area. 시드 밖 id면 undefined. publish_post가 area를 자동 도출할 때 쓴다. */
+const TOPIC_AREA = new Map(SEED_TOPICS.map((t) => [t.id, t.area] as const));
+export function areaOfTopicId(id: string): AreaId | undefined {
+  return TOPIC_AREA.get(id);
+}

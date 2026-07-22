@@ -3,6 +3,7 @@ title: "MCP Prompt로 반복 워크플로 패키징하기"
 pubDate: 2026-07-20T01:20:00Z
 section: "mcp"
 tags: ["mcp", "prompts", "typescript"]
+area: "C"
 topicId: "prompts-workflow"
 description: "MCP의 세 번째 primitive인 Prompt는 도구가 아니라 '재사용 가능한 대화 템플릿'이다. 매번 길게 풀어 쓰던 지시를 슬래시 명령 하나로 바꾸는 법을 실제 서버 코드로 정리한다."
 ---

@@ -3,6 +3,7 @@ title: "정보보안 3요소 — 기밀성·무결성·가용성"
 pubDate: 2026-07-18T14:45:26Z
 section: "jeongcheogi"
 tags: ["정처기", "정보보안", "CIA", "보안요소"]
+area: "SEC"
 topicId: "security-cia"
 description: "정보보안의 기본 목표인 CIA 삼각형을 기밀성·무결성·가용성으로 나눠 정리하고, 위협 유형과 대응 기술, 확장 요소까지 정처기 시험 관점에서 짚는다."
 ---
