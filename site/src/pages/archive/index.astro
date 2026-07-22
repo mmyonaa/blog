@@ -1,11 +1,9 @@
 ---
-// 아카이브 — 시간축 관계 그래프.
-// 세로축은 시간(위=최신), 각 카테고리는 자기 색 레인의 세로선으로 이어진다(= git graph의 뼈대 계승).
-// 그 위에 "관계 간선"을 SVG 곡선으로 얹는다. 간선은 2층이다:
-//   · 명시 간선  — 프론트매터 follows(직계 선행)·related(엮인 글). 굵은 실선. 데이터가 쌓이며 늘어난다.
-//   · 암시 간선  — 태그 겹침으로 계산(related.ts). 흐린 점선, 호버할 때만 드러난다. 지금 당장 풍부하다.
-// 노드에 마우스를 올리면 그 글에 이어진 간선·글만 밝아지고 나머지는 흐려진다(호버 포커스).
-// 좌표는 빌드 타임에 확정한다: 행 높이를 고정해 각 노드의 (x=레인, y=시간) 픽셀을 계산 → 측정 없이 정확한 곡선.
+// 아카이브 — git 네트워크 그래프 스타일.
+// 세로축 = 시간(위=최신). 카테고리마다 세로 "트렁크"(색 세로선)가 있고,
+// 그 안의 세부영역(area)이 여럿(2편 이상)이면 옆 서브컬럼으로 "가지"가 뻗었다가 트렁크로 복귀한다.
+// 후속(follows)은 자식→부모를 잇는 화살표 곡선으로 시간을 거슬러 그린다.
+// 좌표는 빌드 타임 확정: 행 높이를 고정해 각 노드의 (x=컬럼, y=시간)을 px로 계산 → 측정 없이 정확한 곡선.
 import Base from "../../layouts/Base.astro";
 import { getCollection } from "astro:content";
 import {
@@ -15,7 +13,6 @@ import {
   getSectionCounts,
   areaLabel,
 } from "../../lib/sections.ts";
-import { relatedPosts } from "../../lib/related.ts";
 import { fmtDate } from "../../lib/date.ts";
 import { charCount, fmtCount } from "../../lib/reading.ts";
 
@@ -26,29 +23,57 @@ const posts = (await getCollection("blog")).sort(
 );
 const postCount = posts.length;
 
-// 레인 = 카테고리(정의된 순서). 각 레인의 고정 열 인덱스와 색.
 const lanes = (await getSectionCounts()).map((s) => ({
   id: s.id,
   label: s.label,
   count: s.count,
   hue: hueOf(s.id),
 }));
-const laneIndex = new Map(lanes.map((l, i) => [l.id, i]));
+const secOf = new Map(posts.map((p) => [p.id, sectionOf(p)]));
 
-// ── 그래프 좌표계(px, 루트 16px 기준) ─────────────────────────────────────────
-// 행 높이를 고정(post/month)해 각 행의 y를 누적 계산한다. 노드 y = 그 행 중앙.
-const LANE_W = 20; // 레인 간격
-const RAIL_PAD = 10; // 레일 좌우 여백
-const ROW_H = 46; // 글 행 높이(고정 → 노드 y 결정)
+// ── 그래프 좌표계(px) ─────────────────────────────────────────────────────────
+const SUBCOL_W = 20; // 컬럼(트렁크·가지) 간격
+const RAIL_PAD = 12; // 레일 좌우 여백
+const ROW_H = 46; // 글 행 높이(고정 → 노드 y)
 const MONTH_H = 30; // 월 마커 행 높이
-const NODE_R = 4.5; // 노드 반지름
-const ARC_GUTTER = 46; // 레일 오른쪽, 간선이 부풀 여백
-const railRight = RAIL_PAD + lanes.length * LANE_W; // 레인들이 끝나는 x
-const svgW = railRight + ARC_GUTTER; // SVG 전체 폭(= 텍스트 들여쓰기)
-const laneCx = (li: number) => RAIL_PAD + li * LANE_W + LANE_W / 2;
+const NODE_R = 4.5;
+const colX = (i: number) => RAIL_PAD + i * SUBCOL_W + SUBCOL_W / 2;
 
-// ── 표시 행 만들기: 월이 바뀌면 월 마커 행을 끼운다. 각 행에 y·높이를 박아 둔다 ──
-type Node = { cx: number; cy: number; sec: string; hue: string };
+// ── 컬럼 배치: 카테고리 트렁크 + area 가지(같은 area 2편 이상일 때만 서브컬럼) ──
+type Branch = { area: string; col: number };
+type Cat = { id: string; hue: string; trunk: number; branches: Branch[] };
+const postCol = new Map<string, number>(); // post.id → 컬럼 인덱스
+const cats: Cat[] = [];
+let cursor = 0;
+for (const lane of lanes) {
+  const cps = posts.filter((p) => secOf.get(p.id) === lane.id); // 최신순
+  const areaN = new Map<string, number>();
+  for (const p of cps)
+    if (p.data.area) areaN.set(p.data.area, (areaN.get(p.data.area) ?? 0) + 1);
+  // 가지가 될 area: 2편 이상. 처음 등장(최신) 순서로 컬럼 부여.
+  const order: string[] = [];
+  for (const p of cps) {
+    const a = p.data.area;
+    if (a && (areaN.get(a) ?? 0) >= 2 && !order.includes(a)) order.push(a);
+  }
+  const trunk = cursor;
+  const branchCol = new Map(order.map((a, i) => [a, cursor + 1 + i]));
+  for (const p of cps) {
+    const a = p.data.area;
+    postCol.set(p.id, a && branchCol.has(a) ? branchCol.get(a)! : trunk);
+  }
+  cats.push({
+    id: lane.id,
+    hue: lane.hue,
+    trunk,
+    branches: order.map((a) => ({ area: a, col: branchCol.get(a)! })),
+  });
+  cursor += 1 + order.length;
+}
+const totalCols = cursor;
+const railW = RAIL_PAD * 2 + totalCols * SUBCOL_W; // 레일(=텍스트 들여쓰기) 폭
+
+// ── 표시 행 + y 좌표. 월이 바뀌면 마커 행을 끼운다 ──
 type PostRow = {
   type: "post";
   id: string;
@@ -56,18 +81,17 @@ type PostRow = {
   sec: string;
   hue: string;
   area: string;
-  date: string; // "M/D"
+  date: string;
   chars: number;
-  y: number;
   h: number;
   cx: number;
   cy: number;
 };
-type MonthRow = { type: "month"; label: string; y: number; h: number };
+type MonthRow = { type: "month"; label: string; h: number };
 type Row = PostRow | MonthRow;
 
 const rows: Row[] = [];
-const nodeById = new Map<string, Node>();
+const cyById = new Map<string, number>();
 let y = 0;
 let prevYM = "";
 let prevYear = "";
@@ -76,27 +100,24 @@ for (const p of posts) {
   const ym = `${yr}-${m}`;
   if (ym !== prevYM) {
     const label = yr !== prevYear ? `${yr}년 ${Number(m)}월` : `${Number(m)}월`;
-    rows.push({ type: "month", label, y, h: MONTH_H });
+    rows.push({ type: "month", label, h: MONTH_H });
     y += MONTH_H;
     prevYM = ym;
     prevYear = yr;
   }
-  const sec = sectionOf(p);
-  const li = laneIndex.get(sec) ?? 0;
-  const cx = laneCx(li);
+  const sec = secOf.get(p.id)!;
+  const cx = colX(postCol.get(p.id)!);
   const cy = y + ROW_H / 2;
-  const hue = hueOf(sec);
-  nodeById.set(p.id, { cx, cy, sec, hue });
+  cyById.set(p.id, cy);
   rows.push({
     type: "post",
     id: p.id,
     title: p.data.title,
     sec,
-    hue,
+    hue: hueOf(sec),
     area: areaLabel(p.data.area),
     date: `${Number(m)}/${Number(d)}`,
     chars: charCount(p.body),
-    y,
     h: ROW_H,
     cx,
     cy,
@@ -105,92 +126,72 @@ for (const p of posts) {
 }
 const totalH = y;
 
-// ── 레인 세로선: 각 레인의 첫 노드~마지막 노드를 하나의 선으로 잇는다 ──
-const laneLine = lanes.map((lane) => {
-  const ys = rows
-    .filter((r): r is PostRow => r.type === "post" && r.sec === lane.id)
-    .map((r) => r.cy);
-  return ys.length
-    ? { cx: laneCx(laneIndex.get(lane.id)!), y1: Math.min(...ys), y2: Math.max(...ys), hue: lane.hue }
-    : null;
-});
-
-// ── 간선 만들기(2층). 무순 쌍으로 중복 제거: follows > related > implicit 우선 ──
-type Edge = {
-  a: string; // 자식/기준 글 id
-  b: string; // 부모/상대 글 id
-  kind: "follows" | "related" | "implicit";
-  cross: boolean; // 서로 다른 카테고리를 잇는가(교차 연관)
-  hue: string;
-  d: string; // SVG path
-  shared?: string[];
-};
-const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
-const seen = new Set<string>();
-
-// 두 노드를 오른쪽으로 부풀린 3차 베지어로 잇는다(레일 오른쪽 여백으로 활처럼).
-const arc = (a: Node, b: Node): string => {
-  const dy = Math.abs(a.cy - b.cy);
-  const baseX = Math.max(a.cx, b.cx);
-  const cx = Math.min(railRight + ARC_GUTTER - 3, baseX + 12 + dy * 0.11);
-  return `M ${a.cx} ${a.cy} C ${cx} ${a.cy} ${cx} ${b.cy} ${b.cx} ${b.cy}`;
-};
-
-const isCross = (a: Node, b: Node) => a.sec !== b.sec;
-
-const edges: Edge[] = [];
-// 1) 명시 간선: 프론트매터 follows(단일)·related(배열). 서버가 실제 slug로 검증·정규화해 저장한다.
+// ── 세로선(각 컬럼: 그 컬럼 글들의 최신~오래된 구간) ──
+const colYs = new Map<number, number[]>();
 for (const p of posts) {
-  const child = nodeById.get(p.id)!;
-  const fol = p.data.follows;
-  if (fol && nodeById.has(fol)) {
-    const parent = nodeById.get(fol)!;
-    seen.add(pairKey(p.id, fol));
-    edges.push({ a: p.id, b: fol, kind: "follows", cross: isCross(child, parent), hue: child.hue, d: arc(child, parent) });
-  }
-  for (const r of p.data.related ?? []) {
-    const k = pairKey(p.id, r);
-    if (!nodeById.has(r) || seen.has(k)) continue;
-    const other = nodeById.get(r)!;
-    seen.add(k);
-    edges.push({ a: p.id, b: r, kind: "related", cross: isCross(child, other), hue: child.hue, d: arc(child, other) });
+  const c = postCol.get(p.id)!;
+  (colYs.get(c) ?? colYs.set(c, []).get(c)!).push(cyById.get(p.id)!);
+}
+const vlines = cats.flatMap((cat) =>
+  [cat.trunk, ...cat.branches.map((b) => b.col)]
+    .map((c) => {
+      const ys = colYs.get(c);
+      return ys && ys.length
+        ? { x: colX(c), y1: Math.min(...ys), y2: Math.max(...ys), hue: cat.hue }
+        : null;
+    })
+    .filter((v): v is NonNullable<typeof v> => v !== null),
+);
+
+// 부드러운 세로 방향 곡선(깃 네트워크 그래프 풍) — 컬럼을 바꿀 때의 가지/후속 연결선.
+const curve = (x1: number, y1: number, x2: number, y2: number) => {
+  const my = (y1 + y2) / 2;
+  return `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`;
+};
+
+// ── 가지 bud/merge: 각 area 가지가 트렁크에서 갈라져 나오고(위) 되돌아온다(아래) ──
+type GLink = { d: string; hue: string; kind: "branch" | "follows"; cross?: boolean };
+const links: GLink[] = [];
+for (const cat of cats) {
+  const trunkX = colX(cat.trunk);
+  for (const b of cat.branches) {
+    const ys = colYs.get(b.col)!;
+    const top = Math.min(...ys); // 가지의 최신 노드
+    const bot = Math.max(...ys); // 가지의 오래된 노드
+    const bx = colX(b.col);
+    // 갈라짐: 트렁크의 조금 위 지점 → 가지 최신 노드
+    links.push({ d: curve(trunkX, Math.max(0, top - ROW_H), bx, top), hue: cat.hue, kind: "branch" });
+    // 복귀: 가지 오래된 노드 → 트렁크의 조금 아래 지점
+    links.push({ d: curve(bx, bot, trunkX, Math.min(totalH, bot + ROW_H)), hue: cat.hue, kind: "branch" });
   }
 }
-// 2) 암시 간선: 태그 겹침(related.ts, IDF 가중). 명시 간선과 겹치면 건너뛴다.
-//    쉴 때는 교차 카테고리 간선만 은은히 보이고(같은 레인 연관은 세로선이 이미 암시), 나머지는 호버 때만.
+
+// ── 후속(follows): 자식→부모. 컬럼이 다르면 곡선으로(같은 컬럼이면 세로선이 이미 잇는다) ──
+const followsLinks: { d: string; hue: string; cross: boolean; a: string; b: string }[] = [];
 for (const p of posts) {
-  const child = nodeById.get(p.id)!;
-  for (const rel of relatedPosts(p, posts, 2)) {
-    const k = pairKey(p.id, rel.post.id);
-    if (seen.has(k)) continue;
-    const other = nodeById.get(rel.post.id)!;
-    seen.add(k);
-    edges.push({
-      a: p.id,
-      b: rel.post.id,
-      kind: "implicit",
-      cross: isCross(child, other),
-      hue: child.hue,
-      d: arc(child, other),
-      shared: rel.sharedTags,
-    });
-  }
+  const par = p.data.follows;
+  if (!par || !cyById.has(par)) continue;
+  const ca = postCol.get(p.id)!;
+  const cb = postCol.get(par)!;
+  const hue = hueOf(secOf.get(p.id)!);
+  const cross = secOf.get(p.id) !== secOf.get(par);
+  const d = curve(colX(ca), cyById.get(p.id)!, colX(cb), cyById.get(par)!);
+  followsLinks.push({ d, hue, cross, a: p.id, b: par });
 }
 ---
 
 <Base
   title="Archive — blog"
-  description="발행한 모든 글을 시간축 관계 그래프로 훑어봅니다"
+  description="발행한 모든 글을 카테고리 트렁크와 후속 가지로 뻗어가는 그래프로 훑어봅니다"
 >
   <h1>Archive</h1>
   <p class="muted">
-    발행한 <strong>{postCount}편</strong>을 시간축 위에 얹은 관계 그래프로. 세로선은
-    카테고리의 흐름, 곡선은 글 사이의 <strong>후속·연관</strong>입니다. 색 점선은
-    <strong>카테고리를 넘는 연관</strong>. 한 글에 마우스를 올리면 그 글의 갈래만
-    남기고 나머지를 흐립니다.
+    발행한 <strong>{postCount}편</strong>을 시간축 위 <strong>git 그래프</strong>로.
+    세로 트렁크는 카테고리, 옆으로 <strong>뻗는 가지</strong>는 그 안의 세부 갈래,
+    화살표 곡선은 글의 <strong>후속</strong>입니다.
   </p>
 
-  <!-- 범례: 카테고리 색 + 간선 읽는 법 -->
+  <!-- 범례 -->
   <div class="legend">
     <div class="lg-group">
       {
@@ -204,9 +205,8 @@ for (const p of posts) {
       }
     </div>
     <div class="lg-edges" aria-hidden="true">
-      <span class="lg-edge"><svg width="26" height="10"><path d="M1 5 H25" class="k-explicit" /></svg>후속·연관</span>
-      <span class="lg-edge"><svg width="26" height="10"><path d="M1 5 H25" class="k-cross" /></svg>카테고리 넘는 연관</span>
-      <span class="lg-edge"><svg width="26" height="10"><path d="M1 5 H25" class="k-implicit" /></svg>태그 연관</span>
+      <span class="lg-edge"><svg width="24" height="12"><path d="M2 2 v4 q0 4 4 4 h12" class="k-branch" /></svg>세부 갈래</span>
+      <span class="lg-edge"><svg width="26" height="12"><path d="M2 6 H20" class="k-follows" marker-end="url(#lgarw)" /><defs><marker id="lgarw" markerWidth="6" markerHeight="6" refX="4.5" refY="3" orient="auto"><path d="M0 0 L5 3 L0 6 Z" fill="context-stroke" /></marker></defs></svg>후속</span>
     </div>
   </div>
 
@@ -214,67 +214,55 @@ for (const p of posts) {
     posts.length === 0 ? (
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
-      <div class="graph" style={`--rail-w: ${svgW}px`}>
-        {/* 간선·레인선·노드는 하나의 SVG가 그린다(좌표는 위에서 확정). */}
+      <div class="graph" style={`--rail-w: ${railW}px`}>
         <svg
           class="wire"
-          width={svgW}
+          width={railW}
           height={totalH}
-          viewBox={`0 0 ${svgW} ${totalH}`}
+          viewBox={`0 0 ${railW} ${totalH}`}
           aria-hidden="true"
         >
           <defs>
             <marker
               id="arw"
-              markerWidth="6"
-              markerHeight="6"
-              refX="4.5"
+              markerWidth="6.5"
+              markerHeight="6.5"
+              refX="5"
               refY="3"
               orient="auto"
             >
-              <path d="M0 0 L5 3 L0 6 Z" fill="context-stroke" />
+              <path d="M0 0 L5.5 3 L0 6 Z" fill="context-stroke" />
             </marker>
           </defs>
 
-          {/* 레인 세로선 */}
-          {laneLine.map(
-            (l) =>
-              l && (
-                <line
-                  class="lane"
-                  x1={l.cx}
-                  y1={l.y1}
-                  x2={l.cx}
-                  y2={l.y2}
-                  style={`--hue: ${l.hue}`}
-                />
-              ),
-          )}
+          {/* 세로 트렁크·가지 선 */}
+          {vlines.map((l) => (
+            <line
+              class="vline"
+              x1={l.x}
+              y1={l.y1}
+              x2={l.x}
+              y2={l.y2}
+              style={`--hue: ${l.hue}`}
+            />
+          ))}
 
-          {/* 간선: 암시(점선, 기본 숨김) → 명시(실선) 순으로 겹쳐 그린다 */}
-          {edges
-            .filter((e) => e.kind === "implicit")
-            .map((e) => (
-              <path
-                class:list={["arc", "implicit", { cross: e.cross }]}
-                d={e.d}
-                data-a={e.a}
-                data-b={e.b}
-                style={e.cross ? `--hue: ${e.hue}` : undefined}
-              />
-            ))}
-          {edges
-            .filter((e) => e.kind !== "implicit")
-            .map((e) => (
-              <path
-                class:list={["arc", "explicit", e.kind]}
-                d={e.d}
-                data-a={e.a}
-                data-b={e.b}
-                style={`--hue: ${e.hue}`}
-                marker-end={e.kind === "follows" ? "url(#arw)" : undefined}
-              />
-            ))}
+          {/* 가지 갈라짐/복귀 곡선 */}
+          {links.map((l) => (
+            <path class="branch" d={l.d} style={`--hue: ${l.hue}`} />
+          ))}
+
+          {/* 후속 곡선(화살표) */}
+          {followsLinks.map((l) => (
+            <path
+              class:list={["follows", { cross: l.cross }]}
+              d={l.d}
+              data-a={l.a}
+              data-b={l.b}
+              style={`--hue: ${l.hue}`}
+              marker-end="url(#arw)"
+            />
+          ))}
 
           {/* 노드 */}
           {rows.map(
@@ -292,7 +280,7 @@ for (const p of posts) {
           )}
         </svg>
 
-        {/* 텍스트 행: 레일 오른쪽에 정렬(높이 고정 → SVG 노드와 y 일치) */}
+        {/* 텍스트 행(레일 오른쪽, 높이 고정 → 노드와 y 일치) */}
         <div class="rows">
           {rows.map((r) =>
             r.type === "month" ? (
@@ -322,43 +310,32 @@ for (const p of posts) {
 </Base>
 
 <script>
-  // 호버 포커스: 행(또는 노드)에 마우스를 올리면 그 글의 이웃 간선·노드·행만 밝힌다.
-  // 간선 데이터(data-a/data-b)에서 인접 관계를 만들고, 나머지는 CSS(.focused)로 흐린다.
+  // 호버 포커스: 한 글에 올리면 그 글의 후속 사슬(부모·자식)만 남기고 흐린다.
   const graph = document.querySelector<HTMLElement>(".graph");
   if (graph) {
-    const arcs = [...graph.querySelectorAll<SVGPathElement>("path.arc")];
+    const flinks = [...graph.querySelectorAll<SVGPathElement>("path.follows")];
     const adj = new Map<string, Set<string>>();
-    const link = (x: string, y: string) => {
+    const link = (x: string, yy: string) => {
       if (!adj.has(x)) adj.set(x, new Set());
-      adj.get(x)!.add(y);
+      adj.get(x)!.add(yy);
     };
-    for (const p of arcs) {
-      const a = p.dataset.a!;
-      const b = p.dataset.b!;
-      link(a, b);
-      link(b, a);
+    for (const p of flinks) {
+      link(p.dataset.a!, p.dataset.b!);
+      link(p.dataset.b!, p.dataset.a!);
     }
-
     const focus = (id: string) => {
       const near = new Set<string>([id, ...(adj.get(id) ?? [])]);
       graph.classList.add("focused");
-      for (const el of graph.querySelectorAll<HTMLElement>("[data-id]")) {
+      for (const el of graph.querySelectorAll<HTMLElement>("[data-id]"))
         el.classList.toggle("active", near.has(el.dataset.id!));
-      }
-      for (const p of arcs) {
-        p.classList.toggle(
-          "active",
-          p.dataset.a === id || p.dataset.b === id,
-        );
-      }
+      for (const p of flinks)
+        p.classList.toggle("active", p.dataset.a === id || p.dataset.b === id);
     };
     const clear = () => {
       graph.classList.remove("focused");
       for (const el of graph.querySelectorAll(".active"))
         el.classList.remove("active");
     };
-
-    // 행 + 노드 둘 다 트리거(노드는 작으니 행이 주 타깃). 키보드 포커스도 지원.
     for (const el of graph.querySelectorAll<HTMLElement>("[data-id]")) {
       const id = el.dataset.id!;
       el.addEventListener("pointerenter", () => focus(id));
@@ -400,16 +377,18 @@ for (const p of posts) {
     font-size: var(--fs-sm);
   }
   :global(:root[data-theme="dark"]) .lg,
-  :global(:root[data-theme="dark"]) .lane,
-  :global(:root[data-theme="dark"]) .arc,
+  :global(:root[data-theme="dark"]) .vline,
+  :global(:root[data-theme="dark"]) .branch,
+  :global(:root[data-theme="dark"]) .follows,
   :global(:root[data-theme="dark"]) .node,
   :global(:root[data-theme="dark"]) .post {
     --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
   }
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .lg,
-    :global(:root:not([data-theme="light"])) .lane,
-    :global(:root:not([data-theme="light"])) .arc,
+    :global(:root:not([data-theme="light"])) .vline,
+    :global(:root:not([data-theme="light"])) .branch,
+    :global(:root:not([data-theme="light"])) .follows,
     :global(:root:not([data-theme="light"])) .node,
     :global(:root:not([data-theme="light"])) .post {
       --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
@@ -432,7 +411,6 @@ for (const p of posts) {
     font-size: var(--fs-xs);
     color: var(--c-muted);
   }
-  /* 간선 읽는 법 */
   .lg-edges {
     display: flex;
     gap: var(--space-3);
@@ -447,25 +425,18 @@ for (const p of posts) {
   .lg-edge svg {
     overflow: visible;
   }
-  .k-explicit {
+  .k-branch {
     stroke: var(--c-muted);
-    stroke-width: 2;
+    stroke-width: 1.75;
     fill: none;
   }
-  .k-cross {
+  .k-follows {
     stroke: var(--c-accent);
     stroke-width: 1.75;
-    stroke-dasharray: 4 3;
-    fill: none;
-  }
-  .k-implicit {
-    stroke: var(--c-muted);
-    stroke-width: 1.5;
-    stroke-dasharray: 2 2.5;
     fill: none;
   }
 
-  /* ── 그래프: SVG(레일+간선+노드) + 텍스트 행 오버레이 ── */
+  /* ── 그래프 ── */
   .graph {
     position: relative;
     margin-top: var(--space-2);
@@ -474,46 +445,37 @@ for (const p of posts) {
     position: absolute;
     top: 0;
     left: 0;
-    pointer-events: none; /* 클릭·호버는 텍스트 행이 받는다 */
+    pointer-events: none;
     overflow: visible;
   }
 
-  /* 레인 세로선 */
-  .lane {
+  /* 세로 트렁크·가지 선 */
+  .vline {
     stroke: var(--hue-on, var(--hue));
     stroke-width: 2;
+    opacity: 0.55;
+    transition: opacity 0.15s;
+  }
+  /* 가지 갈라짐/복귀 곡선 */
+  .branch {
+    fill: none;
+    stroke: var(--hue-on, var(--hue));
+    stroke-width: 1.75;
     opacity: 0.5;
     transition: opacity 0.15s;
   }
-
-  /* 간선 곡선 */
-  .arc {
+  /* 후속 곡선 */
+  .follows {
     fill: none;
+    stroke: var(--hue-on, var(--hue));
+    stroke-width: 1.9;
+    opacity: 0.85;
     transition:
       opacity 0.15s,
       stroke-width 0.15s;
   }
-  .arc.explicit {
-    stroke: var(--hue-on, var(--hue));
-    stroke-width: 1.75;
-    opacity: 0.6;
-  }
-  .arc.related {
+  .follows.cross {
     stroke-dasharray: 5 3;
-  }
-  /* 암시 간선: 쉴 때도 보인다(호버 필요 없음). 같은 레인 연관은 은은하게,
-     카테고리를 넘는 연관(cross)은 색을 입혀 도드라지게 — 이게 "다른 갈래인데 엮인 글"이다. */
-  .arc.implicit {
-    stroke: var(--c-muted);
-    stroke-width: 1.3;
-    stroke-dasharray: 2 3;
-    opacity: 0.13;
-  }
-  .arc.implicit.cross {
-    stroke: var(--hue-on, var(--hue));
-    stroke-width: 1.6;
-    stroke-dasharray: 4 3;
-    opacity: 0.55;
   }
 
   /* 노드 */
@@ -526,25 +488,23 @@ for (const p of posts) {
       r 0.1s;
   }
 
-  /* ── 호버 포커스: .focused일 때 active 아닌 것들을 흐리게 ── */
-  .graph.focused .lane {
+  /* ── 호버 포커스 ── */
+  .graph.focused .vline,
+  .graph.focused .branch {
     opacity: 0.12;
   }
   .graph.focused .node:not(.active) {
     opacity: 0.22;
   }
-  .graph.focused .arc:not(.active) {
-    opacity: 0.05; /* 초점 밖 간선은 거의 지운다 */
+  .graph.focused .follows:not(.active) {
+    opacity: 0.08;
   }
-  .graph.focused .arc.implicit.active {
-    opacity: 0.7;
-  }
-  .graph.focused .arc.explicit.active {
+  .graph.focused .follows.active {
     opacity: 1;
-    stroke-width: 2.5;
+    stroke-width: 2.6;
   }
   .node.active {
-    r: 5.5;
+    r: 5.6;
   }
   .graph.focused .post:not(.active) {
     opacity: 0.4;
@@ -560,7 +520,6 @@ for (const p of posts) {
     padding-left: calc(var(--rail-w) + 0.75rem);
     border-bottom: 1px solid var(--c-border);
   }
-  /* 글 행: 제목 + 메타를 한 줄에(높이 고정이라 넘치면 말줄임) */
   .post {
     --hue-on: var(--hue, var(--c-accent));
     display: flex;
@@ -591,7 +550,6 @@ for (const p of posts) {
     color: var(--c-muted);
     font-variant-numeric: tabular-nums;
   }
-  /* area 세부 영역 칩 — 카테고리 안의 갈래 */
   .parea {
     padding: 0.05em 0.5em;
     border: 1px solid color-mix(in srgb, var(--hue-on) 40%, var(--c-border));
