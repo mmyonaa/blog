@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import { tagHref } from "../lib/tags.ts";
 import { fmtDateTime } from "../lib/date.ts";
+import { sectionOf, sectionHref, sectionLabel, hueOf, initialOf } from "../lib/sections.ts";
 
 interface Props {
   posts: CollectionEntry<"blog">[];
@@ -13,24 +14,32 @@ const href = (id: string) => `${base}/blog/${id}/`;
 
 <ul class="post-list">
   {
-    posts.map((post) => (
-      <li class="post-item">
-        <div class="muted post-date">{fmtDateTime(post.data.pubDate)}</div>
-        <h2 class="post-title">
-          <a href={href(post.id)}>{post.data.title}</a>
-        </h2>
-        {post.data.description && <p class="post-desc">{post.data.description}</p>}
-        {post.data.tags.length > 0 && (
-          <div class="tags">
-            {post.data.tags.map((t) => (
-              <a class="pill" href={tagHref(base, t)}>
-                {t}
-              </a>
-            ))}
+    posts.map((post) => {
+      const section = sectionOf(post);
+      return (
+        <li class="post-item" style={`--hue: ${hueOf(section)}`}>
+          <a class="post-badge" href={sectionHref(base, section)} aria-label={sectionLabel(section)}>
+            {initialOf(section)}
+          </a>
+          <div class="post-body">
+            <h2 class="post-title">
+              <a href={href(post.id)}>{post.data.title}</a>
+            </h2>
+            <div class="muted post-date">{fmtDateTime(post.data.pubDate)}</div>
+            {post.data.description && <p class="post-desc">{post.data.description}</p>}
+            {post.data.tags.length > 0 && (
+              <div class="tags">
+                {post.data.tags.map((t) => (
+                  <a class="tag" href={tagHref(base, t)}>
+                    {t}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </li>
-    ))
+        </li>
+      );
+    })
   }
 </ul>
 
@@ -41,30 +50,66 @@ const href = (id: string) => `${base}/blog/${id}/`;
     margin: 0;
   }
   .post-item {
+    /* 카테고리 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
+    --hue-on: var(--hue);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
     padding: var(--space-5) 0;
     border-bottom: 1px solid var(--c-border);
   }
+  :global(:root[data-theme="dark"]) .post-item {
+    --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .post-item {
+      --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+    }
+  }
+  /* 색 정사각형 배지(이니셜) — 글자색 var(--c-bg)로 대비 확보 */
+  .post-badge {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-top: 0.15em;
+    border-radius: var(--radius-sm);
+    background: var(--hue-on);
+    color: var(--c-bg);
+    font-weight: 800;
+    font-size: 1.15rem;
+    line-height: 1;
+    text-decoration: none;
+  }
+  .post-body {
+    min-width: 0;
+    flex: 1;
+  }
   .post-date {
     font-size: var(--fs-xs);
+    color: var(--c-muted);
   }
   .post-title {
-    font-size: var(--fs-xl);
-    margin: var(--space-1) 0 var(--space-2);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--space-1);
   }
   .post-title a {
     color: var(--c-text);
   }
   .post-title a:hover {
-    color: var(--c-accent);
+    color: var(--hue-on);
     text-decoration: none;
   }
   .post-desc {
     color: var(--c-muted);
-    margin: 0 0 var(--space-3);
+    margin: var(--space-2) 0 var(--space-3);
   }
   .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
+    gap: 0.1em var(--space-3);
   }
 </style>

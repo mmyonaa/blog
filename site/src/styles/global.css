@@ -7,27 +7,25 @@
  */
 
 :root {
-  /* ── 색상: 뉴트럴 베이스 ── */
-  --c-bg: #ffffff;
-  --c-surface: #f6f6f8;
-  --c-surface-2: #eeeef1;
-  --c-border: #e4e4e8;
-  --c-text: #18181b;
-  /* muted도 카드·태그(surface/surface-2) 위에서 WCAG AA(4.5:1)를 넘도록 한 단계 진하게.
-     (이전 #6b7280은 흰 배경만 통과, surface-2에선 4.18로 미달) */
-  --c-muted: #5f6773;
+  /* ── 색상: 뉴트럴 베이스 (Maktub 참고 — 흰 카드 + 옅은 회색 페이지) ── */
+  --c-bg: #f7f8fb;        /* 페이지: 아주 옅은 쿨 그레이 */
+  --c-surface: #ffffff;   /* 카드·pill: 페이지 위로 뜨는 흰색 */
+  --c-surface-2: #eef0f5; /* 서브틀 필 */
+  --c-border: #e6e8ef;
+  --c-text: #24252e;      /* 순수 검정 대신 부드러운 다크 슬레이트 */
+  /* muted도 흰 배경에서 WCAG AA(4.5:1) 근처를 유지 */
+  --c-muted: #6c6f7a;
 
-  /* ── 색상: 액센트 1색 (muted navy) ── */
-  --c-accent: #33415c;
-  --c-accent-hover: #29344a;
+  /* ── 색상: 브랜드 액센트 (코랄 레드) ── */
+  --c-accent: #ee4f6a;
+  --c-accent-hover: #db3d59;
   --c-accent-contrast: #ffffff;
-  --c-accent-soft: #ebedf2;
+  --c-accent-soft: #fceaee;
 
-  /* ── 브랜드 그라디언트 램프(홈 히어로 제목·featured 카드·NEW 배지 공유) ──
-     다크 그라운드에선 어두운 네이비가 배경에 묻히므로 다크 블록에서 밝은 톤으로 스왑 */
-  --grad-1: #2b3654;
-  --grad-2: #4e618d;
-  --grad-3: #7c8fb8;
+  /* ── 브랜드 그라디언트 램프(잔여 사용처 대비 코랄 램프로) ── */
+  --grad-1: #ee4f6a;
+  --grad-2: #ff7a8b;
+  --grad-3: #ffa8b4;
 
   /* ── 코드 ── */
   --c-code-bg: #0d1117;
@@ -67,9 +65,9 @@
   --radius-lg: 16px;
   --radius-pill: 999px;
 
-  /* ── 그림자 ── */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  /* ── 그림자 (쿨 톤, 카드가 부드럽게 떠 보이도록) ── */
+  --shadow-sm: 0 1px 3px rgba(40, 44, 74, 0.06);
+  --shadow-md: 0 8px 28px rgba(40, 44, 74, 0.10);
 
   /* ── 레이아웃 ── */
   --content-width: 720px;
@@ -86,27 +84,27 @@
   :root:not([data-theme="light"]) {
     /* 순수 검정/흰색은 대비가 과해(≈15:1) 눈부심·헤일레이션을 유발한다.
        배경은 살짝 밝힌 짙은 회색(네이비 기운 미세), 본문은 오프화이트로 낮춰 ≈12:1. */
-    --c-bg: #111319;
-    --c-surface: #1a1c24;
-    --c-surface-2: #232630;
-    --c-border: #2e313c;
-    --c-text: #d7dae1;
-    --c-muted: #a1a1aa;
+    --c-bg: #14151b;
+    --c-surface: #1e2029;
+    --c-surface-2: #272a35;
+    --c-border: #30333e;
+    --c-text: #e6e7ec;
+    --c-muted: #9a9ca6;
 
-    --c-accent: #8ea3cc;
-    --c-accent-hover: #a9bade;
-    --c-accent-contrast: #12151d;
-    --c-accent-soft: #1e2433;
+    --c-accent: #ff6f86;
+    --c-accent-hover: #ff8a9c;
+    --c-accent-contrast: #1c0e12;
+    --c-accent-soft: #2b1a20;
 
-    --grad-1: #8ea3cc;
-    --grad-2: #a9bade;
-    --grad-3: #cdd9ee;
+    --grad-1: #ff6f86;
+    --grad-2: #ff9aa8;
+    --grad-3: #ffc2cb;
 
     --c-code-bg: #14141b;
     --c-code-text: #e6edf3;
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.45);
   }
 }
 
@@ -116,21 +114,23 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --c-bg: #111319;
-  --c-surface: #1a1c24;
-  --c-surface-2: #232630;
-  --c-border: #2e313c;
-  --c-text: #d7dae1;
-  --c-muted: #a1a1aa;
-  --c-accent: #8ea3cc;
-  --c-accent-hover: #a9bade;
-  --c-accent-contrast: #12151d;
-  --c-accent-soft: #1e2433;
-  --grad-1: #8ea3cc;
-  --grad-2: #a9bade;
-  --grad-3: #cdd9ee;
+  --c-bg: #14151b;
+  --c-surface: #1e2029;
+  --c-surface-2: #272a35;
+  --c-border: #30333e;
+  --c-text: #e6e7ec;
+  --c-muted: #9a9ca6;
+  --c-accent: #ff6f86;
+  --c-accent-hover: #ff8a9c;
+  --c-accent-contrast: #1c0e12;
+  --c-accent-soft: #2b1a20;
+  --grad-1: #ff6f86;
+  --grad-2: #ff9aa8;
+  --grad-3: #ffc2cb;
   --c-code-bg: #14141b;
   --c-code-text: #e6edf3;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.45);
 }
 
 /* ── 리셋 & 베이스 ── */
@@ -321,7 +321,40 @@ body.shell {
   font-size: var(--fs-sm);
 }
 
-/* 태그 pill */
+/* 태그 — 에디토리얼 '#태그' 텍스트. 알약 배경 없이 낮은 톤 링크로. '#'은 ::before로
+   붙이므로 마크업에는 태그 이름만 넣는다(카운트·+N 변형은 아래). */
+.tag {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--c-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tag::before {
+  content: "#";
+  opacity: 0.55;
+}
+a.tag:hover {
+  color: var(--c-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.tag .count {
+  margin-left: 0.35em;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+/* '+N' 더보기 표식 — 태그가 아니므로 '#' 없이 낮은 톤 텍스트로만. */
+.tag-nmore {
+  color: var(--c-muted);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/* 버튼·내비용 알약 유틸(태그가 아님) — 검색·테마토글·공유·제출·이동 링크 등. */
 .pill {
   display: inline-block;
   padding: 0.2em 0.75em;

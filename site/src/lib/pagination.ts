@@ -10,6 +10,10 @@ export const PAGE_SIZE = 9;
 /**
  * 페이지 번호 표시 윈도우. 첫·끝·현재±1만 남기고 사이는 생략(…)으로 접는다.
  * 예) current=6, last=12 → [1, "…", 5, 6, 7, "…", 12]
+ *
+ * 단, 빠지는 페이지가 "딱 하나"면 접지 않고 그 번호를 노출한다.
+ * `…`와 번호 한 칸은 폭이 비슷해, 한 페이지만 감추려 …를 쓰면 손해다.
+ * 예) current=1, last=4 → [1, 2, 3, 4]  (3을 …로 접지 않는다)
  */
 export function pageWindow(current: number, last: number): (number | "…")[] {
   const keep = new Set<number>([1, last, current - 1, current, current + 1]);
@@ -17,7 +21,8 @@ export function pageWindow(current: number, last: number): (number | "…")[] {
   const out: (number | "…")[] = [];
   let prev = 0;
   for (const n of nums) {
-    if (n - prev > 1) out.push("…");
+    if (n - prev === 2) out.push(prev + 1); // 한 페이지만 빠짐 → 번호 그대로
+    else if (n - prev > 2) out.push("…");
     out.push(n);
     prev = n;
   }

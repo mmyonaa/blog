@@ -16,24 +16,25 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
 {
   categories.length > 0 && (
     <nav class="filter-links" aria-label="카테고리로 거르기">
-      <span class="fl-label">카테고리</span>
-      <a
-        class="pill fl-pill fl-all"
-        href={`${base}/blog/`}
-        aria-current={current === "" ? "true" : undefined}
-      >
-        전체 <span class="fl-count">{total}</span>
-      </a>
-      {categories.map((c) => (
+      <div class="fl-bar">
         <a
-          class="pill fl-pill"
-          href={sectionHref(base, c.id)}
-          aria-current={current === c.id ? "true" : undefined}
-          style={`--hue: ${hueOf(c.id)}`}
+          class="fl-pill fl-all"
+          href={`${base}/blog/`}
+          aria-current={current === "" ? "true" : undefined}
         >
-          {c.label} <span class="fl-count">{c.count}</span>
+          전체 <span class="fl-count">{total}</span>
         </a>
-      ))}
+        {categories.map((c) => (
+          <a
+            class="fl-pill"
+            href={sectionHref(base, c.id)}
+            aria-current={current === c.id ? "true" : undefined}
+            style={`--hue: ${hueOf(c.id)}`}
+          >
+            {c.label} <span class="fl-count">{c.count}</span>
+          </a>
+        ))}
+      </div>
       <div class="fl-more">
         <ViewToggle />
       </div>
@@ -47,25 +48,31 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
-    margin: var(--space-5) 0 var(--space-3);
+    margin: var(--space-5) 0 var(--space-5);
   }
-  .fl-label {
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    color: var(--c-muted);
-    margin-right: var(--space-1);
+  /* ── 세그먼트 바 (Maktub 내비 참고) ── 하나의 둥근 컨테이너 안에 탭들이 들어간다. */
+  .fl-bar {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.3rem;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    background: var(--c-surface);
   }
+  /* 탭 아이템 — 개별 보더/배경 없이 텍스트. 활성일 때만 색으로 채운다. */
   .fl-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.35em;
+    gap: 0.45em;
     padding: 0.35em 0.85em;
-    border: 1px solid var(--c-border);
-    background: var(--c-surface);
+    border-radius: var(--radius-pill);
     color: var(--c-text);
     font-size: var(--fs-sm);
     font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
     /* 실제로 칠하는 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
     --hue-on: var(--hue);
   }
@@ -77,7 +84,7 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
       --hue-on: color-mix(in srgb, var(--hue) 58%, white);
     }
   }
-  /* 카테고리 색 점 — 카드 상단 띠와 같은 --hue를 써서 목록/필터의 색을 맞춘다. */
+  /* 카테고리 색 점 — 카드 배지와 같은 --hue를 써서 목록/필터의 색을 맞춘다. */
   .fl-pill::before {
     content: "";
     width: 0.5em;
@@ -86,25 +93,32 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
     background: var(--hue-on);
     flex: none;
   }
-  /* '전체'는 특정 색이 없으므로 중립 회색 점. */
+  /* '전체'는 특정 색이 없으므로 중립(텍스트색). */
   .fl-all {
-    --hue: var(--c-muted);
+    --hue: var(--c-text);
   }
   a.fl-pill:hover {
-    border-color: var(--hue-on);
+    background: color-mix(in srgb, var(--hue-on) 12%, transparent);
     color: var(--hue-on);
-    background: color-mix(in srgb, var(--hue-on) 10%, transparent);
     text-decoration: none;
   }
-  /* 현재 보고 있는 카테고리 — 색으로 채워 위치를 분명히 한다. */
+  /* 현재 보고 있는 카테고리 — 색으로 채워 위치를 분명히 한다. 글자색은 c-bg로 대비 확보. */
   .fl-pill[aria-current="true"] {
+    background: var(--hue-on);
     border-color: var(--hue-on);
-    color: var(--hue-on);
-    background: color-mix(in srgb, var(--hue-on) 14%, transparent);
+    color: var(--c-bg);
+  }
+  .fl-pill[aria-current="true"]::before {
+    background: var(--c-bg);
   }
   .fl-count {
-    color: var(--hue-on);
+    color: var(--c-muted);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .fl-pill[aria-current="true"] .fl-count {
+    color: var(--c-bg);
+    opacity: 0.8;
   }
   .fl-more {
     margin-left: auto;

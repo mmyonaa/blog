@@ -1,7 +1,6 @@
 ---
 import type { Activity } from "../../lib/activity.ts";
 import ActivityHeatmap from "./ActivityHeatmap.astro";
-import SectionPills from "./SectionPills.astro";
 import PopularTags from "./PopularTags.astro";
 
 interface Props {
@@ -12,21 +11,15 @@ interface Props {
   feedUrl: string;
   stats: { value: number; label: string; href?: string }[];
   activity: Activity;
-  sections: { id: string; label: string; count: number }[];
-  /** 카테고리 pill 아래 보여줄 인기 태그(글 수 상위). 전체는 /topics/#tags. */
+  /** 히어로 하단에 보여줄 인기 태그(글 수 상위). 전체는 /topics/#tags. */
   topTags: { tag: string; count: number }[];
   base: string;
 }
-const { hasPosts, featuredHref, feedUrl, stats, activity, sections, topTags, base } =
+const { hasPosts, featuredHref, feedUrl, stats, activity, topTags, base } =
   Astro.props;
 ---
 
 <section class="hero">
-  <div class="hero-bg" aria-hidden="true">
-    <span class="blob blob-1"></span>
-    <span class="blob blob-2"></span>
-    <span class="blob blob-3"></span>
-  </div>
   <div class="hero-inner">
     <div class="hero-cols">
       <div class="hero-main">
@@ -85,7 +78,6 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, sections, topTags, bas
       </div>
       {hasPosts && <ActivityHeatmap activity={activity} />}
     </div>
-    {sections.length > 0 && <SectionPills sections={sections} base={base} />}
     {topTags.length > 0 && <PopularTags tags={topTags} base={base} />}
   </div>
 </section>
@@ -177,7 +169,7 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, sections, topTags, bas
 
 <style>
   /* ══════════════════════════════════════════════════════════
-     히어로 — 오로라 블롭 배경 + 도트 패턴 + 그라디언트 제목
+     히어로 — 스위스 에디토리얼. 블롭·도트·그라디언트 장식 없이 타이포와 여백으로.
      ══════════════════════════════════════════════════════════ */
   .hero {
     position: relative;
@@ -189,144 +181,14 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, sections, topTags, bas
     z-index: 1;
   }
 
-  /* 미세 도트 패턴: 뷰포트 전체 폭(풀블리드)으로 깔고 아래로 페이드아웃.
-     컨테이너 폭에 갇히지 않도록 100vw를 히어로 중심에 맞춰 배치. */
-  .hero::before {
-    content: "";
-    position: absolute;
-    top: -20%;
-    bottom: 0;
-    left: 50%;
-    width: 100vw;
-    transform: translateX(-50%);
-    z-index: -2;
-    background-image: radial-gradient(
-      var(--c-border) 1px,
-      transparent 1px
-    );
-    background-size: 22px 22px;
-    -webkit-mask-image: radial-gradient(
-      120% 90% at 50% 0%,
-      #000 0%,
-      transparent 70%
-    );
-    mask-image: radial-gradient(120% 90% at 50% 0%, #000 0%, transparent 70%);
-    opacity: 0.4;
-    /* 장식 레이어 — 헤더/콘텐츠 클릭을 절대 가로채지 않게 */
-    pointer-events: none;
-  }
-
-  /* 오로라 블롭: 뷰포트 전체 폭(풀블리드)에 흐릿한 광원 2~3개 */
-  .hero-bg {
-    position: absolute;
-    top: -40%;
-    bottom: -20%;
-    left: 50%;
-    width: 100vw;
-    transform: translateX(-50%);
-    z-index: -1;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(64px);
-    opacity: 0.3;
-    will-change: transform;
-  }
-  .blob-1 {
-    width: 42vw;
-    max-width: 460px;
-    aspect-ratio: 1;
-    top: -8%;
-    left: -6%;
-    background: radial-gradient(circle, #4e618d, transparent 68%);
-  }
-  .blob-2 {
-    width: 34vw;
-    max-width: 380px;
-    aspect-ratio: 1;
-    top: -14%;
-    right: 4%;
-    background: radial-gradient(circle, #33415c, transparent 68%);
-    opacity: 0.24;
-  }
-  .blob-3 {
-    width: 30vw;
-    max-width: 340px;
-    aspect-ratio: 1;
-    top: 22%;
-    left: 34%;
-    background: radial-gradient(circle, #6a7ca0, transparent 70%);
-    opacity: 0.15;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .blob {
-      opacity: 0.22;
-    }
-    :root:not([data-theme="light"]) .hero::before {
-      opacity: 0.25;
-    }
-  }
-  :root[data-theme="dark"] .blob {
-    opacity: 0.22;
-  }
-  :root[data-theme="dark"] .hero::before {
-    opacity: 0.25;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .blob-1 {
-      animation: drift1 18s ease-in-out infinite alternate;
-    }
-    .blob-2 {
-      animation: drift2 22s ease-in-out infinite alternate;
-    }
-    .blob-3 {
-      animation: drift3 26s ease-in-out infinite alternate;
-    }
-  }
-  @keyframes drift1 {
-    to {
-      transform: translate(8%, 12%) scale(1.12);
-    }
-  }
-  @keyframes drift2 {
-    to {
-      transform: translate(-10%, 8%) scale(1.08);
-    }
-  }
-  @keyframes drift3 {
-    to {
-      transform: translate(6%, -10%) scale(1.15);
-    }
-  }
-
-  /* 제목 그라디언트 램프(--grad-*)는 global.css 토큰 — featured 카드와 공유 */
+  /* 잉크 제목 — 그라디언트·sheen 없이 굵고 납작하게, 마스트헤드처럼. */
   .hero-title {
     font-size: clamp(2.75rem, 8vw, 4rem);
-    /* background-clip:text에선 배경 박스 높이가 line-height라, 너무 좁으면
-       'g' 같은 descender가 배경 밖으로 나가 투명 처리(잘림)된다. 여유 확보. */
-    line-height: 1.18;
-    padding-bottom: 0.06em;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-weight: 800;
     margin: 0 0 var(--space-3);
-    background: linear-gradient(115deg, var(--grad-1) 0%, var(--grad-2) 50%, var(--grad-3) 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-title {
-      animation: sheen 8s ease-in-out infinite alternate;
-    }
-  }
-  @keyframes sheen {
-    to {
-      background-position: 100% center;
-    }
+    color: var(--c-text);
   }
   .hero-sub {
     color: var(--c-muted);
@@ -361,8 +223,9 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, sections, topTags, bas
     display: inline-flex;
     align-items: center;
     gap: 0.35em;
-    padding: 0.55em 1.1em;
-    border-radius: var(--radius-pill);
+    padding: 0.6em 1.2em;
+    /* 알약 대신 각진 에디토리얼 버튼 */
+    border-radius: 2px;
     font-size: var(--fs-sm);
     /* <button>은 body의 line-height를 상속하지 않아 <a>보다 납작해진다 — 명시해 맞춘다 */
     line-height: inherit;
@@ -505,11 +368,8 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, sections, topTags, bas
     font-size: var(--fs-2xl);
     font-weight: 800;
     letter-spacing: -0.02em;
-    background: linear-gradient(120deg, var(--c-accent), var(--c-accent-hover));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
+    color: var(--c-text);
+    font-variant-numeric: tabular-nums;
   }
   .stat-label {
     margin: 0.15em 0 0;
