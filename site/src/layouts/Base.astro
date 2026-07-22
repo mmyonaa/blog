@@ -1,4 +1,8 @@
 ---
+// 자체 호스팅 웹폰트(CDN 비의존). 한글은 unicode-range로 나뉜 dynamic-subset이라
+// 방문 페이지에 필요한 글자 조각만 받는다. mono는 라벨·날짜·코드에 쓰는 JetBrains Mono.
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+import "@fontsource-variable/jetbrains-mono";
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import Header from "../components/Header.astro";
