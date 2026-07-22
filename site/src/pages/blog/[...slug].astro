@@ -102,18 +102,22 @@ const jsonLd = {
     <aside class="side side-left" aria-label="글 목록">
       <ul class="postlist">
         {
-          allPosts.map((p) => (
-            <li>
-              <a
-                href={href(p.id)}
-                class:list={["postlist-link", { current: p.id === post.id }]}
-                aria-current={p.id === post.id ? "page" : undefined}
-              >
-                <span class="postlist-date">{fmtDateTime(p.data.pubDate)}</span>
-                <span class="postlist-title">{p.data.title}</span>
-              </a>
-            </li>
-          ))
+          allPosts.map((p) => {
+            const psec = sectionOf(p);
+            return (
+              <li>
+                <a
+                  href={href(p.id)}
+                  class="postlist-link"
+                  style={`--hue: ${hueOf(psec)}`}
+                >
+                  <span class="postlist-cat">{sectionLabel(psec)}</span>
+                  <span class="postlist-title">{p.data.title}</span>
+                  <span class="postlist-date">{fmtDateTime(p.data.pubDate)}</span>
+                </a>
+              </li>
+            );
+          })
         }
       </ul>
     </aside>
@@ -363,28 +367,50 @@ const jsonLd = {
   .postlist li {
     margin-bottom: var(--space-2);
   }
+  /* 목록의 글 요소처럼 — 보더 있는 카드 + 카테고리(색 점+이름)/제목/날짜 */
   .postlist-link {
     display: block;
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-3);
+    border: 1px solid var(--c-border);
     border-radius: var(--radius-md);
+    background: var(--c-surface);
+    box-shadow: var(--shadow-sm);
     color: var(--c-muted);
-    border-left: 2px solid transparent;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    /* 카테고리 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */
+    --hue-on: var(--hue);
+  }
+  :global(:root[data-theme="dark"]) .postlist-link {
+    --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .postlist-link {
+      --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+    }
   }
   .postlist-link:hover {
-    background: var(--c-surface);
+    border-color: color-mix(in srgb, var(--hue-on) 45%, var(--c-border));
+    box-shadow: var(--shadow-md);
     color: var(--c-text);
     text-decoration: none;
   }
-  .postlist-link.current {
-    background: var(--c-accent-soft);
-    border-left-color: var(--c-accent);
-    color: var(--c-text);
-  }
-  .postlist-date {
-    display: block;
+  /* 카테고리 아이브로우 — 색 점 + 이름 */
+  .postlist-cat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    color: var(--hue-on);
+    font-weight: 700;
     font-size: var(--fs-xs);
-    color: var(--c-muted);
-    margin-bottom: var(--space-1);
+    margin-bottom: 0.25em;
+  }
+  .postlist-cat::before {
+    content: "";
+    width: 0.45em;
+    height: 0.45em;
+    border-radius: 50%;
+    background: var(--hue-on);
+    flex: none;
   }
   .postlist-title {
     display: block;
@@ -392,8 +418,11 @@ const jsonLd = {
     font-size: var(--fs-sm);
     line-height: var(--lh-snug);
   }
-  .postlist-link.current .postlist-title {
-    color: var(--c-accent);
+  .postlist-date {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    margin-top: 0.2em;
   }
 
   /* ── 우: 목차 ── */
