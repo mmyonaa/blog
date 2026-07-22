@@ -34,6 +34,19 @@ export const SECTION_HUE: Record<string, string> = {
 export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)";
 
 /**
+ * 섹션 id → 한 줄 소개. 홈의 카테고리 소개 블록(SectionNav)에서 "여기 뭘 다루는 곳인지"를
+ * 즉시 전달하는 데 쓴다. 목록에 없는 섹션은 빈 문자열(카드가 라벨·편수만 보여준다).
+ */
+export const SECTION_BLURB: Record<string, string> = {
+  mcp: "MCP 서버와 에이전트를 직접 만들며 배운 것",
+  web: "이 블로그를 포함한 웹·프론트엔드 만들기",
+  jeongcheogi: "정보처리기사 준비 정리",
+  security: "웹·시스템 보안과 취약점 파고들기",
+};
+
+export const blurbOf = (id: string): string => SECTION_BLURB[id] ?? "";
+
+/**
  * 섹션 id → 카드 배지에 넣을 대문자 이니셜 한 글자.
  * 한국어 라벨 대신 영문 id의 머리글자를 써서 M/W/J/S로 축약한다(중복 없음).
  * 목록에 없는 섹션은 id 첫 글자를 대문자로 폴백.

@@ -1,0 +1,145 @@
+---
+// 홈 카테고리 소개 블록 — 색 있는 4칸으로 '글 카드' 그리드의 단조로움을 끊고,
+// "여기 뭘 다루는 곳인지"를 즉시 전달한다. 섹션 메타(라벨·색·소개·편수)는 모두
+// lib/sections.ts에서 온다. 각 카드는 해당 카테고리 목록(/categories/<id>/)으로.
+import {
+  sectionHref,
+  hueOf,
+  initialOf,
+  blurbOf,
+} from "../../lib/sections.ts";
+
+interface Props {
+  sections: { id: string; label: string; count: number }[];
+  base: string;
+}
+const { sections, base } = Astro.props;
+---
+
+<nav class="sec-nav reveal" aria-label="카테고리">
+  {
+    sections.map((s) => (
+      <a
+        class="sn-card"
+        href={sectionHref(base, s.id)}
+        style={`--hue: ${hueOf(s.id)}`}
+      >
+        <span class="sn-badge">{initialOf(s.id)}</span>
+        <span class="sn-body">
+          <span class="sn-name">{s.label}</span>
+          {blurbOf(s.id) && <span class="sn-blurb">{blurbOf(s.id)}</span>}
+        </span>
+        <span class="sn-count">{s.count}<span class="sn-count-unit">편</span></span>
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  /* 4칸 그리드. 좁아지면 2칸 → 1칸. */
+  .sec-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+  .sn-card {
+    /* 카테고리 색. 다크 그라운드에선 어두운 hue가 묻히므로 밝게 보정(다른 카드와 동일 규칙). */
+    --hue-on: var(--hue, var(--c-accent));
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-left: 3px solid var(--hue-on);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    color: var(--c-text);
+    text-decoration: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  :global(:root[data-theme="dark"]) .sn-card {
+    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .sn-card {
+      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+    }
+  }
+  .sn-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--hue-on) 45%, var(--c-border));
+    border-left-color: var(--hue-on);
+    box-shadow: var(--shadow-md);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sn-card,
+    .sn-card:hover {
+      transform: none;
+    }
+  }
+  /* 배지 글자색 var(--c-bg): --hue-on과 명도가 항상 반대라 대비 확보(다른 카드와 동일). */
+  .sn-badge {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-sm);
+    background: var(--hue-on);
+    color: var(--c-bg);
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .sn-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+    min-width: 0;
+  }
+  .sn-name {
+    font-size: var(--fs-base);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+  .sn-card:hover .sn-name {
+    color: var(--hue-on);
+  }
+  .sn-blurb {
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+    color: var(--c-muted);
+  }
+  .sn-count {
+    margin-left: auto;
+    flex: none;
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--fs-base);
+    color: var(--hue-on);
+    line-height: 1;
+  }
+  .sn-count-unit {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--c-muted);
+    margin-left: 0.15em;
+  }
+
+  /* 태블릿: 2칸 */
+  @media (max-width: 900px) {
+    .sec-nav {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  /* 모바일: 1칸 */
+  @media (max-width: 520px) {
+    .sec-nav {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

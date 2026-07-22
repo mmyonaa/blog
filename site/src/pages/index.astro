@@ -5,9 +5,11 @@ import Hero from "../components/home/Hero.astro";
 import FeaturedCard from "../components/home/FeaturedCard.astro";
 import TopReads from "../components/home/TopReads.astro";
 import PostCard from "../components/home/PostCard.astro";
+import SectionNav from "../components/home/SectionNav.astro";
 import { getTagCounts } from "../lib/tags.ts";
-import { getSectionCounts, sectionOf } from "../lib/sections.ts";
+import { getSectionCounts, sectionOf, hueOf } from "../lib/sections.ts";
 import { buildActivity } from "../lib/activity.ts";
+import { fmtRelative } from "../lib/date.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -26,9 +28,26 @@ const feedUrl = new URL(`${base}/rss.xml`, Astro.site ?? Astro.url).href;
 // 랜딩 상단: 왼쪽 '최신 글'(featured 1개) + 오른쪽 'Top Reads'(카테고리별 최신).
 // 조회수 데이터가 없으므로 오른쪽은 가짜 인기순 대신 카테고리별 최신 글로 채운다
 // (스프레드 → 사실상 '읽을거리 top picks'). 그 아래 '최근 글' 그리드가 이어진다.
-const RECENT_MAX = 6;
+// 최근 글 5개: 첫 카드가 2칸 폭(wide)이라 2+1+1+1+1 = 6유닛 = 3열×2행이 깔끔하게 찬다
+// (6개면 7유닛이 되어 마지막 칸이 붕 뜬다).
+const RECENT_MAX = 5;
 const TOP_READS_MAX = 4;
 const [featured, ...others] = posts;
+
+// 히어로 마스트헤드 리드: 가장 최신 글 한 줄. 7일 이내면 '방금 발행'으로 표기(FeaturedCard의
+// NEW 배지와 같은 기준). 글이 없으면 undefined → 히어로가 리드 줄을 통째로 숨긴다.
+const NEW_LEAD_DAYS = 7;
+const latestLead = featured
+  ? {
+      title: featured.data.title,
+      href: `${base}/blog/${featured.id}/`,
+      when: fmtRelative(featured.data.pubDate),
+      hue: hueOf(sectionOf(featured)),
+      isNew:
+        Date.now() - featured.data.pubDate.valueOf() <
+        NEW_LEAD_DAYS * 24 * 60 * 60 * 1000,
+    }
+  : undefined;
 
 // 오른쪽: 카테고리(getSectionCounts 순서)별 최신 글, featured 제외, 최대 4개.
 const usedIds = new Set([featured?.id]);
@@ -94,6 +113,7 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     stats={stats}
     activity={activity}
     topTags={topTags}
+    latest={latestLead}
     base={base}
   />
 
@@ -119,6 +139,16 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
           )}
         </section>
 
+        {sections.length > 0 && (
+          <>
+            <div class="section-head">
+              <h2 class="section-title">카테고리</h2>
+              <a class="more" href={`${base}/topics/`}>전체 분류 →</a>
+            </div>
+            <SectionNav sections={sections} base={base} />
+          </>
+        )}
+
         {rest.length > 0 && (
           <>
             <div class="section-head">
@@ -126,8 +156,8 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
               <a class="more" href={`${base}/blog/`}>전체 글 보기 →</a>
             </div>
             <div class="grid">
-              {rest.map((post) => (
-                <PostCard post={post} />
+              {rest.map((post, i) => (
+                <PostCard post={post} wide={i === 0} />
               ))}
             </div>
           </>

@@ -8,13 +8,15 @@ import { readMin } from "../../lib/reading.ts";
 
 interface Props {
   post: CollectionEntry<"blog">;
+  /** 매거진 위계: 그리드 첫 카드를 2칸 폭 리드로. 제목·요약을 키운다. */
+  wide?: boolean;
 }
-const { post } = Astro.props;
+const { post, wide = false } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const sec = sectionOf(post);
 ---
 
-<article class="card spot-card reveal" style={`--sec-hue: ${hueOf(sec)}`}>
+<article class:list={["card spot-card reveal", { "card--wide": wide }]} style={`--sec-hue: ${hueOf(sec)}`}>
   <div class="card-head">
     <a class="card-badge" href={sectionHref(base, sec)} aria-label={sectionLabel(sec)}>
       {initialOf(sec)}
@@ -73,5 +75,25 @@ const sec = sectionOf(post);
     -webkit-line-clamp: 2;
     line-clamp: 2;
     overflow: hidden;
+  }
+
+  /* ── 와이드(리드) 카드 — 그리드 첫 칸을 2열 폭으로, 제목·요약을 키워 매거진 위계를 준다.
+     1열 그리드(모바일)에선 span이 무의미해 자동으로 보통 카드처럼 보인다. ── */
+  .card--wide {
+    grid-column: span 2;
+  }
+  .card--wide .card-title {
+    font-size: var(--fs-lg);
+  }
+  .card--wide .card-desc {
+    font-size: var(--fs-base);
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+  /* 리드 배지도 조금 키운다 */
+  .card--wide :global(.card-badge) {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.3rem;
   }
 </style>
