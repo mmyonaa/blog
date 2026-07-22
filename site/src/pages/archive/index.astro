@@ -1,11 +1,17 @@
 ---
-// 아카이브 — 매일 발행을 시간축으로 훑는 타임라인. 히트맵(홈)이 밀도라면
-// 여기는 목록. 연·월로 묶어 최신순으로 쌓는다. 꾸준함 자체가 콘텐츠.
+// 아카이브 — git log --graph 스타일 레인 그래프. 카테고리마다 세로 색 레인을 두고,
+// 각 글은 자기 레인의 노드로, 세로선이 그 카테고리 글들을 시간순으로 잇는다.
+// 4개 학습 갈래가 나란히 뻗어가는 걸 한눈에 본다. '후속'은 같은 레인의 흐름으로 드러난다.
 import Base from "../../layouts/Base.astro";
 import { getCollection } from "astro:content";
-import { sectionOf, sectionHref, sectionLabel, hueOf } from "../../lib/sections.ts";
+import {
+  sectionOf,
+  sectionHref,
+  hueOf,
+  getSectionCounts,
+} from "../../lib/sections.ts";
 import { fmtDate } from "../../lib/date.ts";
-import { readMin } from "../../lib/reading.ts";
+import { charCount, fmtCount } from "../../lib/reading.ts";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -14,87 +20,140 @@ const posts = (await getCollection("blog")).sort(
 );
 const postCount = posts.length;
 
-// KST 기준 'YYYY-MM-DD'에서 연·월·일을 뽑아 그룹핑(표시 날짜와 어긋나지 않게).
-type Row = {
+// 레인 = 카테고리(정의된 순서). 각 레인의 고정 열 인덱스와 색.
+const lanes = (await getSectionCounts()).map((s) => ({
+  id: s.id,
+  label: s.label,
+  count: s.count,
+  hue: hueOf(s.id),
+}));
+const laneIndex = new Map(lanes.map((l, i) => [l.id, i]));
+
+// ── 표시 행 만들기: 월이 바뀌면 월 마커 행을 끼운다(레인 선은 마커 위로도 이어진다) ──
+type PostRow = {
+  type: "post";
   id: string;
   title: string;
   sec: string;
-  day: string; // "DD"
-  min: number;
+  date: string; // "M/D"
+  chars: number;
 };
-type MonthGroup = { key: string; label: string; rows: Row[] };
-type YearGroup = { year: string; count: number; months: MonthGroup[] };
+type MonthRow = { type: "month"; label: string };
+type Row = PostRow | MonthRow;
 
-const years: YearGroup[] = [];
+const rows: Row[] = [];
+let prevYM = "";
+let prevYear = "";
 for (const p of posts) {
-  const ymd = fmtDate(p.data.pubDate); // YYYY-MM-DD
-  const [y, m, d] = ymd.split("-");
-  let yg = years.find((g) => g.year === y);
-  if (!yg) {
-    yg = { year: y, count: 0, months: [] };
-    years.push(yg);
+  const [y, m, d] = fmtDate(p.data.pubDate).split("-");
+  const ym = `${y}-${m}`;
+  if (ym !== prevYM) {
+    const label = y !== prevYear ? `${y}년 ${Number(m)}월` : `${Number(m)}월`;
+    rows.push({ type: "month", label });
+    prevYM = ym;
+    prevYear = y;
   }
-  yg.count++;
-  const mKey = `${y}-${m}`;
-  let mg = yg.months.find((g) => g.key === mKey);
-  if (!mg) {
-    mg = { key: mKey, label: `${Number(m)}월`, rows: [] };
-    yg.months.push(mg);
-  }
-  mg.rows.push({
+  rows.push({
+    type: "post",
     id: p.id,
     title: p.data.title,
     sec: sectionOf(p),
-    day: d,
-    min: readMin(p.body),
+    date: `${Number(m)}/${Number(d)}`,
+    chars: charCount(p.body),
   });
 }
+
+// ── 레인별 활성 구간(첫 글 행 ~ 마지막 글 행). 그 사이 행에만 세로선을 그린다 ──
+const laneFirst = new Array(lanes.length).fill(Infinity);
+const laneLast = new Array(lanes.length).fill(-Infinity);
+rows.forEach((r, i) => {
+  if (r.type !== "post") return;
+  const li = laneIndex.get(r.sec);
+  if (li === undefined) return;
+  laneFirst[li] = Math.min(laneFirst[li], i);
+  laneLast[li] = Math.max(laneLast[li], i);
+});
+
+// 각 행 × 각 레인의 셀 상태(선 위/아래, 노드 여부)를 미리 계산.
+type Cell = { hue: string; node: boolean; top: boolean; bottom: boolean };
+const railOf = (rowIdx: number, rowSec: string | null): Cell[] =>
+  lanes.map((lane, li) => {
+    const active = rowIdx >= laneFirst[li] && rowIdx <= laneLast[li];
+    return {
+      hue: lane.hue,
+      node: rowSec === lane.id,
+      top: active && rowIdx > laneFirst[li],
+      bottom: active && rowIdx < laneLast[li],
+    };
+  });
 ---
 
 <Base
   title="아카이브 — blog"
-  description="발행한 모든 글을 시간순으로 훑어봅니다"
+  description="발행한 모든 글을 카테고리 레인 그래프로 훑어봅니다"
 >
   <h1>아카이브</h1>
   <p class="muted">
-    발행한 <strong>{postCount}편</strong>을 시간순으로 훑어봅니다. 매일 한 편씩, 쌓인 기록.
+    발행한 <strong>{postCount}편</strong>을 카테고리 레인 그래프로. 각 갈래가
+    시간을 따라 어떻게 뻗어왔는지 한눈에 봅니다.
   </p>
-  <hr />
+
+  <!-- 범례: 어떤 색이 어떤 카테고리인지 -->
+  <div class="legend">
+    {
+      lanes.map((l) => (
+        <a class="lg" href={sectionHref(base, l.id)} style={`--hue: ${l.hue}`}>
+          <span class="lg-dot" />
+          <span class="lg-name">{l.label}</span>
+          <span class="lg-count">{l.count}</span>
+        </a>
+      ))
+    }
+  </div>
 
   {
     posts.length === 0 ? (
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
-      <div class="timeline">
-        {years.map((yg) => (
-          <section class="year">
-            <div class="year-head">
-              <h2 class="year-label">{yg.year}</h2>
-              <span class="year-count">{yg.count}편</span>
-            </div>
-            {yg.months.map((mg) => (
-              <div class="month">
-                <h3 class="month-label">{mg.label}</h3>
-                <ol class="rows">
-                  {mg.rows.map((r) => (
-                    <li class="row" style={`--hue: ${hueOf(r.sec)}`}>
-                      <span class="row-day">{r.day}</span>
-                      <a
-                        class="row-cat"
-                        href={sectionHref(base, r.sec)}
-                        aria-label={sectionLabel(r.sec)}
-                      />
-                      <a class="row-title" href={`${base}/blog/${r.id}/`}>
-                        {r.title}
-                      </a>
-                      <span class="row-min">{r.min}분</span>
-                    </li>
-                  ))}
-                </ol>
+      <div class="graph">
+        {rows.map((r, i) =>
+          r.type === "month" ? (
+            <div class="grow month">
+              <div class="rail">
+                {railOf(i, null).map((c) => (
+                  <span
+                    class:list={["lane", { top: c.top, bottom: c.bottom }]}
+                    style={`--hue: ${c.hue}`}
+                  />
+                ))}
               </div>
-            ))}
-          </section>
-        ))}
+              <div class="mlabel">{r.label}</div>
+            </div>
+          ) : (
+            <div class="grow post" style={`--hue: ${hueOf(r.sec)}`}>
+              <div class="rail">
+                {railOf(i, r.sec).map((c) => (
+                  <span
+                    class:list={[
+                      "lane",
+                      { top: c.top, bottom: c.bottom, node: c.node },
+                    ]}
+                    style={`--hue: ${c.hue}`}
+                  >
+                    {c.node && <span class="dot" />}
+                  </span>
+                ))}
+              </div>
+              <a class="content" href={`${base}/blog/${r.id}/`}>
+                <span class="ptitle">{r.title}</span>
+                <span class="pmeta">
+                  <span class="pdate">{r.date}</span>
+                  <span class="pchars">{fmtCount(r.chars)}자</span>
+                </span>
+              </a>
+            </div>
+          ),
+        )}
       </div>
     )
   }
@@ -104,112 +163,186 @@ for (const p of posts) {
   h1 {
     margin-bottom: var(--space-2);
   }
-  .timeline {
+
+  /* ── 범례 ── */
+  .legend {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-5) 0;
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--c-border);
   }
-
-  /* ── 연도 ── */
-  .year-head {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    border-bottom: 2px solid var(--c-border);
-    padding-bottom: var(--space-2);
-    margin-bottom: var(--space-4);
-  }
-  .year-label {
-    margin: 0;
-    font-size: var(--fs-2xl);
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-  }
-  .year-count {
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    color: var(--c-muted);
-  }
-
-  /* ── 월 ── */
-  .month {
-    margin-bottom: var(--space-5);
-  }
-  .month-label {
-    margin: 0 0 var(--space-2);
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--c-muted);
-  }
-
-  /* ── 행 ── */
-  .rows {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  .row {
+  .lg {
     --hue-on: var(--hue, var(--c-accent));
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2) 0;
-    border-top: 1px solid var(--c-border);
+    gap: 0.45em;
+    color: var(--c-text);
+    text-decoration: none;
+    font-size: var(--fs-sm);
   }
-  .row:first-child {
-    border-top: none;
-  }
-  :global(:root[data-theme="dark"]) .row {
+  :global(:root[data-theme="dark"]) .lg {
     --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
   }
   @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .row {
+    :global(:root:not([data-theme="light"])) .lg {
       --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
     }
   }
-  .row-day {
-    flex: none;
-    width: 2ch;
-    text-align: right;
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    font-variant-numeric: tabular-nums;
-    color: var(--c-muted);
-  }
-  /* 카테고리 색 점 — 클릭하면 그 카테고리 목록으로 */
-  .row-cat {
-    flex: none;
-    width: 0.65rem;
-    height: 0.65rem;
+  .lg-dot {
+    width: 0.7rem;
+    height: 0.7rem;
     border-radius: 50%;
     background: var(--hue-on);
   }
-  .row-title {
-    flex: 1;
-    min-width: 0;
-    color: var(--c-text);
-    text-decoration: none;
-    line-height: 1.4;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .lg-name {
+    font-weight: 600;
   }
-  .row-title:hover {
+  .lg:hover .lg-name {
     color: var(--hue-on);
   }
-  .row-min {
-    flex: none;
+  .lg-count {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     color: var(--c-muted);
   }
 
+  /* ── 그래프 ── */
+  .graph {
+    margin-top: var(--space-2);
+  }
+  .grow {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-3);
+    min-height: 2.7rem;
+  }
+
+  /* 레일: 고정폭 레인들. 행 사이 간격이 없어 세로선이 위아래로 이어진다. */
+  .rail {
+    flex: none;
+    display: flex;
+    align-self: stretch;
+  }
+  .lane {
+    --hue-on: var(--hue, var(--c-accent));
+    position: relative;
+    width: 1.35rem;
+  }
+  :global(:root[data-theme="dark"]) .lane {
+    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .lane {
+      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+    }
+  }
+  /* 세로선: 위 절반(::before) + 아래 절반(::after)을 따로 켜서 노드에서 정확히 끊는다 */
+  .lane.top::before,
+  .lane.bottom::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    background: var(--hue-on);
+    opacity: 0.55;
+  }
+  .lane.top::before {
+    top: 0;
+    bottom: 50%;
+  }
+  .lane.bottom::after {
+    top: 50%;
+    bottom: 0;
+  }
+  /* 노드: 색 원 + 배경색 링으로 선과 분리 */
+  .lane .dot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--hue-on);
+    box-shadow: 0 0 0 3px var(--c-bg);
+    z-index: 1;
+  }
+
+  /* ── 글 행 내용 ── */
+  .content {
+    --hue-on: var(--hue, var(--c-accent));
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--c-border);
+    color: var(--c-text);
+    text-decoration: none;
+  }
+  :global(:root[data-theme="dark"]) .content {
+    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .content {
+      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+    }
+  }
+  .content:hover .ptitle {
+    color: var(--hue-on);
+  }
+  .ptitle {
+    min-width: 0;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pmeta {
+    flex: none;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .pdate {
+    color: var(--hue-on);
+    opacity: 0.85;
+  }
+
+  /* ── 월 마커 행 ── */
+  .month {
+    min-height: 2rem;
+  }
+  .mlabel {
+    display: flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--c-muted);
+    text-transform: uppercase;
+  }
+
   @media (max-width: 520px) {
-    /* 좁은 화면: 제목이 줄바꿈되게 ellipsis 해제 */
-    .row-title {
+    .lane {
+      width: 1.1rem;
+    }
+    /* 좁은 화면: 제목 줄바꿈 허용 + 메타는 날짜만 */
+    .ptitle {
       white-space: normal;
+    }
+    .pchars {
+      display: none;
     }
   }
 </style>
