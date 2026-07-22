@@ -4,25 +4,15 @@ import ActivityHeatmap from "./ActivityHeatmap.astro";
 import PopularTags from "./PopularTags.astro";
 
 interface Props {
+  /** hasPosts가 false면 통계·잔디를 통째로 숨긴다. */
   hasPosts: boolean;
-  /** 최신 글 링크. hasPosts가 false면 CTA·통계·잔디를 통째로 숨긴다. */
-  featuredHref: string;
-  /** RSS 안내 팝오버에 보여줄 절대 피드 주소(리더 앱에 그대로 등록하는 값) */
-  feedUrl: string;
   stats: { value: number; label: string; href?: string }[];
   activity: Activity;
   /** 히어로 하단에 보여줄 인기 태그(글 수 상위). 전체는 /topics/#tags. */
   topTags: { tag: string; count: number }[];
-  /**
-   * 마스트헤드 리드 — 가장 최신 글 한 줄(제목·상대시각·카테고리 색·NEW 여부).
-   * 부제를 장식에 그치지 않게 '살아있는 헤드라인'으로 채운다. 아래 FeaturedCard는
-   * 같은 글의 더 큰 취급이고, 여기선 컴팩트한 리드 링크만.
-   */
-  latest?: { title: string; href: string; when: string; hue: string; isNew: boolean };
   base: string;
 }
-const { hasPosts, featuredHref, feedUrl, stats, activity, topTags, latest, base } =
-  Astro.props;
+const { hasPosts, stats, activity, topTags, base } = Astro.props;
 ---
 
 <section class="hero">
@@ -33,45 +23,6 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, topTags, latest, base 
         <p class="hero-sub reveal">
           직접 만든 MCP 서버가 쓰고, 제가 배운 걸로 채웁니다.
         </p>
-        {
-          latest && (
-            <a class="hero-latest reveal" href={latest.href} style={`--hue: ${latest.hue}`}>
-              <span class="hl-tag">{latest.isNew ? "방금 발행" : "최신 글"}</span>
-              <span class="hl-title">{latest.title}</span>
-              <span class="hl-when">{latest.when}</span>
-            </a>
-          )
-        }
-        {
-          hasPosts && (
-            <div class="hero-cta reveal">
-              <a class="btn-cta" href={featuredHref}>
-                최신 글 읽기 <span class="cta-arrow" aria-hidden="true">→</span>
-              </a>
-              <div class="rss-wrap">
-                <button
-                  class="btn-ghost"
-                  type="button"
-                  data-rss-toggle
-                  aria-expanded="false"
-                  aria-controls="rss-pop"
-                >
-                  RSS 구독
-                </button>
-                <div class="rss-pop" id="rss-pop" hidden>
-                  <p class="rss-help">
-                    RSS 리더(Feedly, Inoreader 등)에 아래 주소를 등록하면
-                    새 글을 자동으로 받아볼 수 있어요.
-                  </p>
-                  <div class="rss-row">
-                    <code class="rss-url" data-rss-url>{feedUrl}</code>
-                    <button class="rss-copy" type="button" data-rss-copy>복사</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )
-        }
         {
           hasPosts && (
             <dl class="stats reveal">
@@ -98,8 +49,8 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, topTags, latest, base 
 </section>
 
 <script>
-  // 히어로 상호작용(RSS 팝오버·통계 카운트업)만 이 컴포넌트가 담당.
-  // 문서 위임 + 전역 가드로 한 번만 등록(View Transitions 유지).
+  // 히어로 상호작용(통계 카운트업)만 이 컴포넌트가 담당.
+  // 전역 가드로 한 번만 등록(View Transitions 유지).
   if (!(window as any).__heroBound) {
     (window as any).__heroBound = true;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -128,57 +79,6 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, topTags, latest, base 
     };
     // View Transitions로 홈에 재진입할 때마다 다시 실행(최초 로드 포함).
     document.addEventListener("astro:page-load", runCountUp);
-
-    // RSS 팝오버: 버튼으로 토글, 주소 복사, 바깥 클릭·Escape로 닫기.
-    const closeRss = () => {
-      const pop = document.querySelector<HTMLElement>(".rss-pop");
-      if (pop && !pop.hidden) {
-        pop.hidden = true;
-        document
-          .querySelector("[data-rss-toggle]")
-          ?.setAttribute("aria-expanded", "false");
-      }
-    };
-    document.addEventListener("click", (e) => {
-      const t = e.target as HTMLElement;
-      const toggle = t?.closest?.<HTMLElement>("[data-rss-toggle]");
-      if (toggle) {
-        const pop = document.querySelector<HTMLElement>(".rss-pop");
-        if (!pop) return;
-        const willOpen = pop.hidden;
-        pop.hidden = !willOpen;
-        toggle.setAttribute("aria-expanded", String(willOpen));
-        return;
-      }
-      const copyBtn = t?.closest?.<HTMLElement>("[data-rss-copy]");
-      if (copyBtn) {
-        const url =
-          document.querySelector("[data-rss-url]")?.textContent?.trim() ?? "";
-        navigator.clipboard?.writeText(url).then(
-          () => {
-            copyBtn.textContent = "복사됨!";
-            setTimeout(() => {
-              copyBtn.textContent = "복사";
-            }, 1500);
-          },
-          () => {
-            // 클립보드를 못 쓰는 환경이면 주소를 선택 상태로 만들어 수동 복사 유도
-            const code = document.querySelector("[data-rss-url]");
-            if (!code) return;
-            const range = document.createRange();
-            range.selectNodeContents(code);
-            const sel = window.getSelection();
-            sel?.removeAllRanges();
-            sel?.addRange(range);
-          },
-        );
-        return;
-      }
-      if (!t?.closest?.(".rss-wrap")) closeRss();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeRss();
-    });
   }
 </script>
 
@@ -212,61 +112,7 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, topTags, latest, base 
     margin: 0;
   }
 
-  /* ── 마스트헤드 리드: 최신 글 한 줄 ──
-     카테고리 색 도트 + 라벨(방금 발행/최신 글) + 제목 + 상대시각. 히어로에 heartbeat를
-     준다. --hue는 인라인 style로 오고, 다크 그라운드에선 밝게 보정한다. */
-  .hero-latest {
-    --hue-on: var(--hue, var(--c-accent));
-    display: inline-flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.5em;
-    margin-top: var(--space-4);
-    max-width: 60ch;
-    color: var(--c-text);
-    text-decoration: none;
-  }
-  :global(:root[data-theme="dark"]) .hero-latest {
-    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
-  }
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .hero-latest {
-      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
-    }
-  }
-  .hl-tag {
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--hue-on);
-  }
-  .hl-tag::before {
-    content: "";
-    width: 0.5em;
-    height: 0.5em;
-    border-radius: 50%;
-    background: var(--hue-on);
-  }
-  .hl-title {
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    border-bottom: 1px solid transparent;
-  }
-  .hero-latest:hover .hl-title {
-    border-bottom-color: currentColor;
-  }
-  .hl-when {
-    flex: none;
-    font-size: var(--fs-xs);
-    color: var(--c-muted);
-  }
-
-  /* ── 히어로 2단: 왼쪽 제목·부제·CTA·통계 / 오른쪽 잔디 ──
+  /* ── 히어로 2단: 왼쪽 제목·부제·통계 / 오른쪽 잔디 ──
      오른쪽 열 폭은 잔디 25주(25×19px − 3px = 472px)에 맞춘 값.
      주 수를 바꾸면 index.astro의 buildActivity minWeeks와 함께 조정한다. */
   .hero-cols {
@@ -274,134 +120,6 @@ const { hasPosts, featuredHref, feedUrl, stats, activity, topTags, latest, base 
     grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
     gap: var(--space-6) var(--space-8);
     align-items: end;
-  }
-
-  /* ── CTA ── */
-  .hero-cta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-    margin-top: var(--space-5);
-    /* reveal 애니메이션이 형제들마다 스태킹 컨텍스트를 만들므로,
-       RSS 팝오버가 아래 통계·pill에 가려지지 않게 CTA 블록을 위로 올린다 */
-    position: relative;
-    z-index: 5;
-  }
-  .btn-cta,
-  .btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35em;
-    padding: 0.6em 1.2em;
-    /* 알약 대신 각진 에디토리얼 버튼 */
-    border-radius: 2px;
-    font-size: var(--fs-sm);
-    /* <button>은 body의 line-height를 상속하지 않아 <a>보다 납작해진다 — 명시해 맞춘다 */
-    line-height: inherit;
-    font-weight: 700;
-    text-decoration: none;
-    transition: background 0.15s ease, color 0.15s ease,
-      border-color 0.15s ease, transform 0.15s ease;
-  }
-  .btn-cta {
-    background: var(--c-accent);
-    color: var(--c-accent-contrast);
-  }
-  .btn-cta:hover {
-    background: var(--c-accent-hover);
-    color: var(--c-accent-contrast);
-    text-decoration: none;
-    transform: translateY(-1px);
-  }
-  .cta-arrow {
-    display: inline-block;
-    transition: transform 0.15s ease;
-  }
-  .btn-cta:hover .cta-arrow {
-    transform: translateX(3px);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .btn-cta:hover,
-    .btn-cta:hover .cta-arrow {
-      transform: none;
-    }
-  }
-  .btn-ghost {
-    border: 1px solid var(--c-border);
-    background: var(--c-surface);
-    color: var(--c-text);
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .btn-ghost:hover {
-    border-color: var(--c-accent);
-    color: var(--c-accent);
-    text-decoration: none;
-  }
-
-  /* ── RSS 안내 팝오버 ──
-     모바일: 버튼 기준 앵커는 좁은 화면에서 뷰포트를 넘치므로,
-     .hero-cta(행 전체) 기준으로 행 아래 중앙에 띄운다. 데스크톱에서만 버튼 기준. */
-  .rss-pop {
-    position: absolute;
-    top: calc(100% + var(--space-2));
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 30;
-    width: min(24rem, calc(100vw - var(--space-8)));
-    padding: var(--space-4);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-md);
-    background: var(--c-bg);
-    box-shadow: var(--shadow-md);
-  }
-  /* 데스크톱: 아래 통계·글을 가리지 않게 버튼 오른쪽에 띄운다 */
-  @media (min-width: 901px) {
-    .rss-wrap {
-      position: relative;
-    }
-    .rss-pop {
-      top: 50%;
-      left: calc(100% + var(--space-3));
-      transform: translateY(-50%);
-    }
-  }
-  .rss-help {
-    margin: 0 0 var(--space-3);
-    font-size: var(--fs-xs);
-    line-height: 1.6;
-    color: var(--c-muted);
-  }
-  .rss-row {
-    display: flex;
-    align-items: stretch;
-    gap: var(--space-2);
-  }
-  .rss-url {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    padding: 0.4em 0.6em;
-    font-size: var(--fs-xs);
-    white-space: nowrap;
-    overflow-x: auto;
-  }
-  .rss-copy {
-    flex: none;
-    padding: 0.4em 0.9em;
-    border: none;
-    border-radius: var(--radius-sm);
-    background: var(--c-accent);
-    color: var(--c-accent-contrast);
-    font-family: inherit;
-    font-size: var(--fs-xs);
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .rss-copy:hover {
-    background: var(--c-accent-hover);
   }
 
   /* ── 통계 스트립 ── */
