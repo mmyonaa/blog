@@ -31,13 +31,13 @@ const tags = (await getTagCounts()).slice(0, 8);
 
 // Explore — 사이트 내비게이션 + 프로젝트 링크를 한 컬럼으로.
 const explore = [
-  { label: "홈", href: `${base}/`, ext: false },
-  { label: "분류", href: `${base}/topics/`, ext: false },
-  { label: "글 전체", href: `${base}/blog/`, ext: false },
-  { label: "아카이브", href: `${base}/archive/`, ext: false },
-  { label: "소개", href: `${base}/about/`, ext: false },
-  { label: "소스 코드", href: repo, ext: true },
-  { label: "토론", href: DISCUSSIONS_URL, ext: true },
+  { label: "Home", href: `${base}/`, ext: false },
+  { label: "Topics", href: `${base}/topics/`, ext: false },
+  { label: "Posts", href: `${base}/blog/`, ext: false },
+  { label: "Archive", href: `${base}/archive/`, ext: false },
+  { label: "About", href: `${base}/about/`, ext: false },
+  { label: "Source", href: repo, ext: true },
+  { label: "Discussions", href: DISCUSSIONS_URL, ext: true },
 ];
 ---
 
@@ -103,11 +103,11 @@ const explore = [
             {
               FEEDBACK_ENABLED ? (
                 <button type="button" class="linklike" data-feedback-open>
-                  의견 남기기
+                  Feedback
                 </button>
               ) : (
                 <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                  의견 남기기
+                  Feedback
                 </a>
               )
             }

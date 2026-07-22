@@ -23,14 +23,14 @@ const searchIndexUrl = `${base}/search-index.json`;
             d="M9 3.5a5.5 5.5 0 1 0 3.4 9.82l3.64 3.63a1 1 0 0 0 1.42-1.42l-3.63-3.63A5.5 5.5 0 0 0 9 3.5Zm0 2a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z"
             fill="currentColor"></path>
         </svg>
-        <span class="search-label">검색</span>
+        <span class="search-label">Search</span>
         <kbd class="search-kbd">/</kbd>
       </button>
-      <a href={`${base}/`} class:list={["pill", { active: isHome }]} aria-current={isHome ? "page" : undefined}>홈</a>
-      <a href={`${base}/topics/`} class:list={["pill", { active: isTopics }]} aria-current={isTopics ? "page" : undefined}>분류</a>
-      <a href={`${base}/blog/`} class:list={["pill", { active: isBlog }]} aria-current={isBlog ? "page" : undefined}>글</a>
-      <a href={`${base}/archive/`} class:list={["pill", { active: isArchive }]} aria-current={isArchive ? "page" : undefined}>아카이브</a>
-      <a href={`${base}/about/`} class:list={["pill", { active: isAbout }]} aria-current={isAbout ? "page" : undefined}>소개</a>
+      <a href={`${base}/`} class:list={["pill", { active: isHome }]} aria-current={isHome ? "page" : undefined}>Home</a>
+      <a href={`${base}/topics/`} class:list={["pill", { active: isTopics }]} aria-current={isTopics ? "page" : undefined}>Topics</a>
+      <a href={`${base}/blog/`} class:list={["pill", { active: isBlog }]} aria-current={isBlog ? "page" : undefined}>Posts</a>
+      <a href={`${base}/archive/`} class:list={["pill", { active: isArchive }]} aria-current={isArchive ? "page" : undefined}>Archive</a>
+      <a href={`${base}/about/`} class:list={["pill", { active: isAbout }]} aria-current={isAbout ? "page" : undefined}>About</a>
       <button type="button" class="pill theme-toggle" data-theme-toggle aria-label="테마 전환">
         <svg class="icon-moon" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
           <path d="M16 11.5A6 6 0 1 1 8.5 4a5 5 0 0 0 7.5 7.5Z" fill="currentColor"></path>
