@@ -84,15 +84,6 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
       --hue-on: color-mix(in srgb, var(--hue) 58%, white);
     }
   }
-  /* 카테고리 색 점 — 카드 배지와 같은 --hue를 써서 목록/필터의 색을 맞춘다. */
-  .fl-pill::before {
-    content: "";
-    width: 0.5em;
-    height: 0.5em;
-    border-radius: 50%;
-    background: var(--hue-on);
-    flex: none;
-  }
   /* '전체'는 특정 색이 없으므로 중립(텍스트색). */
   .fl-all {
     --hue: var(--c-text);
@@ -107,9 +98,6 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
     background: var(--hue-on);
     border-color: var(--hue-on);
     color: var(--c-bg);
-  }
-  .fl-pill[aria-current="true"]::before {
-    background: var(--c-bg);
   }
   .fl-count {
     color: var(--c-muted);
