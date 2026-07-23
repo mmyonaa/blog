@@ -20,19 +20,17 @@ const isNew =
 ---
 
 <article class="featured spot-card reveal" style={`--sec-hue: ${hueOf(sec)}`}>
-  <div class="card-head featured-head">
+  <div class="featured-head">
     <a class="card-badge" href={sectionHref(base, sec)} aria-label={sectionLabel(sec)}>
       {initialOf(sec)}
     </a>
-    <div class="card-headtext">
-      {isNew && <span class="badge-new">NEW</span>}
-      <h2 class="featured-title">
-        <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
-      </h2>
-      <span class="featured-when">
-        <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
-      </span>
-    </div>
+    {isNew && <span class="badge-new">NEW</span>}
+    <h2 class="featured-title">
+      <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+    </h2>
+    <span class="featured-when">
+      <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분
+    </span>
   </div>
   {post.data.description && <p class="featured-desc">{post.data.description}</p>}
   {post.data.tags.length > 0 && (
@@ -55,6 +53,33 @@ const isNew =
     flex-direction: column;
     gap: var(--space-4);
     padding: var(--space-5) clamp(1.1rem, 3vw, 1.9rem);
+  }
+  /* 헤더 그리드: 이니셜 배지(col 1)를 제목 행에 아래끝 정렬.
+     NEW·제목·날짜는 col 2에 쌓아 제목 기준으로 들여쓴다. */
+  .featured-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-3);
+    row-gap: 0.15em;
+    align-items: start;
+  }
+  .featured-head .card-badge {
+    grid-column: 1;
+    grid-row: 2; /* 제목 행 */
+    align-self: end; /* 배지 아래끝 = 제목 아래끝 */
+  }
+  .featured-head .badge-new {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .featured-head .featured-title {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0; /* 배지 아래끝을 제목 텍스트 아래끝에 정확히 맞춤(마진은 row-gap이 대신) */
+  }
+  .featured-head .featured-when {
+    grid-column: 2;
+    grid-row: 3;
   }
   /* 리드 배지는 조금 더 크게 */
   .featured .card-badge {
