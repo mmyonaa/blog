@@ -18,6 +18,7 @@ export const SECTIONS = {
   mcp: { label: "MCP·에이전트 만들기", desc: "MCP 서버·에이전트를 만들며 배운 개념과 자동화 여정을 기록하는 메타 블로그" },
   web: { label: "블로그·웹 만들기", desc: "Astro·TypeScript 등 블로그 사이트를 만들며 배운 웹 기술" },
   jeongcheogi: { label: "정처기", desc: "정보처리기사 시험 개념 정리" },
+  algo: { label: "알고리즘", desc: "코딩테스트를 위한 알고리즘·자료구조를 구현 중심으로 정리" },
   security: {
     label: "보안",
     desc: "최근 보안 사고·취약점을 웹 리서치로 종합(Mode R). 시드 없이 자유 주제로 쓴다",
@@ -46,6 +47,12 @@ export const AREAS = {
   SE: { section: "jeongcheogi", label: "소프트웨어공학", desc: "설계·테스트·방법론 등" },
   SEC: { section: "jeongcheogi", label: "정보보안", desc: "암호화·접근통제·보안 3요소 등" },
   PRAC: { section: "jeongcheogi", label: "실기 문제", desc: "C·Java·Python 실기 코딩 문제 풀이" },
+  // ── algo 섹션 ──
+  DS: { section: "algo", label: "자료구조", desc: "배열·스택·큐·해시·트리·힙" },
+  SRT: { section: "algo", label: "정렬·탐색", desc: "이진탐색·정렬 비교·투 포인터" },
+  GRP: { section: "algo", label: "그래프", desc: "BFS/DFS·최단경로·유니온 파인드" },
+  DP: { section: "algo", label: "동적계획법", desc: "메모이제이션·점화식·배낭 문제" },
+  IMP: { section: "algo", label: "그리디·구현", desc: "그리디·완전탐색·시뮬레이션" },
 } as const;
 
 export type AreaId = keyof typeof AREAS;
@@ -122,6 +129,30 @@ export const SEED_TOPICS: Topic[] = [
   { id: "symmetric-asymmetric", area: "SEC", title: "대칭키 vs 비대칭키 암호화", tags: ["정처기", "정보보안", "암호화"] },
   { id: "hash-digital-signature", area: "SEC", title: "해시 함수와 전자서명", tags: ["정처기", "정보보안", "해시"] },
   { id: "access-control", area: "SEC", title: "접근통제 모델 — DAC·MAC·RBAC", tags: ["정처기", "정보보안", "접근통제"] },
+
+  // ── 알고리즘 섹션 (algo) ──
+  // DS — 자료구조
+  { id: "big-o-notation", area: "DS", title: "시간복잡도와 빅오 표기법", tags: ["알고리즘", "시간복잡도", "빅오"] },
+  { id: "array-vs-linked-list", area: "DS", title: "배열 vs 연결 리스트", tags: ["알고리즘", "자료구조", "배열"] },
+  { id: "stack-queue", area: "DS", title: "스택과 큐 — LIFO와 FIFO", tags: ["알고리즘", "자료구조", "스택"] },
+  { id: "hash-table", area: "DS", title: "해시 테이블은 어떻게 O(1)로 찾나", tags: ["알고리즘", "자료구조", "해시"] },
+  { id: "heap-priority-queue", area: "DS", title: "힙과 우선순위 큐", tags: ["알고리즘", "자료구조", "힙"] },
+  { id: "binary-tree-traversal", area: "DS", title: "이진 트리 순회 — 전위·중위·후위", tags: ["알고리즘", "자료구조", "트리"] },
+  // SRT — 정렬·탐색
+  { id: "binary-search", area: "SRT", title: "이진 탐색 — 정렬된 배열에서 O(log n)", tags: ["알고리즘", "이진탐색", "탐색"] },
+  { id: "sorting-algorithms", area: "SRT", title: "정렬 알고리즘 비교 — 버블·병합·퀵", tags: ["알고리즘", "정렬"] },
+  { id: "two-pointers", area: "SRT", title: "투 포인터로 O(n)에 훑기", tags: ["알고리즘", "투포인터", "탐색"] },
+  // GRP — 그래프
+  { id: "bfs-dfs", area: "GRP", title: "BFS와 DFS — 그래프 탐색의 두 축", tags: ["알고리즘", "그래프", "완전탐색"] },
+  { id: "dijkstra", area: "GRP", title: "다익스트라 최단 경로", tags: ["알고리즘", "그래프", "최단경로"] },
+  { id: "union-find", area: "GRP", title: "유니온 파인드 — 서로소 집합", tags: ["알고리즘", "그래프", "유니온파인드"] },
+  // DP — 동적계획법
+  { id: "dp-intro", area: "DP", title: "동적 계획법 입문 — 메모이제이션과 점화식", tags: ["알고리즘", "dp", "메모이제이션"] },
+  { id: "knapsack", area: "DP", title: "배낭 문제 — 0/1 knapsack", tags: ["알고리즘", "dp", "배낭문제"] },
+  // IMP — 그리디·구현
+  { id: "greedy-intro", area: "IMP", title: "그리디 알고리즘 — 언제 최적이 보장되나", tags: ["알고리즘", "그리디"] },
+  { id: "brute-force", area: "IMP", title: "완전 탐색 — 모든 경우를 다 해보기", tags: ["알고리즘", "완전탐색"] },
+  { id: "simulation", area: "IMP", title: "구현·시뮬레이션 문제 접근법", tags: ["알고리즘", "구현", "시뮬레이션"] },
 ];
 
 /** topicId(시드 id) → area. 시드 밖 id면 undefined. publish_post가 area를 자동 도출할 때 쓴다. */

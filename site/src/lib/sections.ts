@@ -11,11 +11,12 @@ export const SECTION_LABELS: Record<string, string> = {
   mcp: "MCP·에이전트 만들기",
   web: "블로그·웹 만들기",
   jeongcheogi: "정처기",
+  algo: "알고리즘",
   security: "보안",
 };
 
 /** 노출 순서. 여기 없는 섹션은 뒤에 이름순으로 붙는다. */
-const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "security"];
+const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "algo", "security"];
 
 /**
  * area id → 한국어 라벨. 서버(server/src/topics.ts)의 AREAS와 맞춘다(사이트는 서버를
@@ -34,6 +35,11 @@ export const AREA_LABELS: Record<string, string> = {
   SE: "소프트웨어공학",
   SEC: "정보보안",
   PRAC: "실기 문제",
+  DS: "자료구조",
+  SRT: "정렬·탐색",
+  GRP: "그래프",
+  DP: "동적계획법",
+  IMP: "그리디·구현",
 };
 
 export const areaLabel = (id: string | undefined): string =>
@@ -50,6 +56,7 @@ export const SECTION_HUE: Record<string, string> = {
   mcp: "#4c93e6", // 블루
   web: "#22beb0", // 틸
   jeongcheogi: "#7b6fe6", // 퍼플
+  algo: "#e05f86", // 로즈
   security: "#f2994a", // 앰버
 };
 
@@ -63,6 +70,7 @@ export const SECTION_BLURB: Record<string, string> = {
   mcp: "MCP 서버와 에이전트를 직접 만들며 배운 것",
   web: "이 블로그를 포함한 웹·프론트엔드 만들기",
   jeongcheogi: "정보처리기사 준비 정리",
+  algo: "코딩테스트를 위한 알고리즘·자료구조 정리",
   security: "웹·시스템 보안과 취약점 파고들기",
 };
 
@@ -77,6 +85,7 @@ export const SECTION_INITIAL: Record<string, string> = {
   mcp: "M",
   web: "W",
   jeongcheogi: "J",
+  algo: "A",
   security: "S",
 };
 
