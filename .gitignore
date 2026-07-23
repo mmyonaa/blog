@@ -15,6 +15,11 @@ dist/
 
 # Playwright MCP: 브라우저 조작 시 자동 생성되는 페이지 스냅샷(로컬 임시)
 .playwright-mcp/
+# 브라우저 스크린샷을 디렉토리 없는 파일명으로 찍으면 레포 루트(cwd)로 떨어진다.
+# .playwright-mcp/ 밖으로 새는 그런 임시 캡처를 잡는 안전망(루트 이미지는 프로젝트 자산이 아님).
+/*.png
+/*.jpg
+/*.jpeg
 
 # Claude Code 로컬 설정 (개인용)
 .claude/settings.local.json
