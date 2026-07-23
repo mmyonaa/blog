@@ -3,6 +3,7 @@ title: "pm2로 무중단 배포하기 — restart 말고 reload"
 pubDate: 2026-07-23T07:06:56Z
 section: "web"
 tags: ["pm2", "무중단배포", "reload", "클러스터", "graceful-shutdown"]
+area: "OPS"
 follows: "2026-07-23-what-is-pm2"
 description: "pm2 restart는 프로세스를 한꺼번에 죽였다 살려 그 사이 요청이 끊긴다. 클러스터 모드에서 reload는 프로세스를 하나씩 교체해 다운타임 없이 배포한다. restart와 reload의 차이, graceful shutdown 처리, 배포 흐름을 정리한다."
 ---

@@ -3,6 +3,7 @@ title: "정처기 실기 Python 코딩 문제 — 슬라이싱과 자료구조 �
 pubDate: 2026-07-20T07:05:40Z
 section: "jeongcheogi"
 tags: ["정처기", "Python", "슬라이싱", "자료구조", "실기"]
+area: "PRAC"
 description: "정처기 실기 Python 문제는 리스트 슬라이싱, 딕셔너리, 얕은 복사 함정을 코드 추적으로 낸다. a[start:stop:step]의 규칙과 참조 복사, 컴프리헨션까지 대표 유형을 실제 출력과 함께 정리한다."
 ---
 

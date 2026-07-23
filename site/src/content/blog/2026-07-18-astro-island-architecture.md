@@ -3,6 +3,7 @@ title: "Astro 아일랜드 아키텍처 — 필요한 곳에만 자바스크립�
 pubDate: 2026-07-18T15:01:16Z
 section: "web"
 tags: ["astro", "island", "performance", "ssg"]
+area: "W"
 description: "페이지 전체를 자바스크립트로 되살리는 대신, 상호작용이 필요한 조각만 섬처럼 띄우는 Astro의 아일랜드 아키텍처. client:* 지시어의 의미부터 섬 사이 상태 공유까지 정리한다."
 ---
 

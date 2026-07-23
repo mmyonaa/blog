@@ -38,12 +38,14 @@ export const AREAS = {
   // ── web 섹션 ──
   B: { section: "web", label: "TS·구현 기법", desc: "TypeScript/Node 기술 팁 (풀이 무한)" },
   W: { section: "web", label: "사이트 구축", desc: "Astro·배포 등 블로그 사이트 만들기" },
+  OPS: { section: "web", label: "인프라·배포", desc: "nginx·pm2 등 서버 운영·무중단 배포" },
   // ── jeongcheogi 섹션 ──
   DB: { section: "jeongcheogi", label: "데이터베이스", desc: "정규화·트랜잭션·인덱스 등" },
   NET: { section: "jeongcheogi", label: "네트워크", desc: "OSI·TCP/UDP·IP 등" },
   OS: { section: "jeongcheogi", label: "운영체제", desc: "프로세스·메모리·스케줄링 등" },
   SE: { section: "jeongcheogi", label: "소프트웨어공학", desc: "설계·테스트·방법론 등" },
   SEC: { section: "jeongcheogi", label: "정보보안", desc: "암호화·접근통제·보안 3요소 등" },
+  PRAC: { section: "jeongcheogi", label: "실기 문제", desc: "C·Java·Python 실기 코딩 문제 풀이" },
 } as const;
 
 export type AreaId = keyof typeof AREAS;

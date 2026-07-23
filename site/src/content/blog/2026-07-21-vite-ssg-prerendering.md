@@ -3,6 +3,7 @@ title: "프리렌더링이란 — vite-ssg가 빌드 때 HTML을 미리 찍어�
 pubDate: 2026-07-21T02:20:02Z
 section: "web"
 tags: ["vite-ssg", "ssg", "vue", "프리렌더", "하이드레이션"]
+area: "W"
 description: "프리렌더링은 빌드 시점에 각 페이지를 완성된 HTML로 미리 만들어 두는 것이다. vite-ssg가 Node 안에서 Vue 앱을 실행해 라우트를 돌고, 동적 경로까지 HTML로 뽑아 파일로 저장하는 과정을 단계별로 짚는다."
 ---
 

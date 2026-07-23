@@ -3,6 +3,7 @@ title: "nginx가 뭔지 — 요청을 받아 나눠주는 웹 서버"
 pubDate: 2026-07-23T07:00:36Z
 section: "web"
 tags: ["nginx", "reverse-proxy", "웹서버", "로드밸런싱"]
+area: "OPS"
 description: "nginx는 들어오는 HTTP 요청을 가장 먼저 받아 정적 파일을 내주거나 뒤쪽 앱으로 넘기는 웹 서버다. 정적 서빙·리버스 프록시·로드 밸런싱이라는 세 가지 역할과, 왜 이벤트 기반 구조로 많은 연결을 견디는지 실제 설정으로 정리한다."
 ---
 

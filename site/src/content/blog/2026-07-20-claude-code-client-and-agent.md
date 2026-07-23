@@ -3,6 +3,7 @@ title: "Claude Code는 MCP 클라이언트이자 에이전트다 — 한 프로�
 pubDate: 2026-07-20T01:35:33Z
 section: "mcp"
 tags: ["mcp", "에이전트", "claude code", "개념"]
+area: "C"
 description: "Claude Code는 MCP 클라이언트인가, 에이전트인가? 둘 다다. 층위가 다른 두 역할이 우연히 같은 소프트웨어에 담겨 있을 뿐이다. 프로토콜 역할과 런타임 역할을 분리해 본다."
 ---
 

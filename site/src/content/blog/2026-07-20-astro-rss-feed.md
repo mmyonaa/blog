@@ -3,6 +3,7 @@ title: "Astro 블로그에 RSS 피드 달기 — 정적 사이트와 RSS는 찰�
 pubDate: 2026-07-20T05:01:17Z
 section: "web"
 tags: ["rss", "astro", "ssg", "피드"]
+area: "W"
 description: "뉴스레터도 알고리즘도 없이 새 글을 독자에게 알리는 가장 오래된 방법, RSS. 정적 블로그와 RSS가 왜 잘 맞는지 짚고, @astrojs/rss로 피드 엔드포인트를 실제 코드로 만들어본다."
 ---
 

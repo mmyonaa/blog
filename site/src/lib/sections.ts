@@ -27,11 +27,13 @@ export const AREA_LABELS: Record<string, string> = {
   C: "MCP·LLM 해설",
   B: "TS·구현 기법",
   W: "사이트 구축",
+  OPS: "인프라·배포",
   DB: "데이터베이스",
   NET: "네트워크",
   OS: "운영체제",
   SE: "소프트웨어공학",
   SEC: "정보보안",
+  PRAC: "실기 문제",
 };
 
 export const areaLabel = (id: string | undefined): string =>

@@ -3,6 +3,7 @@ title: "nginx에 HTTPS 붙이기 — Let's Encrypt로 무료 인증서와 SSL �
 pubDate: 2026-07-23T07:06:19Z
 section: "web"
 tags: ["nginx", "https", "lets-encrypt", "certbot", "ssl"]
+area: "OPS"
 follows: "2026-07-23-what-is-nginx"
 description: "nginx를 앞단에 두면 HTTPS 처리를 거기서 끝낼 수 있다(SSL 종료). Let's Encrypt와 certbot으로 무료 인증서를 발급·자동 갱신하고, 80→443 리다이렉트까지 실제 설정으로 붙여본다."
 ---

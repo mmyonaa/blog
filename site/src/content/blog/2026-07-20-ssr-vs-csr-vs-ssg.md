@@ -3,6 +3,7 @@ title: "SSR vs CSR vs SSG — 완성된 HTML은 누가, 언제 만드는가"
 pubDate: 2026-07-20T06:09:06Z
 section: "web"
 tags: ["ssr", "csr", "ssg", "렌더링", "seo"]
+area: "W"
 description: "SSR·CSR·SSG는 결국 \"완성된 HTML을 누가, 언제 만드는가\"라는 한 질문에 대한 세 가지 대답이다. 브라우저에 도착하는 것의 차이부터 트레이드오프, 하이드레이션, 페이지 단위 선택 기준까지 비교해 정리한다."
 ---
 
