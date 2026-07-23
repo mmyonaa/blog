@@ -137,7 +137,7 @@ const vlines = cats.flatMap((cat) =>
     .map((c) => {
       const ys = colYs.get(c);
       return ys && ys.length
-        ? { x: colX(c), y1: Math.min(...ys), y2: Math.max(...ys), hue: cat.hue }
+        ? { x: colX(c), y1: Math.min(...ys), y2: Math.max(...ys), hue: cat.hue, sec: cat.id }
         : null;
     })
     .filter((v): v is NonNullable<typeof v> => v !== null),
@@ -150,7 +150,7 @@ const curve = (x1: number, y1: number, x2: number, y2: number) => {
 };
 
 // ── 가지 bud/merge: 각 area 가지가 트렁크에서 갈라져 나오고(위) 되돌아온다(아래) ──
-type GLink = { d: string; hue: string; kind: "branch" | "follows"; cross?: boolean };
+type GLink = { d: string; hue: string; kind: "branch" | "follows"; cross?: boolean; sec: string };
 const links: GLink[] = [];
 for (const cat of cats) {
   const trunkX = colX(cat.trunk);
@@ -160,23 +160,25 @@ for (const cat of cats) {
     const bot = Math.max(...ys); // 가지의 오래된 노드
     const bx = colX(b.col);
     // 갈라짐: 트렁크의 조금 위 지점 → 가지 최신 노드
-    links.push({ d: curve(trunkX, Math.max(0, top - ROW_H), bx, top), hue: cat.hue, kind: "branch" });
+    links.push({ d: curve(trunkX, Math.max(0, top - ROW_H), bx, top), hue: cat.hue, kind: "branch", sec: cat.id });
     // 복귀: 가지 오래된 노드 → 트렁크의 조금 아래 지점
-    links.push({ d: curve(bx, bot, trunkX, Math.min(totalH, bot + ROW_H)), hue: cat.hue, kind: "branch" });
+    links.push({ d: curve(bx, bot, trunkX, Math.min(totalH, bot + ROW_H)), hue: cat.hue, kind: "branch", sec: cat.id });
   }
 }
 
 // ── 후속(follows): 자식→부모. 컬럼이 다르면 곡선으로(같은 컬럼이면 세로선이 이미 잇는다) ──
-const followsLinks: { d: string; hue: string; cross: boolean; a: string; b: string }[] = [];
+const followsLinks: { d: string; hue: string; cross: boolean; a: string; b: string; secA: string; secB: string }[] = [];
 for (const p of posts) {
   const par = p.data.follows;
   if (!par || !cyById.has(par)) continue;
   const ca = postCol.get(p.id)!;
   const cb = postCol.get(par)!;
-  const hue = hueOf(secOf.get(p.id)!);
-  const cross = secOf.get(p.id) !== secOf.get(par);
+  const secA = secOf.get(p.id)!;
+  const secB = secOf.get(par)!;
+  const hue = hueOf(secA);
+  const cross = secA !== secB;
   const d = curve(colX(ca), cyById.get(p.id)!, colX(cb), cyById.get(par)!);
-  followsLinks.push({ d, hue, cross, a: p.id, b: par });
+  followsLinks.push({ d, hue, cross, a: p.id, b: par, secA, secB });
 }
 ---
 
@@ -196,13 +198,19 @@ for (const p of posts) {
     <div class="lg-group">
       {
         lanes.map((l) => (
-          <a class="lg" href={sectionHref(base, l.id)} style={`--hue: ${l.hue}`}>
+          <a
+            class="lg"
+            href={sectionHref(base, l.id)}
+            data-sec={l.id}
+            style={`--hue: ${l.hue}`}
+          >
             <span class="lg-dot" />
             <span class="lg-name">{l.label}</span>
             <span class="lg-count">{l.count}</span>
           </a>
         ))
       }
+      <button type="button" class="lg-reset" hidden>필터 해제 <span aria-hidden="true">✕</span></button>
     </div>
     <div class="lg-edges" aria-hidden="true">
       <span class="lg-edge"><svg width="24" height="12"><path d="M2 2 v4 q0 4 4 4 h12" class="k-branch" /></svg>세부 갈래</span>
@@ -243,13 +251,14 @@ for (const p of posts) {
               y1={l.y1}
               x2={l.x}
               y2={l.y2}
+              data-sec={l.sec}
               style={`--hue: ${l.hue}`}
             />
           ))}
 
           {/* 가지 갈라짐/복귀 곡선 */}
           {links.map((l) => (
-            <path class="branch" d={l.d} style={`--hue: ${l.hue}`} />
+            <path class="branch" d={l.d} data-sec={l.sec} style={`--hue: ${l.hue}`} />
           ))}
 
           {/* 후속 곡선(화살표) */}
@@ -259,6 +268,8 @@ for (const p of posts) {
               d={l.d}
               data-a={l.a}
               data-b={l.b}
+              data-sec-a={l.secA}
+              data-sec-b={l.secB}
               style={`--hue: ${l.hue}`}
               marker-end="url(#arw)"
             />
@@ -274,6 +285,7 @@ for (const p of posts) {
                   cy={r.cy}
                   r={NODE_R}
                   data-id={r.id}
+                  data-sec={r.sec}
                   style={`--hue: ${r.hue}`}
                 />
               ),
@@ -292,6 +304,7 @@ for (const p of posts) {
                 class="grow post"
                 href={`${base}/blog/${r.id}/`}
                 data-id={r.id}
+                data-sec={r.sec}
                 style={`height: ${r.h}px; --hue: ${r.hue}`}
               >
                 <span class="ptitle">{r.title}</span>
@@ -343,6 +356,48 @@ for (const p of posts) {
       el.addEventListener("focusin", () => focus(id));
       el.addEventListener("focusout", clear);
     }
+
+    // ── 카테고리 필터: 범례 클릭 → 그 카테고리만 남기고 나머지를 흐린다.
+    //    같은 카테고리를 다시 클릭하면 해제. (좌표 고정 그래프라 '숨김' 대신 '흐림') ──
+    const legend = document.querySelector<HTMLElement>(".legend");
+    const legendEls = legend
+      ? [...legend.querySelectorAll<HTMLElement>(".lg[data-sec]")]
+      : [];
+    // 세로선·가지·노드·글행처럼 단일 카테고리를 가진 요소들.
+    const secEls = [...graph.querySelectorAll<HTMLElement>("[data-sec]")];
+    // 후속 곡선은 양끝 카테고리로 판정(한 카테고리 안에서만 완전히 표시).
+    const followEls = [...graph.querySelectorAll<SVGPathElement>("path.follows")];
+    const resetBtn = legend?.querySelector<HTMLButtonElement>(".lg-reset");
+    let activeFilter: string | null = null;
+
+    const applyFilter = (sec: string | null) => {
+      activeFilter = sec;
+      graph.classList.toggle("filtered", !!sec);
+      legend?.classList.toggle("filtering", !!sec);
+      if (resetBtn) resetBtn.hidden = !sec;
+      for (const el of secEls)
+        el.classList.toggle("dim", !!sec && el.dataset.sec !== sec);
+      for (const p of followEls) {
+        const within = p.dataset.secA === sec && p.dataset.secB === sec;
+        p.classList.toggle("dim", !!sec && !within);
+      }
+      for (const l of legendEls) {
+        l.classList.toggle("sel", l.dataset.sec === sec);
+        l.classList.toggle("off", !!sec && l.dataset.sec !== sec);
+      }
+    };
+
+    for (const l of legendEls) {
+      l.addEventListener("click", (e) => {
+        e.preventDefault(); // 카테고리 페이지로 이동 대신 그래프를 필터링
+        applyFilter(activeFilter === l.dataset.sec ? null : l.dataset.sec!);
+      });
+    }
+    // 명시적 해제: 버튼 클릭 또는 Esc.
+    resetBtn?.addEventListener("click", () => applyFilter(null));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && activeFilter) applyFilter(null);
+    });
   }
 </script>
 
@@ -508,6 +563,57 @@ for (const p of posts) {
   }
   .graph.focused .post:not(.active) {
     opacity: 0.4;
+  }
+
+  /* ── 카테고리 필터(범례 클릭 → 선택 카테고리만 남기고 흐림) ── */
+  .graph.filtered .vline.dim,
+  .graph.filtered .branch.dim {
+    opacity: 0.07;
+  }
+  .graph.filtered .node.dim {
+    opacity: 0.13;
+  }
+  .graph.filtered .follows.dim {
+    opacity: 0.05;
+  }
+  .graph.filtered .post.dim {
+    opacity: 0.3;
+  }
+  /* 범례 선택/비선택 상태 */
+  .lg {
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .lg.off {
+    opacity: 0.4;
+  }
+  .lg.sel .lg-name {
+    color: var(--hue-on);
+  }
+  .lg.sel .lg-dot {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--hue-on) 30%, transparent);
+  }
+  /* 필터 해제 버튼 — 필터가 걸렸을 때만(hidden 해제) 나타난다. */
+  .lg-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    padding: 0.1em 0.7em;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    background: var(--c-surface);
+    color: var(--c-muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .lg-reset:hover {
+    color: var(--c-accent);
+    border-color: var(--c-accent);
+  }
+  .lg-reset[hidden] {
+    display: none;
   }
 
   /* ── 텍스트 행 ── */
