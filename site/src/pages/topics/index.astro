@@ -20,14 +20,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     sections.length === 0 ? (
       <p class="muted">아직 카테고리가 없습니다.</p>
     ) : (
-      <div class="sec-grid">
+      <ul class="sec-toc">
         {sections.map((s) => (
-          <a class="sec-card" href={sectionHref(base, s.id)} style={`--hue: ${hueOf(s.id)}`}>
-            <span class="sec-name">{s.label}</span>
-            <span class="sec-count">{s.count}편</span>
-          </a>
+          <li class="sec-row" style={`--hue: ${hueOf(s.id)}`}>
+            <a class="sec-link" href={sectionHref(base, s.id)}>
+              <span class="sec-name">{s.label}</span>
+              <span class="sec-leader" aria-hidden="true" />
+              <span class="sec-count">{s.count}편</span>
+              <span class="sec-arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
         ))}
-      </div>
+      </ul>
     )
   }
 
@@ -52,49 +56,76 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     font-size: var(--fs-lg);
     margin: var(--space-8) 0 var(--space-4);
   }
-  .sec-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
+  /* 카테고리 — 책 '차례'식 점선 리더 목록. 카드·컬러보더 없이,
+     카테고리 색(--hue)은 hover에만 절제해서 드러낸다. */
+  .sec-toc {
+    list-style: none;
+    margin: var(--space-5) 0 0;
+    padding: 0;
   }
-  .sec-card {
-    /* 좌측 보더에 칠하는 실제 색. 다크 그라운드에선 어두운 hue가 묻히므로 밝게 보정한다.
-       (--hue는 요소 인라인 style로 오므로, 여기서 파생색 --hue-on을 따로 만든다.) */
+  .sec-row {
+    /* --hue는 인라인 style로 주입. 다크에선 채도를 낮춘 파생색으로 보정. */
     --hue-on: var(--hue, var(--c-accent));
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-3);
-    padding: var(--space-4) var(--space-5);
-    border-top: 1px solid var(--c-border);
-    border-left: 3px solid var(--hue-on);
-    color: var(--c-text);
-    text-decoration: none;
-    transition: color 0.15s ease, border-left-color 0.15s ease;
+    border-bottom: 1px solid var(--c-border);
   }
-  :global(:root[data-theme="dark"]) .sec-card {
+  .sec-row:first-child {
+    border-top: 1px solid var(--c-border);
+  }
+  :global(:root[data-theme="dark"]) .sec-row {
     --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .sec-card {
+    :global(:root:not([data-theme="light"])) .sec-row {
       --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
     }
   }
-  .sec-card:hover {
-    color: var(--hue-on);
+  .sec-link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--space-4) 0;
+    color: var(--c-text);
+    text-decoration: none;
   }
   .sec-name {
-    font-size: var(--fs-lg);
+    flex: none;
+    font-size: var(--fs-xl);
     font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  /* 점선 리더 — 이름과 편수 사이를 점선으로 채운다(차례 특유의 결). */
+  .sec-leader {
+    flex: 1;
+    align-self: flex-end;
+    height: 0;
+    margin-bottom: 0.35em;
+    border-bottom: 1px dotted var(--c-border);
   }
   .sec-count {
-    color: var(--c-accent);
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
     font-weight: 700;
+    color: var(--c-muted);
+    font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
-  @media (max-width: 640px) {
-    .sec-grid {
-      grid-template-columns: 1fr;
+  .sec-arrow {
+    flex: none;
+    color: var(--c-muted);
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+  .sec-link:hover .sec-name,
+  .sec-link:hover .sec-count,
+  .sec-link:hover .sec-arrow {
+    color: var(--hue-on);
+  }
+  .sec-link:hover .sec-arrow {
+    transform: translateX(4px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sec-arrow {
+      transition: color 0.15s ease;
     }
   }
   .taglist {
