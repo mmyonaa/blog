@@ -255,6 +255,16 @@ const explore = [
     font-size: var(--fs-base);
     font-weight: 700;
   }
+  /* 다크: raw 카테고리 색이 튀므로 명도를 중간대로 낮추고 채도를 줄인다
+     (흰 글자 대비 유지 위해 밝게가 아닌 muted 중간톤으로). */
+  :global(:root[data-theme="dark"]) .latest-tile {
+    background: oklch(from var(--tile, var(--c-accent)) 0.56 calc(c * 0.5) h);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .latest-tile {
+      background: oklch(from var(--tile, var(--c-accent)) 0.56 calc(c * 0.5) h);
+    }
+  }
   .latest-text {
     display: flex;
     flex-direction: column;

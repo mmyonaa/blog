@@ -85,11 +85,11 @@ const TAG_MAX = 3;
       transform 0.15s ease;
   }
   :global(:root[data-theme="dark"]) .related-item {
-    --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+    --hue-on: oklch(from var(--hue) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .related-item {
-      --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+      --hue-on: oklch(from var(--hue) 0.78 calc(c * 0.52) h);
     }
   }
   .related-item:hover {

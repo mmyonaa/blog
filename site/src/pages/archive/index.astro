@@ -382,7 +382,7 @@ for (const p of posts) {
   :global(:root[data-theme="dark"]) .follows,
   :global(:root[data-theme="dark"]) .node,
   :global(:root[data-theme="dark"]) .post {
-    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+    --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .lg,
@@ -391,7 +391,7 @@ for (const p of posts) {
     :global(:root:not([data-theme="light"])) .follows,
     :global(:root:not([data-theme="light"])) .node,
     :global(:root:not([data-theme="light"])) .post {
-      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
+      --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
     }
   }
   .lg-dot {

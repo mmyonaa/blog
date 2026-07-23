@@ -48,11 +48,11 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
     text-decoration: none;
   }
   :global(:root[data-theme="dark"]) .st-row {
-    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 62%, white);
+    --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .st-row {
-      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 62%, white);
+      --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
     }
   }
 

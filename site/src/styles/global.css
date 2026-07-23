@@ -94,12 +94,13 @@
     --c-text: #e6e7ec;
     --c-muted: #9a9ca6;
 
-    --c-accent: #ff6f86;
-    --c-accent-hover: #ff8a9c;
+    /* 다크에선 채도를 낮춘 소프트 로즈로(쨍한 핑크가 튀는 걸 완화). */
+    --c-accent: #ef7c8e;
+    --c-accent-hover: #f594a3;
     --c-accent-contrast: #1c0e12;
     --c-accent-soft: #2b1a20;
 
-    --grad-1: #ff6f86;
+    --grad-1: #ef7c8e;
     --grad-2: #ff9aa8;
     --grad-3: #ffc2cb;
 
@@ -123,11 +124,11 @@
   --c-border: #30333e;
   --c-text: #e6e7ec;
   --c-muted: #9a9ca6;
-  --c-accent: #ff6f86;
-  --c-accent-hover: #ff8a9c;
+  --c-accent: #ef7c8e;
+  --c-accent-hover: #f594a3;
   --c-accent-contrast: #1c0e12;
   --c-accent-soft: #2b1a20;
-  --grad-1: #ff6f86;
+  --grad-1: #ef7c8e;
   --grad-2: #ff9aa8;
   --grad-3: #ffc2cb;
   --c-code-bg: #14141b;

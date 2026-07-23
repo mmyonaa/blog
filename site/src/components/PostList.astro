@@ -59,11 +59,11 @@ const href = (id: string) => `${base}/blog/${id}/`;
     border-bottom: 1px solid var(--c-border);
   }
   :global(:root[data-theme="dark"]) .post-item {
-    --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+    --hue-on: oklch(from var(--hue) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .post-item {
-      --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+      --hue-on: oklch(from var(--hue) 0.78 calc(c * 0.52) h);
     }
   }
   /* 색 정사각형 배지(이니셜) — 글자색 var(--c-bg)로 대비 확보 */

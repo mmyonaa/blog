@@ -57,11 +57,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     padding-top: 0;
   }
   :global(:root[data-theme="dark"]) .tr-item {
-    --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+    --hue-on: oklch(from var(--hue) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .tr-item {
-      --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+      --hue-on: oklch(from var(--hue) 0.78 calc(c * 0.52) h);
     }
   }
   /* 배지 글자색 var(--c-bg): --hue-on과 명도가 항상 반대라 대비 확보 */

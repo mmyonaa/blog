@@ -50,7 +50,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .spot-card {
-    --sec-on: color-mix(in srgb, var(--sec-hue, var(--c-accent)) 58%, white);
+    --sec-on: oklch(from var(--sec-hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
   }
 }
 :root[data-theme="dark"] .spot-card {

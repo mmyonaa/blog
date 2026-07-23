@@ -73,11 +73,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     transition: color 0.15s ease, border-left-color 0.15s ease;
   }
   :global(:root[data-theme="dark"]) .sec-card {
-    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 60%, white);
+    --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .sec-card {
-      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 60%, white);
+      --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
     }
   }
   .sec-card:hover {

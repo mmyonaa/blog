@@ -77,11 +77,11 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
     --hue-on: var(--hue);
   }
   :global(:root[data-theme="dark"]) .fl-pill {
-    --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+    --hue-on: oklch(from var(--hue) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
     :global(:root:not([data-theme="light"])) .fl-pill {
-      --hue-on: color-mix(in srgb, var(--hue) 58%, white);
+      --hue-on: oklch(from var(--hue) 0.78 calc(c * 0.52) h);
     }
   }
   /* '전체'는 특정 색이 없으므로 중립(텍스트색). */
