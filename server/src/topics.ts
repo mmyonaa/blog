@@ -132,7 +132,7 @@ export const SEED_TOPICS: Topic[] = [
 
   // ── 알고리즘 섹션 (algo) ──
   // DS — 자료구조
-  { id: "big-o-notation", area: "DS", title: "시간복잡도와 빅오 표기법", tags: ["알고리즘", "시간복잡도", "빅오"] },
+  { id: "big-o-notation", area: "DS", title: "시간복잡도와 Big-O 표기법", tags: ["알고리즘", "시간복잡도", "Big-O"] },
   { id: "array-vs-linked-list", area: "DS", title: "배열 vs 연결 리스트", tags: ["알고리즘", "자료구조", "배열"] },
   { id: "stack-queue", area: "DS", title: "스택과 큐 — LIFO와 FIFO", tags: ["알고리즘", "자료구조", "스택"] },
   { id: "hash-table", area: "DS", title: "해시 테이블은 어떻게 O(1)로 찾나", tags: ["알고리즘", "자료구조", "해시"] },
