@@ -1,0 +1,424 @@
+---
+// MCP 발행 워크플로를 '오비탈(궤도)'로 시각화한다.
+// 중심 = MCP 서버, 궤도 = 글 한 편이 만들어지는 6단계(주제 참조 → 기존 글 참조 →
+// 집필 → 검수 → 발행 → 빌드). 신호가 궤도를 돌며 각 단계를 밝히고 캡션이 설명한다.
+// 참고: portfolio 레포 AnalysisPipeline.vue(SentiveX)의 스텝 하이라이트 + 캡션 패턴.
+interface OrbitNode {
+  kind: string;
+  name: string;
+  tool: string;
+  desc: string;
+}
+
+const NODES: OrbitNode[] = [
+  {
+    kind: "Tools",
+    name: "주제 참조",
+    tool: "suggest_topic",
+    desc: "카테고리별 시드 주제를 제안받고, area·관계(follows/related) 힌트로 오늘 무엇을 쓸지 좁힙니다.",
+  },
+  {
+    kind: "Resources",
+    name: "기존 글 참조",
+    tool: "blog://posts",
+    desc: "이미 쓴 글의 제목·태그를 먼저 읽어, 중복 주제를 피하고 태그 표기를 통일합니다.",
+  },
+  {
+    kind: "Prompts",
+    name: "집필",
+    tool: "write_daily_post",
+    desc: "분량·톤·구조 지침이 통째로 담긴 프롬프트를 따라 초안을 씁니다.",
+  },
+  {
+    kind: "Tools",
+    name: "검수",
+    tool: "publish_post 검증",
+    desc: "섹션·영문 slug·태그 3~5개·최소 분량을 도구가 검증합니다. 미달이면 거부돼, 보완해서 다시 호출해요.",
+  },
+  {
+    kind: "Tools",
+    name: "발행",
+    tool: ".md 저장",
+    desc: "프론트매터(제목·날짜·카테고리·태그)를 생성하고 마크다운 파일로 저장합니다.",
+  },
+  {
+    kind: "Build",
+    name: "빌드",
+    tool: "Astro SSG",
+    desc: "Astro가 마크다운을 정적 사이트로 빌드해 배포합니다 — 지금 보는 이 페이지처럼.",
+  },
+];
+
+const N = NODES.length;
+const R = 38; // 궤도 반지름(스테이지 대비 %)
+const nodes = NODES.map((n, i) => {
+  const phi = (i / N) * 360; // 12시에서 시계방향
+  const rad = ((phi - 90) * Math.PI) / 180;
+  const x = 50 + R * Math.cos(rad);
+  const y = 50 + R * Math.sin(rad);
+  return { ...n, i, phi, x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 };
+});
+---
+
+<figure class="orbit">
+  <div class="orbit-bar">
+    <span class="orbit-live"><i class="orbit-dot" aria-hidden="true"></i>LIVE · PUBLISH_FLOW</span>
+    <span class="orbit-tag">MCP · 이 프로젝트</span>
+  </div>
+
+  <div class="orbit-stage">
+    <div class="orbit-rings" aria-hidden="true">
+      <span class="orbit-ring orbit-ring-outer"></span>
+      <span class="orbit-ring orbit-ring-inner"></span>
+    </div>
+
+    <div class="orbit-hub">
+      <span class="orbit-hub-tag">서버</span>
+      <b>MCP 서버</b>
+      <span class="orbit-hub-sub">stdio · JSON-RPC</span>
+    </div>
+
+    {
+      nodes.map((n) => (
+        <div
+          class="orbit-sat"
+          data-i={n.i}
+          data-name={n.name}
+          data-tool={n.tool}
+          data-desc={n.desc}
+          data-x={n.x}
+          data-y={n.y}
+          style={`left:${n.x}%;top:${n.y}%`}
+        >
+          <span class="orbit-sat-kind">{n.kind}</span>
+          <span class="orbit-sat-name">{n.name}</span>
+        </div>
+      ))
+    }
+
+    <div class="orbit-pulse" aria-hidden="true"></div>
+  </div>
+
+  <div class="orbit-caption" aria-live="polite">
+    <span class="orbit-cap-head">
+      <span class="orbit-cap-tool">suggest_topic</span>
+      <span class="orbit-cap-name">주제 참조</span>
+    </span>
+    <span class="orbit-cap-text">
+      카테고리별 시드 주제를 제안받고, area·관계(follows/related) 힌트로 오늘 무엇을 쓸지 좁힙니다.
+    </span>
+  </div>
+</figure>
+
+<script>
+  // 스텝 하이라이트 — 신호가 궤도의 단계를 순서대로 밝히고 캡션을 갱신한다.
+  // View Transitions 재진입까지 고려해 astro:page-load + 초기 1회 모두에서 초기화(타이머 중복 방지).
+  function initOrbits() {
+    document.querySelectorAll<HTMLElement>(".orbit").forEach((fig) => {
+      const f = fig as HTMLElement & { __orbitTimer?: number | null };
+      if (f.__orbitTimer) {
+        clearInterval(f.__orbitTimer);
+        f.__orbitTimer = null;
+      }
+      const sats = [...fig.querySelectorAll<HTMLElement>(".orbit-sat")];
+      if (!sats.length) return;
+      const pulse = fig.querySelector<HTMLElement>(".orbit-pulse");
+      const nameEl = fig.querySelector<HTMLElement>(".orbit-cap-name");
+      const toolEl = fig.querySelector<HTMLElement>(".orbit-cap-tool");
+      const textEl = fig.querySelector<HTMLElement>(".orbit-cap-text");
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const apply = (idx: number) => {
+        sats.forEach((s, k) => s.classList.toggle("is-active", k === idx));
+        const s = sats[idx];
+        if (pulse) {
+          pulse.style.left = (s.dataset.x || "50") + "%";
+          pulse.style.top = (s.dataset.y || "50") + "%";
+        }
+        if (nameEl) nameEl.textContent = s.dataset.name || "";
+        if (toolEl) toolEl.textContent = s.dataset.tool || "";
+        if (textEl) textEl.textContent = s.dataset.desc || "";
+      };
+
+      // reduced-motion: '집필' 단계에 멈춰 대표 상태만 보여준다.
+      let i = reduce ? Math.min(2, sats.length - 1) : 0;
+      apply(i);
+      if (!reduce) {
+        f.__orbitTimer = window.setInterval(() => {
+          i = (i + 1) % sats.length;
+          apply(i);
+        }, 1900);
+      }
+    });
+  }
+
+  document.addEventListener("astro:page-load", initOrbits);
+  // ClientRouter가 없는 경우를 대비해 최초 1회 직접 실행.
+  if (document.readyState !== "loading") initOrbits();
+  else document.addEventListener("DOMContentLoaded", initOrbits);
+</script>
+
+<style>
+  /* ══════════════════════════════════════════════════════════
+     MCP 오비탈 — 중심(서버) 둘레를 발행 6단계가 궤도로 돈다.
+     점선 링이 천천히 회전해 궤도감을 주고, 신호(pulse)가 단계를 순서대로 밝힌다.
+     ══════════════════════════════════════════════════════════ */
+  .orbit {
+    margin: var(--space-5) 0;
+    padding: var(--space-4);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(
+          circle,
+          color-mix(in srgb, var(--c-muted) 18%, transparent) 0.6px,
+          transparent 0.6px
+        )
+        0 0 / 22px 22px,
+      var(--c-surface);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  /* ── 헤더 바 ── */
+  .orbit-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--c-muted);
+    padding-bottom: var(--space-3);
+  }
+  .orbit-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    color: var(--c-text);
+  }
+  .orbit-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--c-accent);
+    box-shadow: 0 0 8px var(--c-accent);
+    animation: orbit-blink 1.4s ease-in-out infinite;
+  }
+  .orbit-tag {
+    text-transform: uppercase;
+  }
+
+  /* ── 스테이지(정사각 궤도판) ── */
+  .orbit-stage {
+    position: relative;
+    width: 100%;
+    max-width: 30rem;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .orbit-rings {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .orbit-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px dashed color-mix(in srgb, var(--c-border) 90%, var(--c-accent));
+  }
+  /* 바깥 링(노드가 앉는 궤도)이 천천히 회전 — 점선이 흐르며 궤도감을 준다. */
+  .orbit-ring-outer {
+    width: 76%;
+    height: 76%;
+    animation: orbit-spin 42s linear infinite;
+  }
+  .orbit-ring-inner {
+    width: 46%;
+    height: 46%;
+    opacity: 0.6;
+    animation: orbit-spin 60s linear infinite reverse;
+  }
+
+  /* ── 중심 허브(서버) ── */
+  .orbit-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15em;
+    width: 9.75rem;
+    max-width: 46%;
+    padding: var(--space-3);
+    text-align: center;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    background: var(--c-surface);
+    box-shadow: var(--shadow-md);
+  }
+  .orbit-hub-tag {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--c-accent);
+  }
+  .orbit-hub b {
+    font-size: var(--fs-base);
+    letter-spacing: -0.01em;
+  }
+  .orbit-hub-sub {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    white-space: nowrap;
+  }
+
+  /* ── 궤도 노드(단계) ── */
+  .orbit-sat {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1em;
+    min-width: 5.5rem;
+    padding: 0.4em 0.7em;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    background: var(--c-surface);
+    text-align: center;
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.35s ease,
+      transform 0.35s ease;
+  }
+  .orbit-sat-kind {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    color: var(--c-muted);
+  }
+  .orbit-sat-name {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .orbit-sat.is-active {
+    border-color: var(--c-accent);
+    box-shadow:
+      0 0 0 1px var(--c-accent),
+      0 8px 24px color-mix(in srgb, var(--c-accent) 22%, transparent);
+    transform: translate(-50%, -50%) scale(1.05);
+    z-index: 4;
+  }
+  .orbit-sat.is-active .orbit-sat-kind {
+    color: var(--c-accent);
+  }
+
+  /* ── 신호(pulse) — 활성 단계로 미끄러지는 글로우 점 ── */
+  .orbit-pulse {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background: var(--c-accent);
+    box-shadow: 0 0 14px 4px color-mix(in srgb, var(--c-accent) 55%, transparent);
+    transform: translate(-50%, -50%);
+    transition:
+      left 1.1s cubic-bezier(0.5, 0, 0.2, 1),
+      top 1.1s cubic-bezier(0.5, 0, 0.2, 1);
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  /* ── 캡션(현재 단계 설명) ── */
+  .orbit-caption {
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--c-accent) 6%, var(--c-surface));
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    min-height: 4.5rem;
+  }
+  .orbit-cap-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+    flex-wrap: wrap;
+  }
+  .orbit-cap-tool {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-accent);
+    background: var(--c-accent-soft);
+    padding: 0.1em 0.5em;
+    border-radius: var(--radius-pill);
+  }
+  .orbit-cap-name {
+    font-size: var(--fs-base);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .orbit-cap-text {
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--c-muted);
+  }
+
+  @keyframes orbit-spin {
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+  @keyframes orbit-blink {
+    50% {
+      opacity: 0.25;
+    }
+  }
+
+  /* 모바일: 궤도판을 줄이고 노드 카드를 더 콤팩트하게. */
+  @media (max-width: 640px) {
+    .orbit-stage {
+      max-width: 21rem;
+    }
+    .orbit-sat {
+      min-width: 0;
+      padding: 0.3em 0.5em;
+    }
+    .orbit-sat-name {
+      font-size: var(--fs-xs);
+    }
+    .orbit-hub {
+      width: 7rem;
+    }
+  }
+
+  /* 모션 최소화: 링 회전·신호 이동·깜빡임 정지(스텝 순환은 스크립트가 중단). */
+  @media (prefers-reduced-motion: reduce) {
+    .orbit-ring,
+    .orbit-dot {
+      animation: none;
+    }
+    .orbit-pulse,
+    .orbit-sat {
+      transition: none;
+    }
+  }
+</style>
