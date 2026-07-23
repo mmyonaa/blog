@@ -261,6 +261,23 @@ pre:hover .code-copy,
   color: var(--c-accent);
   border-color: var(--c-accent);
 }
+/* 코드블록 좌상단 언어 라벨 — Shiki가 붙인 data-language를 그대로 표시.
+   언어 없는 블록(plaintext/text)에는 라벨도, 여분의 상단 여백도 주지 않는다. */
+.astro-code:not([data-language="plaintext"]):not([data-language="text"]) {
+  padding-top: calc(var(--space-4) + 0.55rem);
+}
+.astro-code:not([data-language="plaintext"]):not([data-language="text"])::before {
+  content: attr(data-language);
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-4);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  opacity: 0.6;
+  pointer-events: none;
+}
 pre code {
   background: none;
   padding: 0;
