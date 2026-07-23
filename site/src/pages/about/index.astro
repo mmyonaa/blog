@@ -4,13 +4,7 @@
 // 만든 사람 정보는 lib/author.ts, 카테고리 소개는 lib/sections.ts가 단일 출처.
 import Base from "../../layouts/Base.astro";
 import { AUTHOR, REPO_URL } from "../../lib/author.ts";
-import {
-  getSectionCounts,
-  sectionHref,
-  hueOf,
-  initialOf,
-  blurbOf,
-} from "../../lib/sections.ts";
+import { getSectionCounts, sectionHref, hueOf, blurbOf } from "../../lib/sections.ts";
 import { getCollection } from "astro:content";
 import { fmtDate } from "../../lib/date.ts";
 
@@ -73,19 +67,19 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
 
   <h2>무엇을 쓰나</h2>
   <p class="muted">배우는 큰 줄기를 네 갈래로 나눠 씁니다.</p>
-  <div class="ab-cats">
+  <dl class="ab-gloss">
     {
       sections.map((s) => (
-        <a class="ab-cat" href={sectionHref(base, s.id)} style={`--hue: ${hueOf(s.id)}`}>
-          <span class="ab-cat-badge">{initialOf(s.id)}</span>
-          <span class="ab-cat-body">
-            <span class="ab-cat-name">{s.label} <span class="ab-cat-count">{s.count}편</span></span>
-            {blurbOf(s.id) && <span class="ab-cat-blurb">{blurbOf(s.id)}</span>}
-          </span>
-        </a>
+        <div class="gl-item" style={`--hue: ${hueOf(s.id)}`}>
+          <dt class="gl-term">
+            <a class="gl-name" href={sectionHref(base, s.id)}>{s.label}</a>
+            <span class="gl-count">{s.count}편</span>
+          </dt>
+          {blurbOf(s.id) && <dd class="gl-def">{blurbOf(s.id)}</dd>}
+        </div>
       ))
     }
-  </div>
+  </dl>
 
   <hr />
 
@@ -96,6 +90,52 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
     <strong>직접 만든 MCP(Model Context Protocol) 서버</strong>를 통해 발행됩니다.
     "매일 배운 걸 자동으로 한 편씩 남긴다"는 목표로 서버부터 만들며 배우는 프로젝트예요.
   </p>
+
+  <!-- ── MCP 구동 로직: 호스트 ⇄ 서버 ── -->
+  <h3 class="mcp-sub">MCP는 어떻게 도나</h3>
+  <p class="muted mcp-lead">
+    MCP는 <b>호스트(모델이 있는 앱)</b>와 <b>서버(도구·데이터를 가진 쪽)</b>가
+    표준 입출력(stdio) 위에서 JSON-RPC로 대화하는 규약이에요. 호스트가 서버를 실행하고
+    "뭘 할 수 있냐"고 물으면, 서버가 아래 세 가지 능력을 알려줍니다.
+  </p>
+
+  <figure class="mcp-diagram">
+    <div class="mcp-nodes">
+      <div class="mcp-node">
+        <span class="mcp-node-tag">호스트 · 클라이언트</span>
+        <b>모델이 있는 앱</b>
+        <span class="mcp-node-sub">Claude Code 등 — 도구를 <em>호출하는</em> 쪽</span>
+      </div>
+      <div class="mcp-link">
+        <span class="mcp-link-label">⇄ stdio · JSON-RPC</span>
+      </div>
+      <div class="mcp-node mcp-node-server">
+        <span class="mcp-node-tag">서버</span>
+        <b>이 프로젝트 (stdio MCP)</b>
+        <span class="mcp-node-sub">LLM 호출 없음 — 도구·데이터만 <em>제공</em></span>
+      </div>
+    </div>
+
+    <ul class="mcp-caps">
+      <li>
+        <span class="mcp-cap-kind">Tools</span>
+        <span>모델이 호출하는 동작 — <code>suggest_topic</code>, <code>publish_post</code></span>
+      </li>
+      <li>
+        <span class="mcp-cap-kind">Resources</span>
+        <span>읽을 수 있는 데이터 — <code>blog://posts</code></span>
+      </li>
+      <li>
+        <span class="mcp-cap-kind">Prompts</span>
+        <span>재사용 워크플로 — <code>write_daily_post</code></span>
+      </li>
+    </ul>
+
+    <figcaption>
+      호스트가 <code>publish_post</code>를 호출하면, 서버가 <code>.md</code> 파일을 저장하고
+      그 결과를 다시 호스트로 돌려줍니다. 아래는 그 능력들이 실제 발행에서 도는 순서예요.
+    </figcaption>
+  </figure>
 
   <ol class="flow">
     <li>
@@ -223,79 +263,51 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
     margin: var(--space-8) 0 var(--space-2);
   }
 
-  /* ── 카테고리 카드(소개판) ── */
-  .ab-cats {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
-    margin-top: var(--space-4);
-  }
-  .ab-cat {
-    --hue-on: var(--hue, var(--c-accent));
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    border: 1px solid var(--c-border);
-    border-left: 3px solid var(--hue-on);
-    border-radius: var(--radius-md);
-    background: var(--c-surface);
-    color: var(--c-text);
-    text-decoration: none;
-    transition: border-color 0.15s ease, transform 0.15s ease;
-  }
-  :global(:root[data-theme="dark"]) .ab-cat {
-    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
-  }
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .ab-cat {
-      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 58%, white);
-    }
-  }
-  .ab-cat:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--hue-on) 45%, var(--c-border));
-    border-left-color: var(--hue-on);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .ab-cat:hover {
-      transform: none;
-    }
-  }
-  .ab-cat-badge {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--radius-sm);
-    background: var(--hue-on);
-    color: var(--c-bg);
-    font-weight: 800;
-    font-size: 1rem;
-  }
-  .ab-cat-body {
+  /* ── 카테고리: 사전식 정의 리스트. 색은 카테고리명 글씨에만, 장식(점·바·카드) 없음 ── */
+  .ab-gloss {
+    margin: var(--space-5) 0 0;
     display: flex;
     flex-direction: column;
-    gap: 0.2em;
-    min-width: 0;
+    gap: var(--space-4);
   }
-  .ab-cat-name {
-    font-weight: 700;
+  .gl-item {
+    --hue-on: var(--hue, var(--c-accent));
   }
-  .ab-cat-count {
+  :global(:root[data-theme="dark"]) .gl-item {
+    --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 62%, white);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .gl-item {
+      --hue-on: color-mix(in srgb, var(--hue, var(--c-accent)) 62%, white);
+    }
+  }
+  .gl-term {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+  /* 카테고리명 — 그 색 글씨가 유일한 디자인 신호 */
+  .gl-name {
+    font-size: var(--fs-lg);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--hue-on);
+    text-decoration: none;
+  }
+  .gl-name:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .gl-count {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
-    font-weight: 700;
-    color: var(--hue-on);
-    margin-left: 0.2em;
+    color: var(--c-muted);
+    font-variant-numeric: tabular-nums;
   }
-  .ab-cat:hover .ab-cat-name {
-    color: var(--hue-on);
-  }
-  .ab-cat-blurb {
+  .gl-def {
+    margin: 0.15em 0 0;
     font-size: var(--fs-sm);
-    line-height: 1.5;
+    line-height: 1.55;
     color: var(--c-muted);
   }
 
@@ -359,13 +371,147 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
     font-size: var(--fs-sm);
   }
 
+  /* ── MCP 구동 다이어그램(호스트 ⇄ 서버) ── */
+  .mcp-sub {
+    font-size: var(--fs-lg);
+    margin: var(--space-6) 0 var(--space-2);
+  }
+  .mcp-lead {
+    max-width: 68ch;
+    line-height: 1.7;
+  }
+  .mcp-diagram {
+    margin: var(--space-5) 0;
+  }
+  /* 두 노드 + 가운데 연결선. 좁은 화면에선 세로로 스택된다. */
+  .mcp-nodes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+  .mcp-node {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    padding: var(--space-4);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    background: var(--c-surface);
+    box-shadow: var(--shadow-sm);
+  }
+  /* 서버 노드는 액센트 엣지로 '이 프로젝트'임을 강조. */
+  .mcp-node-server {
+    border-left: 3px solid var(--c-accent);
+  }
+  .mcp-node-tag {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+  }
+  .mcp-node b {
+    font-size: var(--fs-base);
+    letter-spacing: -0.01em;
+  }
+  .mcp-node-sub {
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--c-muted);
+  }
+  .mcp-node-sub em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--c-text);
+  }
+  /* 연결선 — 점선 위에 프로토콜 라벨 알약. 라벨은 페이지 배경색으로 선을 가린다. */
+  .mcp-link {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 7rem;
+    padding: 0 var(--space-2);
+  }
+  .mcp-link::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    border-top: 2px dashed var(--c-border);
+  }
+  .mcp-link-label {
+    position: relative;
+    z-index: 1;
+    padding: 0.25em 0.7em;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    background: var(--c-bg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    white-space: nowrap;
+  }
+  /* 세 가지 능력(Tools·Resources·Prompts) */
+  .mcp-caps {
+    list-style: none;
+    margin: var(--space-4) 0 var(--space-3);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .mcp-caps li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+  }
+  .mcp-cap-kind {
+    flex: none;
+    min-width: 5.5rem;
+    text-align: center;
+    padding: 0.15em 0.6em;
+    border-radius: var(--radius-pill);
+    background: var(--c-accent-soft);
+    color: var(--c-accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+  }
+  .mcp-diagram figcaption {
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--c-muted);
+  }
+
   @media (max-width: 640px) {
-    .ab-cats,
     .principles {
       grid-template-columns: 1fr;
     }
     .ab-id {
       margin-right: 0;
+    }
+    /* 좁은 화면: 노드를 세로로 쌓고 연결선을 세로로 돌린다. */
+    .mcp-nodes {
+      grid-template-columns: 1fr;
+    }
+    .mcp-link {
+      min-height: 2.75rem;
+      padding: var(--space-2) 0;
+    }
+    .mcp-link::before {
+      inset-inline: auto;
+      inset-block: 0;
+      left: 50%;
+      top: auto;
+      border-top: 0;
+      border-left: 2px dashed var(--c-border);
+    }
+    .mcp-cap-kind {
+      min-width: 4.75rem;
     }
   }
 </style>
