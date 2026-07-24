@@ -36,6 +36,9 @@ const ogImage = Astro.site
     {/* 테마·목록뷰: 렌더 전에 즉시 적용해 깜빡임(FOUC) 방지 */}
     <script is:inline>
       (() => {
+        // JS 사용 가능 표시(paint 전 동기 실행). 진입 reveal의 '숨김' 스타일은
+        // 이 .js 아래에서만 걸린다 → JS 없으면 콘텐츠가 처음부터 보인다.
+        document.documentElement.classList.add("js");
         try {
           const t = localStorage.getItem("theme");
           if (t === "light" || t === "dark")
@@ -44,6 +47,17 @@ const ogImage = Astro.site
           if (localStorage.getItem("postview") === "list")
             document.documentElement.dataset.view = "list";
         } catch {}
+        // reveal 백스톱: 진입 애니메이션 스크립트가 무슨 이유로든 무장(arm)되지
+        // 않으면(모듈 로드 실패·에러) load 직후 숨겨진 .reveal을 전부 노출해
+        // "빈 화면"을 막는다. 정상 동작 시엔 reveal-armed가 있어 건너뛴다.
+        addEventListener("load", () => {
+          setTimeout(() => {
+            if (!document.documentElement.classList.contains("reveal-armed"))
+              document
+                .querySelectorAll(".reveal:not(.in)")
+                .forEach((el) => el.classList.add("in"));
+          }, 700);
+        });
       })();
     </script>
     <title>{title}</title>

@@ -78,16 +78,6 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
 ---
 
 <Base title="daily.mcp" description="MCP 서버로 글을 발행하며 배운 것을 기록하는 블로그">
-  <noscript>
-    {/* reveal은 스크립트가 트리거하므로, JS 미실행 환경에선 숨김을 해제 */}
-    <style is:inline>
-      .reveal {
-        opacity: 1 !important;
-        transform: none !important;
-      }
-    </style>
-  </noscript>
-
   <Hero
     hasPosts={posts.length > 0}
     stats={stats}
@@ -158,6 +148,8 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     // 최초 로드 땐 화면 위 요소들이 한 배치로 들어와 기존과 같은 stagger,
     // 폴드 아래 카드는 스크롤로 보일 때 각자 작은 stagger로 뜬다.
     const runReveal = () => {
+      // 무장 표시 — 백스톱(Base head)이 이걸 보고 정상 동작 시 건너뛴다.
+      document.documentElement.classList.add("reveal-armed");
       const els = document.querySelectorAll<HTMLElement>(".reveal:not(.in)");
       if (reduce || !("IntersectionObserver" in window)) {
         els.forEach((el) => el.classList.add("in"));
@@ -189,12 +181,14 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
      같은 배치로 들어온 요소끼리 --d(70ms 간격)로 stagger.
      .reveal은 히어로·잔디·카드 등 여러 컴포넌트에 걸쳐 쓰여 전역으로 둔다.
      ══════════════════════════════════════════════════════════ */
+  /* 숨김은 .js 아래에서만 — JS가 있어야(=reveal 스크립트가 살아있을 때만)
+     감춘다. JS 없거나 스크립트가 죽으면 콘텐츠는 처음부터 보인다. */
   @media (prefers-reduced-motion: no-preference) {
-    .reveal {
+    .js .reveal {
       opacity: 0;
       transform: translateY(14px);
     }
-    .reveal.in {
+    .js .reveal.in {
       animation: reveal-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       animation-delay: var(--d, 0ms);
     }
