@@ -56,13 +56,18 @@ const NODES: OrbitNode[] = [
 ];
 
 const N = NODES.length;
-const R = 38; // 궤도 반지름(스테이지 대비 %)
+const R = 38; // 궤도 반지름(스테이지 대비 %) — 데스크톱 기본값(--orbit-rx/ry)
+// 각 노드는 단위 cos·sin만 갖고, 실제 반경은 CSS 변수(--orbit-rx/ry)가 준다.
+// 그래서 데스크톱=원(rx=ry), 모바일=세로 타원(rx<ry)을 마크업 변경 없이 CSS로 전환한다.
 const nodes = NODES.map((n, i) => {
   const phi = (i / N) * 360; // 12시에서 시계방향
   const rad = ((phi - 90) * Math.PI) / 180;
-  const x = 50 + R * Math.cos(rad);
-  const y = 50 + R * Math.sin(rad);
-  return { ...n, i, phi, x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 };
+  const cos = Math.round(Math.cos(rad) * 1000) / 1000;
+  const sin = Math.round(Math.sin(rad) * 1000) / 1000;
+  // data-x/y(원 좌표 %)는 데스크톱 pulse 위치용으로 유지.
+  const x = Math.round((50 + R * cos) * 100) / 100;
+  const y = Math.round((50 + R * sin) * 100) / 100;
+  return { ...n, i, phi, cos, sin, x, y };
 });
 ---
 
@@ -94,7 +99,7 @@ const nodes = NODES.map((n, i) => {
           data-desc={n.desc}
           data-x={n.x}
           data-y={n.y}
-          style={`left:${n.x}%;top:${n.y}%`}
+          style={`--cos:${n.cos};--sin:${n.sin};left:calc(50% + var(--cos) * var(--orbit-rx));top:calc(50% + var(--sin) * var(--orbit-ry))`}
         >
           <span class="orbit-sat-kind">{n.kind}</span>
           <span class="orbit-sat-name">{n.name}</span>
@@ -223,6 +228,9 @@ const nodes = NODES.map((n, i) => {
     max-width: 30rem;
     margin: 0 auto;
     aspect-ratio: 1 / 1;
+    /* 궤도 반경(스테이지 대비 %). 데스크톱=원(가로=세로). 모바일에서 가로를 줄여 타원으로. */
+    --orbit-rx: 38%;
+    --orbit-ry: 38%;
   }
 
   .orbit-rings {
@@ -238,15 +246,16 @@ const nodes = NODES.map((n, i) => {
     border-radius: 50%;
     border: 1px dashed color-mix(in srgb, var(--c-border) 90%, var(--c-accent));
   }
-  /* 바깥 링(노드가 앉는 궤도)이 천천히 회전 — 점선이 흐르며 궤도감을 준다. */
+  /* 링 크기를 노드 반경(--orbit-rx/ry)에 묶는다 → 원이든 타원이든 노드가 링 위에 앉는다.
+     바깥 링(노드 궤도) = 지름(2×반경). 데스크톱 원(38%)에선 76%로 기존과 동일. */
   .orbit-ring-outer {
-    width: 76%;
-    height: 76%;
+    width: calc(2 * var(--orbit-rx));
+    height: calc(2 * var(--orbit-ry));
     animation: orbit-spin 42s linear infinite;
   }
   .orbit-ring-inner {
-    width: 46%;
-    height: 46%;
+    width: calc(1.2 * var(--orbit-rx));
+    height: calc(1.2 * var(--orbit-ry));
     opacity: 0.6;
     animation: orbit-spin 60s linear infinite reverse;
   }
@@ -399,20 +408,84 @@ const nodes = NODES.map((n, i) => {
     }
   }
 
-  /* 모바일: 궤도판을 줄이고 노드 카드를 더 콤팩트하게. */
-  @media (max-width: 640px) {
+  /*
+   * 폰(≤560): 원 대신 '세로로 긴 타원'으로. 세로로 긴 폰 화면에 맞춰 가로 반경(--orbit-rx)을
+   * 줄이고 세로 반경(--orbit-ry)을 키우면, 측면 노드가 허브 옆·위아래로 벌어져 가로 스크롤 없이
+   * 한 화면에 들어온다. 허브·노드도 콤팩트하게 줄여 좁은 폭에서 충돌을 막는다.
+   */
+  @media (max-width: 505px) {
     .orbit-stage {
-      max-width: 21rem;
+      --orbit-rx: 33%;
+      --orbit-ry: 44%;
+      /* 살짝만 세로로(1.14×) — 정사각은 위쪽 노드가 허브에 붙고, 4/5는 지나치게 길다. */
+      aspect-ratio: 6 / 7;
+      max-width: none;
     }
+    /* 타원에선 pulse(원 좌표 data-x/y)가 어긋나므로 숨김; is-active 테두리가 단계를 표시. */
+    .orbit-pulse {
+      display: none;
+    }
+    /* 타원 링은 회전시키면 찌그러져 돌아 어색하다 → 정지시켜 노드 궤도로만 둔다. */
+    .orbit-ring {
+      animation: none;
+    }
+    /* 허브 — 콤팩트하게 해 측면 노드가 옆에 들어올 폭을 낸다. */
+    .orbit-hub {
+      width: auto;
+      max-width: 37%;
+      padding: var(--space-2);
+    }
+    .orbit-hub b {
+      font-size: var(--fs-sm);
+    }
+    /* 노드 — 라벨을 감싸 폭을 줄인다(nowrap 해제). */
     .orbit-sat {
       min-width: 0;
+      max-width: 32%;
       padding: 0.3em 0.5em;
     }
     .orbit-sat-name {
-      font-size: var(--fs-xs);
+      white-space: normal;
+      word-break: keep-all;
+    }
+    /* 헤더 바 — 두 라벨이 단어 중간에서 잘리지 않게 통째로 줄바꿈. */
+    .orbit-bar {
+      flex-wrap: wrap;
+      row-gap: var(--space-1);
+    }
+    .orbit-live,
+    .orbit-tag {
+      white-space: nowrap;
+    }
+  }
+
+  /* 좁은 폰(≤389, SE 375 등): 라벨을 단 3열은 빠듯하다(≥390은 위 풀버전으로 여유). 타원을
+     더 늘이고(세로) 노드 kind·허브 sub를 숨겨 박스를 최소화, 측면 노드가 허브와 겹치지 않게. */
+  @media (max-width: 389px) {
+    .orbit-stage {
+      --orbit-rx: 30%;
+      --orbit-ry: 46%;
+      aspect-ratio: 6 / 7;
     }
     .orbit-hub {
-      width: 7rem;
+      max-width: 34%;
+      padding: var(--space-1) var(--space-2);
+    }
+    .orbit-hub b {
+      font-size: var(--fs-xs);
+    }
+    /* 좁은 허브 박스를 넘쳐 측면 노드와 겹치므로 stdio·JSON-RPC는 숨긴다(서버명만 남김). */
+    .orbit-hub-sub {
+      display: none;
+    }
+    .orbit-sat {
+      max-width: 28%;
+    }
+    .orbit-sat-kind {
+      display: none;
+    }
+    .orbit-sat-name {
+      font-size: var(--fs-xs);
     }
   }
 
