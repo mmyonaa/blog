@@ -2,12 +2,11 @@
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import Hero from "../components/home/Hero.astro";
-import FeaturedCard from "../components/home/FeaturedCard.astro";
-import TopReads from "../components/home/TopReads.astro";
 import PostCard from "../components/home/PostCard.astro";
 import SectionNav from "../components/home/SectionNav.astro";
+import PopularTags from "../components/home/PopularTags.astro";
 import { getTagCounts } from "../lib/tags.ts";
-import { getSectionCounts, sectionOf } from "../lib/sections.ts";
+import { getSectionCounts } from "../lib/sections.ts";
 import { buildActivity } from "../lib/activity.ts";
 
 const posts = (await getCollection("blog")).sort(
@@ -15,35 +14,16 @@ const posts = (await getCollection("blog")).sort(
 );
 const sections = await getSectionCounts();
 const tags = await getTagCounts();
-// 히어로 카테고리 아래 인기 태그: 글 수 상위 순. 어떤 폭에서도 2줄이 꽉 차도록 전량을
+// 카테고리 블록 아래 인기 태그: 글 수 상위 순. 어떤 폭에서도 2줄이 꽉 차도록 전량을
 // 넘기고, PopularTags가 CSS로 2줄만 남기고 클립한다(적게 넘기면 둘째 줄이 중간에서 빈다).
 // 클립돼 안 보이는 태그는 컴포넌트 스크립트가 탭 순서·스크린리더에서 제외한다(#4).
 const topTags = tags;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-// 랜딩 상단: 왼쪽 '최신 글'(featured 1개) + 오른쪽 'Top Reads'(카테고리별 최신).
-// 조회수 데이터가 없으므로 오른쪽은 가짜 인기순 대신 카테고리별 최신 글로 채운다
-// (스프레드 → 사실상 '읽을거리 top picks'). 그 아래 '최근 글' 그리드가 이어진다.
-// 최근 글 5개: 첫 카드가 2칸 폭(wide)이라 2+1+1+1+1 = 6유닛 = 3열×2행이 깔끔하게 찬다
-// (6개면 7유닛이 되어 마지막 칸이 붕 뜬다).
-const RECENT_MAX = 5;
-const TOP_READS_MAX = 4;
-const [featured, ...others] = posts;
-
-
-// 오른쪽: 카테고리(getSectionCounts 순서)별 최신 글, featured 제외, 최대 4개.
-const usedIds = new Set([featured?.id]);
-const topReads: typeof others = [];
-for (const s of sections) {
-  if (topReads.length >= TOP_READS_MAX) break;
-  const p = others.find((o) => sectionOf(o) === s.id && !usedIds.has(o.id));
-  if (p) {
-    topReads.push(p);
-    usedIds.add(p.id);
-  }
-}
-// 그 아래 '최근 글' 그리드: featured·topReads에 안 쓰인 최신 글.
-const rest = others.filter((o) => !usedIds.has(o.id)).slice(0, RECENT_MAX);
+// 랜딩 본문: '최근 글' 그리드 하나. 첫 카드가 2칸 폭(wide)이라 사실상 featured 자리.
+// 8개: 2 + 1×7 = 9유닛 = 3열×3행이 딱 맞는다(칸이 붕 뜨지 않게).
+const RECENT_MAX = 8;
+const rest = posts.slice(0, RECENT_MAX);
 
 // ── 히어로 통계 ──
 // 로컬 날짜 키(YYYY-MM-DD). '연속 발행'은 가장 최근 글 날짜부터 하루씩 거슬러
@@ -82,8 +62,6 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     hasPosts={posts.length > 0}
     stats={stats}
     activity={activity}
-    topTags={topTags}
-    base={base}
   />
 
   {
@@ -91,23 +69,6 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
       <p class="muted">아직 발행된 글이 없습니다.</p>
     ) : (
       <>
-        <section class="top-section">
-          <div class="latest-col">
-            <div class="section-head">
-              <h2 class="section-title">최신 글</h2>
-            </div>
-            <FeaturedCard post={featured} />
-          </div>
-          {topReads.length > 0 && (
-            <aside class="reads-col">
-              <div class="section-head">
-                <h2 class="section-title">카테고리별 새 글</h2>
-              </div>
-              <TopReads posts={topReads} />
-            </aside>
-          )}
-        </section>
-
         {sections.length > 0 && (
           <>
             <div class="section-head">
@@ -115,6 +76,16 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
               <a class="more" href={`${base}/topics/`}>전체 분류 →</a>
             </div>
             <SectionNav sections={sections} base={base} />
+          </>
+        )}
+
+        {topTags.length > 0 && (
+          <>
+            <div class="section-head">
+              <h2 class="section-title">인기 태그</h2>
+              <a class="more" href={`${base}/topics/#tags`}>태그 전체 →</a>
+            </div>
+            <PopularTags tags={topTags} base={base} />
           </>
         )}
 
@@ -218,41 +189,6 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     font-weight: 600;
     white-space: nowrap;
   }
-  /* ── 상단 2단: 왼쪽 '최신 글'(대표) + 오른쪽 'Top Reads' 리스트 ── */
-  .top-section {
-    display: grid;
-    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-    gap: var(--space-6);
-    align-items: start;
-    margin-top: var(--space-6);
-  }
-  .top-section .section-head {
-    /* 두 열 제목을 상단에 맞춘다(기본 section-head의 큰 top 마진 제거) */
-    margin: 0 0 var(--space-4);
-  }
-  /* 오른쪽 리스트가 왼쪽 대표 카드와 세로로 맞물리게 카드처럼 감싼다 */
-  .reads-col :global(.top-reads) {
-    background: var(--c-surface);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    padding: var(--space-4) var(--space-5);
-  }
-  /* 태블릿(641~900): 상단 2단을 유지해 남는 가로 폭을 쓴다. 좁아진 만큼 비율을
-     살짝 균형 있게(1.5:1) 좁히고 간격을 줄여 대표 카드·읽을거리 리스트가 나란히 선다. */
-  @media (max-width: 900px) {
-    .top-section {
-      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-      gap: var(--space-5);
-    }
-  }
-  /* 모바일에서만 1단 스택 */
-  @media (max-width: 640px) {
-    .top-section {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
   .grid {
     display: grid;
     /* 3열이 컨테이너 폭을 균등 분할 → 오른쪽 끝이 featured·'전체 글 보기'와 정렬.
@@ -281,10 +217,6 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     }
     .grid {
       gap: var(--space-5) var(--space-4);
-    }
-    /* 히어로 끝~첫 글 사이 간격을 좁혀 글이 더 빨리 보이게. */
-    .top-section {
-      margin-top: var(--space-5);
     }
   }
 </style>

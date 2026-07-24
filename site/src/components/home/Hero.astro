@@ -1,18 +1,14 @@
 ---
 import type { Activity } from "../../lib/activity.ts";
 import ActivityHeatmap from "./ActivityHeatmap.astro";
-import PopularTags from "./PopularTags.astro";
 
 interface Props {
   /** hasPosts가 false면 통계·잔디를 통째로 숨긴다. */
   hasPosts: boolean;
   stats: { value: number; label: string; href?: string }[];
   activity: Activity;
-  /** 히어로 하단에 보여줄 인기 태그(글 수 상위). 전체는 /topics/#tags. */
-  topTags: { tag: string; count: number }[];
-  base: string;
 }
-const { hasPosts, stats, activity, topTags, base } = Astro.props;
+const { hasPosts, stats, activity } = Astro.props;
 ---
 
 <section class="hero">
@@ -52,7 +48,6 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
         </div>
       )}
     </div>
-    {topTags.length > 0 && <PopularTags tags={topTags} base={base} />}
   </div>
 </section>
 

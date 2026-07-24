@@ -21,7 +21,6 @@ const { tags, base } = Astro.props;
       <a class="tag-link" href={tagHref(base, t.tag)}>#{t.tag}</a>
     ))}
   </div>
-  <a class="tag-more" href={`${base}/topics/#tags`}>태그 전체 →</a>
 </nav>
 
 <script>
@@ -47,15 +46,12 @@ const { tags, base } = Astro.props;
 </script>
 
 <style>
+  /* 위 section-head가 제목·구분·'태그 전체' 링크를 담당하므로 여기선 태그 줄만. */
   .tags-strip {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-2);
-    /* 히어로 본문과 구분하는 헤어라인. (이전엔 위 카테고리 strip이 제공하던 몫) */
-    margin-top: var(--space-6);
-    padding-top: var(--space-3);
-    border-top: 1px solid var(--c-border);
   }
 
   /* 각 태그의 줄 상자 높이(--tag-lh)와 줄 간격(--space-2)을 안다면, N줄의
@@ -85,21 +81,4 @@ const { tags, base } = Astro.props;
     text-decoration: none;
   }
 
-  .tag-more {
-    font-size: var(--fs-sm);
-    font-weight: 600;
-    color: var(--c-accent);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .tag-more:hover {
-    text-decoration: underline;
-  }
-
-  /* 모바일: 히어로가 첫 화면을 덜 먹도록 잔디와의 간격을 좁힌다. */
-  @media (max-width: 640px) {
-    .tags-strip {
-      margin-top: var(--space-4);
-    }
-  }
 </style>
