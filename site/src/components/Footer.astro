@@ -29,15 +29,12 @@ const latest = posts.slice(0, 3).map((p) => {
 // 태그 클라우드 — 글 많은 순 상위 8개.
 const tags = (await getTagCounts()).slice(0, 8);
 
-// Explore — 사이트 내비게이션 + 프로젝트 링크를 한 컬럼으로.
+// Explore — 콘텐츠 탐색만. Home/About은 브랜드 로고·About 컬럼과 중복이라 뺀다.
+// 프로젝트/커뮤니티 링크(Source·Discussions·Feedback)는 About 컬럼 하단으로 모은다.
 const explore = [
-  { label: "Home", href: `${base}/`, ext: false },
   { label: "Topics", href: `${base}/topics/`, ext: false },
   { label: "Posts", href: `${base}/blog/`, ext: false },
   { label: "Archive", href: `${base}/archive/`, ext: false },
-  { label: "About", href: `${base}/about/`, ext: false },
-  { label: "Source", href: repo, ext: true },
-  { label: "Discussions", href: DISCUSSIONS_URL, ext: true },
 ];
 ---
 
@@ -99,19 +96,6 @@ const explore = [
               </li>
             ))
           }
-          <li>
-            {
-              FEEDBACK_ENABLED ? (
-                <button type="button" class="linklike" data-feedback-open>
-                  Feedback
-                </button>
-              ) : (
-                <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                  Feedback
-                </a>
-              )
-            }
-          </li>
         </ul>
       </nav>
 
@@ -177,6 +161,23 @@ const explore = [
             </svg>
           </a>
         </div>
+        <ul class="about-links">
+          <li><a href={repo} target="_blank" rel="noopener">Source</a></li>
+          <li><a href={DISCUSSIONS_URL} target="_blank" rel="noopener">Discussions</a></li>
+          <li>
+            {
+              FEEDBACK_ENABLED ? (
+                <button type="button" class="linklike" data-feedback-open>
+                  Feedback
+                </button>
+              ) : (
+                <a href={FEEDBACK_URL} target="_blank" rel="noopener">
+                  Feedback
+                </a>
+              )
+            }
+          </li>
+        </ul>
       </section>
     </div>
 
@@ -407,6 +408,27 @@ const explore = [
   .about-social a:hover {
     color: var(--c-accent);
     border-color: var(--c-accent);
+  }
+  /* 프로젝트/커뮤니티 링크 — 소셜 아이콘 아래 구분선 두고 한 줄에 모음 */
+  .about-links {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: var(--space-4) 0 0;
+    border-top: 1px solid var(--c-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+  }
+  .about-links a,
+  .about-links .linklike {
+    color: var(--c-muted);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+  }
+  .about-links a:hover,
+  .about-links .linklike:hover {
+    color: var(--c-accent);
+    text-decoration: underline;
   }
 
   /* ── 하단 밴드 ── */
