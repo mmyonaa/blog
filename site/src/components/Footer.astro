@@ -29,11 +29,12 @@ const latest = posts.slice(0, 3).map((p) => {
 // 태그 클라우드 — 글 많은 순 상위 8개.
 const tags = (await getTagCounts()).slice(0, 8);
 
-// Explore — 콘텐츠 탐색만. Home/About은 브랜드 로고·About 컬럼과 중복이라 뺀다.
-// 프로젝트/커뮤니티 링크(Source·Discussions·Feedback)는 About 컬럼 하단으로 모은다.
+// Explore — 주요 페이지 내비. Home은 브랜드 로고와 중복이라 뺀다.
+// 프로젝트/커뮤니티 링크(Source·Discussions·Feedback)는 Author 컬럼 하단으로 모은다.
 const explore = [
   { label: "Topics", href: `${base}/topics/`, ext: false },
   { label: "Posts", href: `${base}/blog/`, ext: false },
+  { label: "About", href: `${base}/about/`, ext: false },
 ];
 ---
 
@@ -100,7 +101,7 @@ const explore = [
 
       <!-- About -->
       <section class="footer-col footer-about" aria-label="만든 사람">
-        <h2 class="footer-head">About</h2>
+        <h2 class="footer-head">Author</h2>
         <div class="about-head">
           <img
             class="about-avatar"
