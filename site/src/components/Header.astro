@@ -15,7 +15,7 @@ const searchIndexUrl = `${base}/search-index.json`;
 
 <header class="site-header">
   <div class="header-inner">
-    <a href={`${base}/`} class="brand">blog</a>
+    <a href={`${base}/`} class="brand">daily.mcp<span class="brand-dot" aria-hidden="true"></span></a>
     <nav class="nav">
       <button type="button" class="pill search-btn" data-search-open aria-haspopup="dialog">
         <svg class="search-icon" viewBox="0 0 20 20" aria-hidden="true" width="15" height="15">
@@ -90,10 +90,21 @@ const searchIndexUrl = `${base}/search-index.json`;
     gap: var(--space-4);
   }
   .brand {
-    font-size: var(--fs-lg);
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-family: var(--font-mono);
+    font-size: var(--fs-base);
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--c-text);
+  }
+  /* 코랄 액센트 점 — 워드마크 로고 마크 */
+  .brand-dot {
+    display: inline-block;
+    width: 0.32em;
+    height: 0.32em;
+    margin-left: 0.14em;
+    border-radius: 50%;
+    background: var(--c-accent);
+    vertical-align: 0.04em;
   }
   .brand:hover {
     color: var(--c-accent);

@@ -8,7 +8,7 @@ export async function GET(context: APIContext) {
   );
 
   return rss({
-    title: "blog",
+    title: "daily.mcp",
     description: "MCP 서버로 글을 발행하며 배운 것을 기록하는 블로그",
     site: context.site ?? "https://mmyonaa.github.io",
     items: posts.map((post) => ({

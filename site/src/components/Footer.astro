@@ -183,7 +183,7 @@ const explore = [
     <!-- 하단 밴드: 브랜드 + 규모 + 저작권 -->
     <div class="footer-bottom">
       <div class="footer-brand-line">
-        <a href={`${base}/`} class="footer-word">blog</a>
+        <a href={`${base}/`} class="footer-word">daily.mcp<span class="footer-dot" aria-hidden="true"></span></a>
         <span class="footer-badge">매일 자동 발행</span>
         <span class="footer-stat"><b>{postCount}</b> 편</span>
         <span class="footer-stat"><b>{sectionCount}</b> 카테고리</span>
@@ -427,10 +427,20 @@ const explore = [
     gap: var(--space-2) var(--space-3);
   }
   .footer-word {
-    font-size: var(--fs-lg);
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-family: var(--font-mono);
+    font-size: var(--fs-base);
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--c-text);
+  }
+  .footer-dot {
+    display: inline-block;
+    width: 0.32em;
+    height: 0.32em;
+    margin-left: 0.14em;
+    border-radius: 50%;
+    background: var(--c-accent);
+    vertical-align: 0.04em;
   }
   .footer-word:hover {
     color: var(--c-accent);
