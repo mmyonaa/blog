@@ -8,7 +8,6 @@ const isTopics =
   pathname.startsWith(`${base}/topics`) ||
   pathname.startsWith(`${base}/categories`) ||
   pathname.startsWith(`${base}/tags`);
-const isArchive = pathname.startsWith(`${base}/archive`);
 const isAbout = pathname.startsWith(`${base}/about`);
 const searchIndexUrl = `${base}/search-index.json`;
 ---
@@ -20,7 +19,6 @@ const searchIndexUrl = `${base}/search-index.json`;
       <a href={`${base}/`} class:list={["pill", { active: isHome }]} aria-current={isHome ? "page" : undefined}>Home</a>
       <a href={`${base}/topics/`} class:list={["pill", { active: isTopics }]} aria-current={isTopics ? "page" : undefined}>Topics</a>
       <a href={`${base}/blog/`} class:list={["pill", { active: isBlog }]} aria-current={isBlog ? "page" : undefined}>Posts</a>
-      <a href={`${base}/archive/`} class:list={["pill", { active: isArchive }]} aria-current={isArchive ? "page" : undefined}>Archive</a>
       <a href={`${base}/about/`} class:list={["pill", { active: isAbout }]} aria-current={isAbout ? "page" : undefined}>About</a>
     </nav>
     <div class="header-actions">

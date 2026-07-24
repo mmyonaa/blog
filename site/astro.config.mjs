@@ -5,10 +5,14 @@ import rehypeExternalLinks from "rehype-external-links";
 
 // GitHub Pages 프로젝트 사이트: https://mmyonaa.github.io/mcp/
 // 배포 설정(#12)에서 함께 쓰이며, 로컬 dev에서도 /mcp/ 경로로 서빙된다.
+const base = "/mcp";
 export default defineConfig({
   site: "https://mmyonaa.github.io",
-  base: "/mcp",
+  base,
   integrations: [sitemap()],
+  // Archive는 Topics로 흡수됨(그래프가 /topics/#graph에 임베드). 기존 링크 보존용 리다이렉트.
+  // 목적지엔 base가 자동으로 안 붙으므로 직접 붙인다(소스는 base가 자동 적용됨).
+  redirects: { "/archive": `${base}/topics` },
   // 개발 중 하단에 뜨는 Astro 개발 툴바 비활성화(배포본엔 원래 없음)
   devToolbar: { enabled: false },
   markdown: {

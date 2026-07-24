@@ -4,6 +4,7 @@
 import Base from "../../layouts/Base.astro";
 import { getSectionCounts, sectionHref, hueOf } from "../../lib/sections.ts";
 import { getTagCounts, tagHref } from "../../lib/tags.ts";
+import PostGraph from "../../components/PostGraph.astro";
 
 const sections = await getSectionCounts();
 const tags = await getTagCounts();
@@ -49,6 +50,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       </div>
     )
   }
+
+  <h2 class="hub-title" id="graph">발행 그래프</h2>
+  <p class="muted">
+    발행한 모든 글을 시간축 위 git 그래프로. 세로 트렁크는 카테고리, 옆으로 뻗는 가지는
+    그 안의 세부 갈래, 화살표 곡선은 글의 후속입니다.
+  </p>
+  <PostGraph />
 </Base>
 
 <style>
