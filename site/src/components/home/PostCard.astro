@@ -77,10 +77,16 @@ const sec = sectionOf(post);
     overflow: hidden;
   }
 
-  /* ── 와이드(리드) 카드 — 그리드 첫 칸을 2열 폭으로, 제목·요약을 키워 매거진 위계를 준다.
-     1열 그리드(모바일)에선 span이 무의미해 자동으로 보통 카드처럼 보인다. ── */
+  /* ── 와이드(리드) 카드 — 그리드 첫 칸을 2열 폭으로, 제목·요약을 키워 매거진 위계를 준다. ── */
   .card--wide {
     grid-column: span 2;
+  }
+  /* 모바일은 그리드가 1열(index.astro의 ≤640 규칙)이라 span 2가 그대로 남으면
+     암묵적 2번째 열이 생겨 그리드 전체가 짓눌린다. 1열 폭 보통 카드로 리셋한다. */
+  @media (max-width: 640px) {
+    .card--wide {
+      grid-column: auto;
+    }
   }
   .card--wide .card-title {
     font-size: var(--fs-lg);
