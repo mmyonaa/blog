@@ -233,16 +233,12 @@ const searchIndexUrl = `${base}/search-index.json`;
       order: 3;
       flex-basis: 100%;
       margin-left: 0;
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .nav::-webkit-scrollbar {
-      display: none;
-    }
-    .nav .pill {
-      flex: none; /* 줄바꿈 대신 넘치면 가로 스크롤 */
+      /* 아주 좁은 폭(≈340px 이하)에선 5개가 한 줄에 안 들어간다.
+         가로 스크롤로 마지막 링크를 잘라내는 대신, 중앙 정렬로 감싸 둘째 줄에
+         깔끔히 내린다(잘림·가로 스크롤 없음). */
+      flex-wrap: wrap;
+      justify-content: center;
+      row-gap: var(--space-2);
     }
   }
 
