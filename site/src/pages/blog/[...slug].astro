@@ -446,14 +446,16 @@ const jsonLd = {
     font-size: var(--fs-xs);
   }
 
-  /* 모바일 접이식 목차: 좁은 화면(사이드 목차 숨김 구간)에서만 노출 */
+  /* 모바일 접이식 목차: 좁은 화면(사이드 목차 숨김 구간)에서만 노출.
+     접혀 있을 땐 큰 빈 카드처럼 보이지 않도록 컴팩트한 단일 컨트롤 높이로. */
   .mobile-toc {
     display: none;
-    margin: 0 0 var(--space-6);
+    margin: 0 0 var(--space-5);
     border: 1px solid var(--c-border);
     border-radius: var(--radius-md);
     background: var(--c-surface);
-    padding: var(--space-2) var(--space-4);
+    box-shadow: var(--shadow-sm);
+    padding: 0 var(--space-4);
   }
   .mobile-toc > summary {
     display: flex;
@@ -462,7 +464,8 @@ const jsonLd = {
     cursor: pointer;
     font-weight: 700;
     font-size: var(--fs-sm);
-    padding: var(--space-2) 0;
+    letter-spacing: 0.01em;
+    padding: var(--space-3) 0;
     list-style: none;
     user-select: none;
   }
@@ -470,15 +473,18 @@ const jsonLd = {
   .mobile-toc > summary::-webkit-details-marker {
     display: none;
   }
-  /* 커스텀 chevron: 접힘=오른쪽(▶), 펼침=아래(▼) */
+  /* 커스텀 chevron: 접힘=오른쪽(▶), 펼침=아래(▼).
+     라벨은 왼쪽, chevron은 오른쪽 끝으로 밀어 아코디언 헤더처럼 폭을 채운다. */
   .mobile-toc > summary::before {
     content: "";
+    order: 1;
     flex-shrink: 0;
     width: 0.5em;
     height: 0.5em;
-    margin-left: 0.1em;
-    border-right: 2px solid var(--c-muted);
-    border-bottom: 2px solid var(--c-muted);
+    margin-left: auto;
+    margin-right: 0.15em;
+    border-right: 2px solid var(--c-accent);
+    border-bottom: 2px solid var(--c-accent);
     transform: rotate(-45deg);
     transition: transform 0.18s ease;
   }
@@ -743,6 +749,12 @@ const jsonLd = {
   }
 
   @media (max-width: 560px) {
+    /* 공유 버튼: 좁은 화면에선 태그 뒤 자기 줄에 왼쪽 정렬로 흐르게 해
+       홀로 우측에 붕 떠 보이던 것을 정돈한다(텍스트 좌측선에 맞춤). */
+    .share-btn {
+      margin-left: 0;
+      margin-top: var(--space-1);
+    }
     .postnav {
       flex-direction: column;
       gap: var(--space-4);

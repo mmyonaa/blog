@@ -261,6 +261,13 @@ pre:hover .code-copy,
   color: var(--c-accent);
   border-color: var(--c-accent);
 }
+/* 터치·좁은 화면: 호버가 없어 복사 버튼이 영영 안 보이는 것을 막고 상시 노출.
+   (마우스가 없는 기기, 또는 사이드바가 접히는 읽기 화면) */
+@media (hover: none), (max-width: 980px) {
+  .code-copy {
+    opacity: 1;
+  }
+}
 /* 코드블록 좌상단 언어 라벨 — Shiki가 붙인 data-language를 그대로 표시.
    언어 없는 블록(plaintext/text)에는 라벨도, 여분의 상단 여백도 주지 않는다. */
 .astro-code:not([data-language="plaintext"]):not([data-language="text"]) {
@@ -461,6 +468,25 @@ a.pill:hover {
   }
   .container {
     padding: var(--space-5) var(--space-4) var(--space-8);
+  }
+}
+
+/* 좁은 화면 코드블록: 좌우 패딩과 폰트를 한 단계 줄여 가로 스크롤을 덜 타고
+   본문 리듬과 어우러지게 한다(깊게 들여쓴 코드도 더 많이 보인다). */
+@media (max-width: 560px) {
+  pre {
+    padding: var(--space-3);
+    font-size: var(--fs-xs);
+  }
+  .astro-code:not([data-language="plaintext"]):not([data-language="text"]) {
+    padding-top: calc(var(--space-3) + 0.55rem);
+  }
+  .astro-code:not([data-language="plaintext"]):not([data-language="text"])::before {
+    left: var(--space-3);
+  }
+  .code-copy {
+    top: var(--space-2);
+    right: var(--space-2);
   }
 }
 

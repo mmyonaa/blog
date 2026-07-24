@@ -37,6 +37,13 @@ import { FEEDBACK_ENABLED } from "../lib/feedback.ts";
     padding-top: var(--space-6);
     border-top: 1px solid var(--c-border);
   }
+  /* 좁은 화면에선 섹션 간 간격을 한 단계 좁혀 리듬을 정돈한다. */
+  @media (max-width: 560px) {
+    .comments {
+      margin-top: var(--space-8);
+      padding-top: var(--space-5);
+    }
+  }
   .comments-title {
     font-size: var(--fs-xs);
     font-weight: 700;
