@@ -97,7 +97,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   }
   .sec-name {
     flex: none;
-    font-size: var(--fs-xl);
+    /* 카테고리 이름: fs-xl(24px)은 5줄 목록에서 과대 → fs-lg(19px)로 차분하게. */
+    font-size: var(--fs-lg);
     font-weight: 700;
     letter-spacing: -0.01em;
   }

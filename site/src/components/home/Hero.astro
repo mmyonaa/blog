@@ -291,6 +291,11 @@ const { hasPosts, stats, activity } = Astro.props;
     .stat {
       flex: 1;
     }
+    /* 태블릿(641~900): 데스크톱 clamp(…,8vw,4.4rem)이면 768에서 ~61px로 과대.
+       중간 스케일로 낮춰 모바일(≤640, ~38px)과 데스크톱 사이를 매끄럽게 잇는다. */
+    .hero-title {
+      font-size: clamp(2.4rem, 6vw, 3rem);
+    }
   }
 
   /* ── 모바일 (#27) ──
