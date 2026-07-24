@@ -200,7 +200,8 @@ const explore = [
 <style>
   .site-footer {
     border-top: 1px solid var(--c-border);
-    margin-top: var(--space-10);
+    /* 콘텐츠~푸터 간격은 .container 하단 패딩이 담당한다.
+       여기에 margin-top까지 주면 여백이 이중으로 쌓여 길어진다(제거). */
     background: var(--c-surface);
   }
   .footer-inner {
