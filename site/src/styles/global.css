@@ -193,7 +193,9 @@ h4 {
   margin: 0 0 var(--space-4);
 }
 
-h1 { font-size: clamp(2rem, 6vw, var(--fs-3xl)); }
+/* 하한 1.75rem: 좁은 폰(6vw가 하한보다 작아지는 ~467px 이하)에서 제목이 28px로
+   내려가 페이지 타이틀이 화면을 덜 잡아먹게. 데스크톱(≥600)은 그대로 2.25rem 상한. */
+h1 { font-size: clamp(1.75rem, 6vw, var(--fs-3xl)); }
 h2 { font-size: var(--fs-xl); margin-top: var(--space-8); }
 h3 { font-size: var(--fs-lg); margin-top: var(--space-6); }
 
@@ -465,6 +467,9 @@ a.pill:hover {
   :root {
     --fs-base: 1rem;
     --fs-2xl: 1.75rem;
+    /* 본문 h2(fs-xl)가 모바일에서도 24px로 컸다 → 22px로 낮춰 본문(16px)과의
+       위계는 유지하되 화면을 덜 지배하게. */
+    --fs-xl: 1.375rem;
   }
   .container {
     padding: var(--space-5) var(--space-4) var(--space-8);
