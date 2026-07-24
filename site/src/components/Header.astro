@@ -315,7 +315,9 @@ const searchIndexUrl = `${base}/search-index.json`;
     background: none;
     color: var(--c-text);
     font: inherit;
-    font-size: var(--fs-lg);
+    /* fs-lg(19px)는 모바일 검색바에서 큼 → fs-base. 모바일 16px라 iOS 포커스
+       자동 확대(<16px일 때 발생)도 피한다. */
+    font-size: var(--fs-base);
     outline: none;
   }
   .search-input::placeholder {
