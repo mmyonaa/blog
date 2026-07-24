@@ -184,17 +184,20 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
     color: var(--c-accent);
   }
   .stat-value {
+    /* 마스트헤드·워드마크와 같은 모노 폰트 — 통계를 daily.mcp 정체성에 묶는다. */
+    font-family: var(--font-mono);
     font-size: var(--fs-2xl);
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    letter-spacing: -0.03em;
     color: var(--c-text);
     font-variant-numeric: tabular-nums;
   }
   .stat-label {
-    margin: 0.15em 0 0;
+    margin: 0.4em 0 0;
     font-size: var(--fs-xs);
     color: var(--c-muted);
-    letter-spacing: 0.02em;
+    /* 에디토리얼 캡션 톤 — 넉넉한 트래킹으로 숫자와 리듬을 분리. */
+    letter-spacing: 0.08em;
   }
 
   /* ── 잔디 액자 ── 오른쪽 열에 깊이를 주어 제목 열과 무게가 맞물리게. */
