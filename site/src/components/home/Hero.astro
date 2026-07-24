@@ -138,13 +138,17 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
     align-items: end;
   }
 
-  /* ── 통계 바 ── 낱개 숫자에서 '떠 있는 카드'로. 구분선으로 리듬을 준다. */
+  /* ── 통계 바 ── 낱개 숫자에서 '떠 있는 카드'로.
+     터미널 리드아웃 톤: 카드 상단에 모노 캡션 프롬프트, 첫 통계에 코랄 앵커,
+     짧은 중앙 구분선으로 리듬을 준다. */
   .stats {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-4) 0;
+    /* 상단 프롬프트 라벨 자리(::before)만큼 위쪽 패딩을 더 준다. */
     margin: var(--space-6) 0 0;
-    padding: var(--space-4) var(--space-2);
+    padding: calc(var(--space-4) + 0.9rem) var(--space-3) var(--space-4);
     background: var(--c-surface);
     border: 1px solid var(--c-border);
     border-radius: var(--radius-lg);
@@ -152,7 +156,35 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
     width: max-content;
     max-width: 100%;
   }
+  /* 카드 상단 '프롬프트' 캡션 — 터미널 상태줄처럼 코랄 마크 + 모노 라벨.
+     통계 바에 daily.mcp의 코드 정체성을 심는 한 줄. */
+  .stats::before {
+    content: "stats --live";
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-5);
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--c-muted);
+    opacity: 0.85;
+    /* 앞의 코랄 점 = 살아있는 표시. */
+    padding-left: 0.95em;
+  }
+  .stats::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--space-3) + 0.34rem);
+    left: var(--space-5);
+    width: 0.42em;
+    height: 0.42em;
+    border-radius: 50%;
+    background: var(--c-accent);
+    box-shadow: 0 0 0 0.14em var(--c-accent-soft);
+  }
   .stat {
+    position: relative;
     display: flex;
     flex-direction: column;
     /* 숫자를 라벨 위 중앙에 정렬 — 좌측 정렬이면 단자리 숫자(8·4)가 셀마다
@@ -161,10 +193,24 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
     text-align: center;
     line-height: 1.1;
     padding: 0 var(--space-5);
-    border-left: 1px solid var(--c-border);
   }
-  .stat:first-child {
-    border-left: none;
+  /* 짧은 중앙 구분선 — 셀 전체를 가르는 풀높이 선 대신 리듬만 주는 하프라인.
+     위아래로 페이드아웃해 딱딱한 1px 선보다 부드럽게. */
+  .stat:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 2.4em;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      var(--c-border) 22%,
+      var(--c-border) 78%,
+      transparent
+    );
   }
   /* 클릭 가능한 통계: 라벨 링크가 stat 전체를 덮어 숫자까지 클릭되게 */
   .stat-link {
@@ -192,8 +238,13 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
     color: var(--c-text);
     font-variant-numeric: tabular-nums;
   }
+  /* 첫 통계 = 시선 고정점. 코랄로 물들이고 아래 짧은 밑줄 틱으로 앵커링. */
+  .stat:first-child .stat-value {
+    color: var(--c-accent);
+  }
   .stat-label {
-    margin: 0.4em 0 0;
+    position: relative;
+    margin: 0.5em 0 0;
     font-size: var(--fs-xs);
     color: var(--c-muted);
     /* 에디토리얼 캡션 톤 — 넉넉한 트래킹으로 숫자와 리듬을 분리. */
@@ -267,27 +318,47 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
       gap: var(--space-4);
     }
     /* 좁은 폭: 통계 바가 화면을 꽉 채우고 4칸이 2×2로. 큰 히어로 카드가 아니라
-       낮고 컴팩트한 스트립으로 — 숫자·패딩을 줄여 높이를 낮춘다. */
+       낮고 컴팩트한 스트립으로 — 숫자·패딩을 줄여 높이를 낮춘다.
+       상단 프롬프트 캡션 자리는 유지(위쪽 패딩). */
     .stats {
       width: 100%;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0;
       margin-top: var(--space-4);
-      padding: var(--space-1);
+      padding: calc(var(--space-2) + 0.9rem) var(--space-1) var(--space-2);
+    }
+    .stats::before {
+      left: var(--space-4);
+    }
+    .stats::after {
+      left: var(--space-4);
     }
     .stat {
-      padding: var(--space-2) var(--space-3);
+      padding: var(--space-3) var(--space-3);
     }
     .stat-value {
       font-size: var(--fs-xl);
     }
-    /* 2×2 격자에서 왼쪽 열만 구분선 제거(1·3번째 칸). */
-    .stat:nth-child(odd) {
-      border-left: none;
+    /* 2×2 격자: 열 사이엔 세로 구분선(짝수 칸 왼쪽), 행 사이엔 가로 하프라인.
+       기본 ::before 세로선은 왼쪽 열(홀수)에서 숨기고 오른쪽 열에서만 보인다. */
+    .stat:nth-child(odd)::before {
+      display: none;
     }
-    .stat:nth-child(n + 3) {
-      border-top: 1px solid var(--c-border);
+    .stat:nth-child(n + 3)::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(
+        to right,
+        transparent,
+        var(--c-border) 20%,
+        var(--c-border) 80%,
+        transparent
+      );
     }
     /* 잔디 액자: 랜딩 최우선이 아니므로 패딩·캡션 여백을 줄여 비중을 낮춘다. */
     .hero-heat {
