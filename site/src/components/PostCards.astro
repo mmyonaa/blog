@@ -57,8 +57,9 @@ const TAG_MAX = 3;
     padding: 0;
     margin: var(--space-5) 0 0;
     display: grid;
-    /* 폭에 따라 1~3열. 카드 최소 폭을 두어 좁은 화면에선 자동으로 1열이 된다. */
-    grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+    /* 폭에 따라 1~3열. 카드 최소 폭을 두어 좁은 화면에선 자동으로 1열이 된다.
+       min(19rem,100%)로 두어 뷰포트가 19rem보다 좁아도(≤~340px) 열이 넘치지 않게 한다. */
+    grid-template-columns: repeat(auto-fill, minmax(min(19rem, 100%), 1fr));
     gap: var(--space-5) var(--space-5);
   }
   /* ── 심플 클린 카드(Maktub 참고) ──

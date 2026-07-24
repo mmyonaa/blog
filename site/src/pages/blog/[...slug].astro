@@ -654,7 +654,12 @@ const jsonLd = {
     margin: var(--space-5) 0;
   }
   .prose :global(table) {
+    /* 열이 많은 표는 좁은 화면에서 넘칠 수 있으므로 표 자체가 가로 스크롤되게 한다.
+       (pre와 달리 래퍼가 없어 body의 overflow-x:clip에 잘려 나가는 것을 방지) */
+    display: block;
+    overflow-x: auto;
     width: 100%;
+    max-width: 100%;
     border-collapse: collapse;
     margin: var(--space-5) 0;
     font-size: var(--fs-sm);
