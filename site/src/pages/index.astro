@@ -238,10 +238,18 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     box-shadow: var(--shadow-sm);
     padding: var(--space-4) var(--space-5);
   }
+  /* 태블릿(641~900): 상단 2단을 유지해 남는 가로 폭을 쓴다. 좁아진 만큼 비율을
+     살짝 균형 있게(1.5:1) 좁히고 간격을 줄여 대표 카드·읽을거리 리스트가 나란히 선다. */
   @media (max-width: 900px) {
     .top-section {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
       gap: var(--space-5);
+    }
+  }
+  /* 모바일에서만 1단 스택 */
+  @media (max-width: 640px) {
+    .top-section {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
@@ -260,15 +268,23 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     }
   }
 
-  /* 모바일 (#27): 카드가 featured와 같은 폭으로 꽉 차게 + section-head 세로 스택 */
+  /* 모바일 (#27): 카드가 featured와 같은 폭으로 꽉 차게.
+     섹션 제목·더보기 링크는 짧아 한 줄에 들어가므로 baseline 행을 유지하고(스택 시 4px
+     간격이 미완성처럼 보였다), 섹션 간 세로 리듬만 데스크톱보다 살짝 좁힌다. */
   @media (max-width: 640px) {
     .grid {
       grid-template-columns: 1fr;
     }
     .section-head {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-1);
+      margin-top: var(--space-6);
+      gap: var(--space-3);
+    }
+    .grid {
+      gap: var(--space-5) var(--space-4);
+    }
+    /* 히어로 끝~첫 글 사이 간격을 좁혀 글이 더 빨리 보이게. */
+    .top-section {
+      margin-top: var(--space-5);
     }
   }
 </style>

@@ -229,29 +229,55 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
     white-space: nowrap;
   }
 
-  /* 태블릿: 히어로 2단을 1단 스택으로 */
+  /* 태블릿: 히어로 2단을 1단 스택으로. 통계 바는 반쪽으로 뜨지 않고 폭을 꽉 채워
+     아래 잔디 액자와 좌우 정렬을 맞춘다(4칸 균등 분할). */
   @media (max-width: 900px) {
     .hero-cols {
       grid-template-columns: minmax(0, 1fr);
       align-items: start;
     }
+    .stats {
+      width: 100%;
+    }
+    .stat {
+      flex: 1;
+    }
   }
 
-  /* ── 모바일 (#27) ── */
+  /* ── 모바일 (#27) ──
+     랜딩 first-fold를 히어로가 통째로 삼키지 않도록: 제목 스케일을 낮추고, 통계는
+     낮은 스트립으로, 잔디는 시각 비중을 줄여 실제 글이 더 빨리 보이게 한다. 톤은 유지. */
   @media (max-width: 640px) {
     .hero {
-      padding: var(--space-6) 0 var(--space-6);
+      padding: var(--space-5) 0 var(--space-4);
     }
-    /* 좁은 폭: 통계 바가 화면을 꽉 채우고 4칸이 2×2로 접히도록 균등 그리드로 전환. */
+    /* 큰 마스트헤드가 첫 화면을 잡아먹지 않게 모바일 한정으로 축소(데스크톱 유지). */
+    .hero-title {
+      font-size: clamp(1.9rem, 8.5vw, 2.4rem);
+      margin-bottom: var(--space-2);
+    }
+    /* 서브카피도 한 톤 낮춰 제목과의 대비를 차분하게. */
+    .hero-sub {
+      font-size: var(--fs-base);
+    }
+    .hero-cols {
+      gap: var(--space-4);
+    }
+    /* 좁은 폭: 통계 바가 화면을 꽉 채우고 4칸이 2×2로. 큰 히어로 카드가 아니라
+       낮고 컴팩트한 스트립으로 — 숫자·패딩을 줄여 높이를 낮춘다. */
     .stats {
       width: 100%;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0;
-      padding: var(--space-2);
+      margin-top: var(--space-4);
+      padding: var(--space-1);
     }
     .stat {
-      padding: var(--space-3) var(--space-4);
+      padding: var(--space-2) var(--space-3);
+    }
+    .stat-value {
+      font-size: var(--fs-xl);
     }
     /* 2×2 격자에서 왼쪽 열만 구분선 제거(1·3번째 칸). */
     .stat:nth-child(odd) {
@@ -260,8 +286,13 @@ const { hasPosts, stats, activity, topTags, base } = Astro.props;
     .stat:nth-child(n + 3) {
       border-top: 1px solid var(--c-border);
     }
+    /* 잔디 액자: 랜딩 최우선이 아니므로 패딩·캡션 여백을 줄여 비중을 낮춘다. */
     .hero-heat {
-      padding: var(--space-4);
+      padding: var(--space-3) var(--space-4);
+    }
+    .hero-heat-cap {
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
     }
   }
 </style>

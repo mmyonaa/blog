@@ -169,4 +169,10 @@ const { activity } = Astro.props;
       margin-top: var(--space-6);
     }
   }
+  /* 모바일: 잔디 비중을 낮춘다 — 범례 간격을 좁혀 카드 높이를 줄인다. */
+  @media (max-width: 640px) {
+    .heatmap-legend {
+      margin-top: var(--space-2);
+    }
+  }
 </style>
