@@ -6,7 +6,7 @@
 export const WEB3FORMS_ACCESS_KEY: string | null =
   "fede36d3-d31e-4c6d-b425-cbe9b8725383";
 
-export const DISCUSSIONS_URL = "https://github.com/mmyonaa/mcp/discussions";
+export const DISCUSSIONS_URL = "https://github.com/mmyonaa/blog/discussions";
 
 export const FEEDBACK_ENABLED = WEB3FORMS_ACCESS_KEY !== null;
 

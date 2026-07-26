@@ -15,4 +15,4 @@ export const AUTHOR = {
 } as const;
 
 /** 프로젝트 소스 저장소. */
-export const REPO_URL = "https://github.com/mmyonaa/mcp";
+export const REPO_URL = "https://github.com/mmyonaa/blog";
