@@ -311,6 +311,7 @@ for (const p of posts) {
         <button
           class="graph-more"
           type="button"
+          aria-expanded="false"
           data-graph-expand
           data-more={`전체 ${posts.length}편 보기`}
           data-less="접기"
@@ -383,10 +384,12 @@ for (const p of posts) {
     let manualExpand = false;
     const setCapped = (capped: boolean) => {
       graph.toggleAttribute("data-capped", capped);
-      if (moreBtn)
+      if (moreBtn) {
         moreBtn.textContent = capped
           ? moreBtn.dataset.more!
           : moreBtn.dataset.less!;
+        moreBtn.setAttribute("aria-expanded", String(!capped)); // chevron 방향
+      }
     };
     moreBtn?.addEventListener("click", () => {
       const nowCapped = graph.hasAttribute("data-capped");
@@ -758,13 +761,15 @@ for (const p of posts) {
     .graph[data-capped] .rows .grow:nth-child(n + 16) {
       display: none;
     }
+    /* pill 버튼 대신 텍스트+chevron 디스클로저 — 접힘 ⌄ / 펼침 ⌃ */
     .graph-more {
       display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
       margin-top: var(--space-3);
-      padding: 0.35em 0.9em;
-      border: 1px solid var(--c-border);
-      border-radius: var(--radius-pill);
-      background: var(--c-surface);
+      padding: 0.25em 0;
+      border: 0;
+      background: none;
       color: var(--c-muted);
       font: inherit;
       font-size: var(--fs-sm);
@@ -773,6 +778,23 @@ for (const p of posts) {
     }
     .graph-more:hover {
       color: var(--c-text);
+    }
+    .graph-more::after {
+      content: "";
+      width: 0.45em;
+      height: 0.45em;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
+      transform: translateY(-0.15em) rotate(45deg);
+      transition: transform 0.15s ease;
+    }
+    .graph-more[aria-expanded="true"]::after {
+      transform: translateY(0.1em) rotate(225deg);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .graph-more::after {
+        transition: none;
+      }
     }
   }
 </style>

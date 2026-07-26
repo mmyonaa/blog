@@ -65,6 +65,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
           <button
             class="taglist-more"
             type="button"
+            aria-expanded="false"
             data-taglist-toggle
             data-more={`태그 ${tags.length}개 모두 보기`}
             data-less="태그 접기"
@@ -88,6 +89,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       if (!list) return;
       const collapsed = list.toggleAttribute("data-collapsed");
       btn.textContent = collapsed ? btn.dataset.more! : btn.dataset.less!;
+      btn.setAttribute("aria-expanded", String(!collapsed)); // chevron 방향도 이걸 따른다
     });
   </script>
   <p class="muted">
@@ -110,13 +112,20 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     margin: var(--space-8) 0 var(--space-4);
   }
   /* 모바일: 섹션 사이 48px는 과해 32px로, 구분선 바로 아래는
-     hr 리듬(16px, global.css)과 같은 박자로 죈다. */
+     hr 리듬(16px, global.css)과 같은 박자로 죈다.
+     카테고리 행도 세로 패딩을 한 단계 더 줄여 목록을 컴팩트하게. */
   @media (max-width: 640px) {
     .hub-title {
       margin-top: var(--space-6);
     }
     hr + .hub-title {
       margin-top: var(--space-4);
+    }
+    .sec-link {
+      padding: var(--space-2) 0;
+    }
+    .sec-toc {
+      margin-top: var(--space-3);
     }
   }
   /* 카테고리 — 책 '차례'식 점선 리더 목록. 카드·컬러보더 없이,
@@ -146,14 +155,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     display: flex;
     align-items: baseline;
     gap: var(--space-3);
-    padding: var(--space-4) 0;
+    padding: var(--space-3) 0;
     color: var(--c-text);
     text-decoration: none;
   }
   .sec-name {
     flex: none;
-    /* 카테고리 이름: fs-xl(24px)은 5줄 목록에서 과대 → fs-lg(19px)로 차분하게. */
-    font-size: var(--fs-lg);
+    /* 카테고리 이름: 5줄 목록에서 fs-lg(19px)도 커서 fs-base로 —
+       섹션이 화면을 덜 차지하고, 아이브로우 타이틀과의 위계는 굵기(700)로 충분. */
+    font-size: var(--fs-base);
     font-weight: 700;
     letter-spacing: -0.01em;
   }
@@ -220,13 +230,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     .taglist[data-collapsed] .tag:nth-child(n + 21) {
       display: none;
     }
+    /* pill 버튼 대신 텍스트+chevron 디스클로저 — 접힘 ⌄ / 펼침 ⌃ */
     .taglist-more {
       display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
       margin-top: var(--space-3);
-      padding: 0.35em 0.9em;
-      border: 1px solid var(--c-border);
-      border-radius: var(--radius-pill);
-      background: var(--c-surface);
+      padding: 0.25em 0;
+      border: 0;
+      background: none;
       color: var(--c-muted);
       font: inherit;
       font-size: var(--fs-sm);
@@ -235,6 +247,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     }
     .taglist-more:hover {
       color: var(--c-text);
+    }
+    .taglist-more::after {
+      content: "";
+      width: 0.45em;
+      height: 0.45em;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
+      transform: translateY(-0.15em) rotate(45deg);
+      transition: transform 0.15s ease;
+    }
+    .taglist-more[aria-expanded="true"]::after {
+      transform: translateY(0.1em) rotate(225deg);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .taglist-more::after {
+        transition: none;
+      }
     }
   }
 </style>
