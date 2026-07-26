@@ -180,8 +180,13 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     gap: var(--space-4);
     margin: var(--space-8) 0 var(--space-4);
   }
+  /* 섹션 라벨 — Topics의 .hub-title과 같은 mono eyebrow로 통일(허브 페이지 공통 언어). */
   .section-title {
-    font-size: var(--fs-lg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--c-muted);
     margin: 0;
   }
   .more {

@@ -2,12 +2,14 @@
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const pathname = Astro.url.pathname.replace(/\/$/, "");
 const isHome = pathname === base || pathname === "";
-const isBlog = pathname.startsWith(`${base}/blog`);
-// 분류 허브(/topics/)와 그 상세(/categories/[section]/, /tags/[tag]/) 모두 '분류' 활성.
-const isTopics =
-  pathname.startsWith(`${base}/topics`) ||
+// 카테고리·태그 상세(/categories/[section]/, /tags/[tag]/)는 '필터된 글 목록'이므로
+// Posts 활성 — /blog/의 필터 바에서 진입해도 활성 메뉴가 튀지 않는다.
+// Topics는 분류 허브(/topics/) 자체일 때만 활성.
+const isBlog =
+  pathname.startsWith(`${base}/blog`) ||
   pathname.startsWith(`${base}/categories`) ||
   pathname.startsWith(`${base}/tags`);
+const isTopics = pathname.startsWith(`${base}/topics`);
 const isAbout = pathname.startsWith(`${base}/about`);
 const searchIndexUrl = `${base}/search-index.json`;
 ---
@@ -131,11 +133,23 @@ const searchIndexUrl = `${base}/search-index.json`;
     height: 2rem;
     font-size: var(--fs-sm);
   }
-  /* 활성 메뉴는 solid 액센트로 — soft 배경만으론 hover와 구분이 약하다 */
-  .nav .active,
-  .nav a.active:hover {
-    background: var(--c-accent);
-    color: var(--c-accent-contrast);
+  /* ── nav 링크: 회색 pill 박스를 벗기고 색으로만 상태 표시(에디토리얼) ──
+     검색·테마는 액션이라 버튼 유지, 이동 링크만 가벼운 텍스트로. */
+  .nav .pill {
+    height: auto;
+    padding: 0.3em 0.15em;
+    background: none;
+    border-radius: 0;
+    color: var(--c-muted);
+    font-weight: 500;
+    transition: color 0.15s ease;
+  }
+  .nav a.pill:hover {
+    background: none;
+    color: var(--c-text);
+  }
+  .nav .active {
+    color: var(--c-accent);
     font-weight: 600;
   }
 

@@ -35,43 +35,16 @@ const RAIL_PAD = 12; // 레일 좌우 여백
 const ROW_H = 46; // 글 행 높이(고정 → 노드 y)
 const MONTH_H = 30; // 월 마커 행 높이
 const NODE_R = 4.5;
-const colX = (i: number) => RAIL_PAD + i * SUBCOL_W + SUBCOL_W / 2;
 
-// ── 컬럼 배치: 카테고리 트렁크 + area 가지(같은 area 2편 이상일 때만 서브컬럼) ──
-type Branch = { area: string; col: number };
-type Cat = { id: string; hue: string; trunk: number; branches: Branch[] };
-const postCol = new Map<string, number>(); // post.id → 컬럼 인덱스
-const cats: Cat[] = [];
-let cursor = 0;
-for (const lane of lanes) {
-  const cps = posts.filter((p) => secOf.get(p.id) === lane.id); // 최신순
-  const areaN = new Map<string, number>();
-  for (const p of cps)
-    if (p.data.area) areaN.set(p.data.area, (areaN.get(p.data.area) ?? 0) + 1);
-  // 가지가 될 area: 2편 이상. 처음 등장(최신) 순서로 컬럼 부여.
-  const order: string[] = [];
-  for (const p of cps) {
-    const a = p.data.area;
-    if (a && (areaN.get(a) ?? 0) >= 2 && !order.includes(a)) order.push(a);
-  }
-  const trunk = cursor;
-  const branchCol = new Map(order.map((a, i) => [a, cursor + 1 + i]));
-  for (const p of cps) {
-    const a = p.data.area;
-    postCol.set(p.id, a && branchCol.has(a) ? branchCol.get(a)! : trunk);
-  }
-  cats.push({
-    id: lane.id,
-    hue: lane.hue,
-    trunk,
-    branches: order.map((a) => ({ area: a, col: branchCol.get(a)! })),
-  });
-  cursor += 1 + order.length;
-}
-const totalCols = cursor;
-const railW = RAIL_PAD * 2 + totalCols * SUBCOL_W; // 레일(=텍스트 들여쓰기) 폭
+// 부드러운 세로 방향 곡선(깃 네트워크 그래프 풍) — 컬럼을 바꿀 때의 가지/후속 연결선.
+const curve = (x1: number, y1: number, x2: number, y2: number) => {
+  const my = (y1 + y2) / 2;
+  return `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`;
+};
 
-// ── 표시 행 + y 좌표. 월이 바뀌면 마커 행을 끼운다 ──
+// ── 레이아웃 계산 — 글 부분집합을 받아 그래프 한 벌(컬럼·행·선)을 만든다.
+//    카테고리 필터를 '흐림'이 아니라 '재구성'으로 처리하기 위해, 전체 + 카테고리별
+//    변형을 빌드 타임에 모두 계산해 두고(SSG 원칙 유지) 클라이언트는 교체만 한다. ──
 type PostRow = {
   type: "post";
   id: string;
@@ -88,96 +61,154 @@ type PostRow = {
 type MonthRow = { type: "month"; label: string; h: number };
 type Row = PostRow | MonthRow;
 
-const rows: Row[] = [];
-const cyById = new Map<string, number>();
-let y = 0;
-let prevYM = "";
-let prevYear = "";
-for (const p of posts) {
-  const [yr, m, d] = fmtDate(p.data.pubDate).split("-");
-  const ym = `${yr}-${m}`;
-  if (ym !== prevYM) {
-    const label = yr !== prevYear ? `${yr}년 ${Number(m)}월` : `${Number(m)}월`;
-    rows.push({ type: "month", label, h: MONTH_H });
-    y += MONTH_H;
-    prevYM = ym;
-    prevYear = yr;
+function layout(
+  subset: typeof posts,
+  opts: { branches?: boolean; subcolW?: number; railPad?: number } = {},
+) {
+  const useBranches = opts.branches !== false;
+  // 모바일 레일은 컬럼 간격·패딩을 죄어(20→14, 12→8) 선과 제목 사이 여백을 줄인다.
+  const SC = opts.subcolW ?? SUBCOL_W;
+  const RP = opts.railPad ?? RAIL_PAD;
+  const colX = (i: number) => RP + i * SC + SC / 2;
+  // ── 컬럼 배치: 카테고리 트렁크 + area 가지(같은 area 2편 이상일 때만 서브컬럼) ──
+  //    branches:false면 가지를 접고 트렁크만 쓴다 — 모바일용 슬림 레일
+  //    (전체 324px → 124px)로, 좁은 폭에서도 연결고리를 그릴 수 있게 한다.
+  type Branch = { area: string; col: number };
+  type Cat = { id: string; hue: string; trunk: number; branches: Branch[] };
+  const postCol = new Map<string, number>(); // post.id → 컬럼 인덱스
+  const cats: Cat[] = [];
+  let cursor = 0;
+  for (const lane of lanes) {
+    const cps = subset.filter((p) => secOf.get(p.id) === lane.id); // 최신순
+    if (cps.length === 0) continue; // 부분집합에 없는 카테고리는 컬럼을 만들지 않는다
+    const areaN = new Map<string, number>();
+    for (const p of cps)
+      if (p.data.area) areaN.set(p.data.area, (areaN.get(p.data.area) ?? 0) + 1);
+    // 가지가 될 area: 2편 이상. 처음 등장(최신) 순서로 컬럼 부여.
+    const order: string[] = [];
+    if (useBranches)
+      for (const p of cps) {
+        const a = p.data.area;
+        if (a && (areaN.get(a) ?? 0) >= 2 && !order.includes(a)) order.push(a);
+      }
+    const trunk = cursor;
+    const branchCol = new Map(order.map((a, i) => [a, cursor + 1 + i]));
+    for (const p of cps) {
+      const a = p.data.area;
+      postCol.set(p.id, a && branchCol.has(a) ? branchCol.get(a)! : trunk);
+    }
+    cats.push({
+      id: lane.id,
+      hue: lane.hue,
+      trunk,
+      branches: order.map((a) => ({ area: a, col: branchCol.get(a)! })),
+    });
+    cursor += 1 + order.length;
   }
-  const sec = secOf.get(p.id)!;
-  const cx = colX(postCol.get(p.id)!);
-  const cy = y + ROW_H / 2;
-  cyById.set(p.id, cy);
-  rows.push({
-    type: "post",
-    id: p.id,
-    title: p.data.title,
-    sec,
-    hue: hueOf(sec),
-    area: areaLabel(p.data.area),
-    date: `${Number(m)}/${Number(d)}`,
-    chars: charCount(p.body),
-    h: ROW_H,
-    cx,
-    cy,
-  });
-  y += ROW_H;
-}
-const totalH = y;
+  const railW = RP * 2 + cursor * SC; // 레일(=텍스트 들여쓰기) 폭
 
-// ── 세로선(각 컬럼: 그 컬럼 글들의 최신~오래된 구간) ──
-const colYs = new Map<number, number[]>();
-for (const p of posts) {
-  const c = postCol.get(p.id)!;
-  (colYs.get(c) ?? colYs.set(c, []).get(c)!).push(cyById.get(p.id)!);
-}
-const vlines = cats.flatMap((cat) =>
-  [cat.trunk, ...cat.branches.map((b) => b.col)]
-    .map((c) => {
-      const ys = colYs.get(c);
-      return ys && ys.length
-        ? { x: colX(c), y1: Math.min(...ys), y2: Math.max(...ys), hue: cat.hue, sec: cat.id }
-        : null;
-    })
-    .filter((v): v is NonNullable<typeof v> => v !== null),
-);
-
-// 부드러운 세로 방향 곡선(깃 네트워크 그래프 풍) — 컬럼을 바꿀 때의 가지/후속 연결선.
-const curve = (x1: number, y1: number, x2: number, y2: number) => {
-  const my = (y1 + y2) / 2;
-  return `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`;
-};
-
-// ── 가지 bud/merge: 각 area 가지가 트렁크에서 갈라져 나오고(위) 되돌아온다(아래) ──
-type GLink = { d: string; hue: string; kind: "branch" | "follows"; cross?: boolean; sec: string };
-const links: GLink[] = [];
-for (const cat of cats) {
-  const trunkX = colX(cat.trunk);
-  for (const b of cat.branches) {
-    const ys = colYs.get(b.col)!;
-    const top = Math.min(...ys); // 가지의 최신 노드
-    const bot = Math.max(...ys); // 가지의 오래된 노드
-    const bx = colX(b.col);
-    // 갈라짐: 트렁크의 조금 위 지점 → 가지 최신 노드
-    links.push({ d: curve(trunkX, Math.max(0, top - ROW_H), bx, top), hue: cat.hue, kind: "branch", sec: cat.id });
-    // 복귀: 가지 오래된 노드 → 트렁크의 조금 아래 지점
-    links.push({ d: curve(bx, bot, trunkX, Math.min(totalH, bot + ROW_H)), hue: cat.hue, kind: "branch", sec: cat.id });
+  // ── 표시 행 + y 좌표. 월이 바뀌면 마커 행을 끼운다 ──
+  const rows: Row[] = [];
+  const cyById = new Map<string, number>();
+  let y = 0;
+  let prevYM = "";
+  let prevYear = "";
+  for (const p of subset) {
+    const [yr, m, d] = fmtDate(p.data.pubDate).split("-");
+    const ym = `${yr}-${m}`;
+    if (ym !== prevYM) {
+      const label = yr !== prevYear ? `${yr}년 ${Number(m)}월` : `${Number(m)}월`;
+      rows.push({ type: "month", label, h: MONTH_H });
+      y += MONTH_H;
+      prevYM = ym;
+      prevYear = yr;
+    }
+    const sec = secOf.get(p.id)!;
+    const cx = colX(postCol.get(p.id)!);
+    const cy = y + ROW_H / 2;
+    cyById.set(p.id, cy);
+    rows.push({
+      type: "post",
+      id: p.id,
+      title: p.data.title,
+      sec,
+      hue: hueOf(sec),
+      area: areaLabel(p.data.area),
+      date: `${Number(m)}/${Number(d)}`,
+      chars: charCount(p.body),
+      h: ROW_H,
+      cx,
+      cy,
+    });
+    y += ROW_H;
   }
+  const totalH = y;
+
+  // ── 세로선(각 컬럼: 그 컬럼 글들의 최신~오래된 구간) ──
+  const colYs = new Map<number, number[]>();
+  for (const p of subset) {
+    const c = postCol.get(p.id)!;
+    (colYs.get(c) ?? colYs.set(c, []).get(c)!).push(cyById.get(p.id)!);
+  }
+  const vlines = cats.flatMap((cat) =>
+    [cat.trunk, ...cat.branches.map((b) => b.col)]
+      .map((c) => {
+        const ys = colYs.get(c);
+        return ys && ys.length
+          ? { x: colX(c), y1: Math.min(...ys), y2: Math.max(...ys), hue: cat.hue, sec: cat.id }
+          : null;
+      })
+      .filter((v): v is NonNullable<typeof v> => v !== null),
+  );
+
+  // ── 가지 bud/merge: 각 area 가지가 트렁크에서 갈라져 나오고(위) 되돌아온다(아래) ──
+  type GLink = { d: string; hue: string; kind: "branch" | "follows"; cross?: boolean; sec: string };
+  const links: GLink[] = [];
+  for (const cat of cats) {
+    const trunkX = colX(cat.trunk);
+    for (const b of cat.branches) {
+      const ys = colYs.get(b.col)!;
+      const top = Math.min(...ys); // 가지의 최신 노드
+      const bot = Math.max(...ys); // 가지의 오래된 노드
+      const bx = colX(b.col);
+      // 갈라짐: 트렁크의 조금 위 지점 → 가지 최신 노드
+      links.push({ d: curve(trunkX, Math.max(0, top - ROW_H), bx, top), hue: cat.hue, kind: "branch", sec: cat.id });
+      // 복귀: 가지 오래된 노드 → 트렁크의 조금 아래 지점
+      links.push({ d: curve(bx, bot, trunkX, Math.min(totalH, bot + ROW_H)), hue: cat.hue, kind: "branch", sec: cat.id });
+    }
+  }
+
+  // ── 후속(follows): 자식→부모. 부분집합 안에 양끝이 다 있을 때만 그린다 ──
+  const followsLinks: { d: string; hue: string; cross: boolean; a: string; b: string; secA: string; secB: string }[] = [];
+  for (const p of subset) {
+    const par = p.data.follows;
+    if (!par || !cyById.has(par)) continue;
+    const ca = postCol.get(p.id)!;
+    const cb = postCol.get(par)!;
+    const secA = secOf.get(p.id)!;
+    const secB = secOf.get(par)!;
+    const hue = hueOf(secA);
+    const cross = secA !== secB;
+    const d = curve(colX(ca), cyById.get(p.id)!, colX(cb), cyById.get(par)!);
+    followsLinks.push({ d, hue, cross, a: p.id, b: par, secA, secB });
+  }
+
+  return { railW, totalH, rows, vlines, links, followsLinks, count: subset.length };
 }
 
-// ── 후속(follows): 자식→부모. 컬럼이 다르면 곡선으로(같은 컬럼이면 세로선이 이미 잇는다) ──
-const followsLinks: { d: string; hue: string; cross: boolean; a: string; b: string; secA: string; secB: string }[] = [];
-for (const p of posts) {
-  const par = p.data.follows;
-  if (!par || !cyById.has(par)) continue;
-  const ca = postCol.get(p.id)!;
-  const cb = postCol.get(par)!;
-  const secA = secOf.get(p.id)!;
-  const secB = secOf.get(par)!;
-  const hue = hueOf(secA);
-  const cross = secA !== secB;
-  const d = curve(colX(ca), cyById.get(p.id)!, colX(cb), cyById.get(par)!);
-  followsLinks.push({ d, hue, cross, a: p.id, b: par, secA, secB });
-}
+// 전체 + 카테고리별 변형. key는 범례의 data-sec과 짝.
+// d = 데스크톱, m = 모바일 레일. 행 순서·y는 같고 x·레일 폭만 다르다.
+// 모바일에서 '전체'는 가지 포함 레일이 너무 넓어 트렁크만 접어 보여주고,
+// 카테고리 변형은 레일이 좁아 PC처럼 가지까지 그대로 편다.
+// 모바일은 컬럼 척도도 죄어(SUBCOL 14·PAD 8) 선과 제목 사이 여백을 줄인다.
+const M = { subcolW: 14, railPad: 8 };
+const variants = [
+  { key: "all", d: layout(posts), m: layout(posts, { branches: false, ...M }) },
+  ...lanes.map((l) => {
+    const subset = posts.filter((p) => secOf.get(p.id) === l.id);
+    return { key: l.id, d: layout(subset), m: layout(subset, M) };
+  }),
+];
 ---
 
 <!-- 범례 -->
@@ -209,248 +240,283 @@ for (const p of posts) {
   posts.length === 0 ? (
     <p class="muted">아직 발행된 글이 없습니다.</p>
   ) : (
-    <div class="graph" data-capped={rows.length > 15} style={`--rail-w: ${railW}px`}>
-      <svg
-        class="wire"
-        width={railW}
-        height={totalH}
-        viewBox={`0 0 ${railW} ${totalH}`}
-        aria-hidden="true"
+    variants.map((v) => (
+      <div
+        class="graph"
+        data-variant={v.key}
+        data-capped={v.d.rows.length > 15 ? "" : undefined}
+        hidden={v.key !== "all"}
+        style={`--rail-w: ${v.d.railW}px; --rail-w-m: ${v.m.railW}px`}
       >
-        <defs>
-          <marker
-            id="arw"
-            markerWidth="6.5"
-            markerHeight="6.5"
-            refX="5"
-            refY="3"
-            orient="auto"
+        {/* gbody: 레일+행 묶음. 모바일 cap 시 SVG가 접힌 행 아래로
+            튀어나오지 않게 여기서 클리핑한다(버튼은 바깥). */}
+        <div class="gbody">
+          {/* 데스크톱 레일: 트렁크 + area 가지 */}
+          <svg
+            class="wire"
+            width={v.d.railW}
+            height={v.d.totalH}
+            viewBox={`0 0 ${v.d.railW} ${v.d.totalH}`}
+            aria-hidden="true"
           >
-            <path d="M0 0 L5.5 3 L0 6 Z" fill="context-stroke" />
-          </marker>
-        </defs>
+            <defs>
+              <marker
+                id={`arw-${v.key}`}
+                markerWidth="6.5"
+                markerHeight="6.5"
+                refX="5"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0 0 L5.5 3 L0 6 Z" fill="context-stroke" />
+              </marker>
+            </defs>
 
-        {/* 세로 트렁크·가지 선 */}
-        {vlines.map((l) => (
-          <line
-            class="vline"
-            x1={l.x}
-            y1={l.y1}
-            x2={l.x}
-            y2={l.y2}
-            data-sec={l.sec}
-            style={`--hue: ${l.hue}`}
-          />
-        ))}
-
-        {/* 가지 갈라짐/복귀 곡선 */}
-        {links.map((l) => (
-          <path class="branch" d={l.d} data-sec={l.sec} style={`--hue: ${l.hue}`} />
-        ))}
-
-        {/* 후속 곡선(화살표) */}
-        {followsLinks.map((l) => (
-          <path
-            class:list={["follows", { cross: l.cross }]}
-            d={l.d}
-            data-a={l.a}
-            data-b={l.b}
-            data-sec-a={l.secA}
-            data-sec-b={l.secB}
-            style={`--hue: ${l.hue}`}
-            marker-end="url(#arw)"
-          />
-        ))}
-
-        {/* 노드 */}
-        {rows.map(
-          (r) =>
-            r.type === "post" && (
-              <circle
-                class="node"
-                cx={r.cx}
-                cy={r.cy}
-                r={NODE_R}
-                data-id={r.id}
-                data-sec={r.sec}
-                style={`--hue: ${r.hue}`}
+            {/* 세로 트렁크·가지 선 */}
+            {v.d.vlines.map((l) => (
+              <line
+                class="vline"
+                x1={l.x}
+                y1={l.y1}
+                x2={l.x}
+                y2={l.y2}
+                data-sec={l.sec}
+                style={`--hue: ${l.hue}`}
               />
-            ),
-        )}
-      </svg>
+            ))}
 
-      {/* 텍스트 행(레일 오른쪽, 높이 고정 → 노드와 y 일치) */}
-      <div class="rows">
-        {rows.map((r) =>
-          r.type === "month" ? (
-            <div class="grow month" style={`height: ${r.h}px`}>
-              <span class="mlabel">{r.label}</span>
-            </div>
-          ) : (
-            <a
-              class="grow post"
-              href={`${base}/blog/${r.id}/`}
-              data-id={r.id}
-              data-sec={r.sec}
-              style={`height: ${r.h}px; --hue: ${r.hue}`}
-            >
-              <span class="ptitle">{r.title}</span>
-              <span class="pmeta">
-                {r.area && <span class="parea">{r.area}</span>}
-                <span class="pdate">{r.date}</span>
-                <span class="pchars">{fmtCount(r.chars)}자</span>
-              </span>
-            </a>
-          ),
+            {/* 가지 갈라짐/복귀 곡선 */}
+            {v.d.links.map((l) => (
+              <path class="branch" d={l.d} data-sec={l.sec} style={`--hue: ${l.hue}`} />
+            ))}
+
+            {/* 후속 곡선(화살표) */}
+            {v.d.followsLinks.map((l) => (
+              <path
+                class:list={["follows", { cross: l.cross }]}
+                d={l.d}
+                data-a={l.a}
+                data-b={l.b}
+                data-sec-a={l.secA}
+                data-sec-b={l.secB}
+                style={`--hue: ${l.hue}`}
+                marker-end={`url(#arw-${v.key})`}
+              />
+            ))}
+
+            {/* 노드 */}
+            {v.d.rows.map(
+              (r) =>
+                r.type === "post" && (
+                  <circle
+                    class="node"
+                    cx={r.cx}
+                    cy={r.cy}
+                    r={NODE_R}
+                    data-id={r.id}
+                    data-sec={r.sec}
+                    style={`--hue: ${r.hue}`}
+                  />
+                ),
+            )}
+          </svg>
+
+          {/* 모바일 레일: 가지를 접은 트렁크만(슬림) — 좁은 폭에서도 연결고리 유지 */}
+          <svg
+            class="wire wire-m"
+            width={v.m.railW}
+            height={v.m.totalH}
+            viewBox={`0 0 ${v.m.railW} ${v.m.totalH}`}
+            aria-hidden="true"
+          >
+            <defs>
+              <marker
+                id={`arw-m-${v.key}`}
+                markerWidth="6.5"
+                markerHeight="6.5"
+                refX="5"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0 0 L5.5 3 L0 6 Z" fill="context-stroke" />
+              </marker>
+            </defs>
+            {v.m.vlines.map((l) => (
+              <line
+                class="vline"
+                x1={l.x}
+                y1={l.y1}
+                x2={l.x}
+                y2={l.y2}
+                data-sec={l.sec}
+                style={`--hue: ${l.hue}`}
+              />
+            ))}
+            {v.m.links.map((l) => (
+              <path class="branch" d={l.d} data-sec={l.sec} style={`--hue: ${l.hue}`} />
+            ))}
+            {v.m.followsLinks.map((l) => (
+              <path
+                class:list={["follows", { cross: l.cross }]}
+                d={l.d}
+                data-a={l.a}
+                data-b={l.b}
+                data-sec-a={l.secA}
+                data-sec-b={l.secB}
+                style={`--hue: ${l.hue}`}
+                marker-end={`url(#arw-m-${v.key})`}
+              />
+            ))}
+            {v.m.rows.map(
+              (r) =>
+                r.type === "post" && (
+                  <circle
+                    class="node"
+                    cx={r.cx}
+                    cy={r.cy}
+                    r={NODE_R}
+                    data-id={r.id}
+                    data-sec={r.sec}
+                    style={`--hue: ${r.hue}`}
+                  />
+                ),
+            )}
+          </svg>
+
+          {/* 텍스트 행(레일 오른쪽, 높이 고정 → 노드와 y 일치) */}
+          <div class="rows">
+            {v.d.rows.map((r) =>
+              r.type === "month" ? (
+                <div class="grow month" style={`height: ${r.h}px`}>
+                  <span class="mlabel">{r.label}</span>
+                </div>
+              ) : (
+                <a
+                  class="grow post"
+                  href={`${base}/blog/${r.id}/`}
+                  data-id={r.id}
+                  data-sec={r.sec}
+                  style={`height: ${r.h}px; --hue: ${r.hue}`}
+                >
+                  <span class="ptitle">{r.title}</span>
+                  <span class="pmeta">
+                    {r.area && <span class="parea">{r.area}</span>}
+                    <span class="pdate">{r.date}</span>
+                    <span class="pchars">{fmtCount(r.chars)}자</span>
+                  </span>
+                </a>
+              ),
+            )}
+          </div>
+        </div>
+
+        {/* 모바일 리스트 모드 전용(CSS로 노출): capped 상태 해제/복원 토글. */}
+        {v.d.rows.length > 15 && (
+          <button
+            class="graph-more"
+            type="button"
+            aria-expanded="false"
+            data-graph-expand
+            data-more={`전체 ${v.d.count}편 보기`}
+            data-less="접기"
+          >
+            전체 {v.d.count}편 보기
+          </button>
         )}
       </div>
-
-      {/* 모바일 리스트 모드 전용(CSS로 노출): capped 상태 해제/복원 토글.
-          카테고리 필터 중엔 스크립트가 숨긴다(필터 결과가 잘리지 않게 전체 펼침). */}
-      {rows.length > 15 && (
-        <button
-          class="graph-more"
-          type="button"
-          aria-expanded="false"
-          data-graph-expand
-          data-more={`전체 ${posts.length}편 보기`}
-          data-less="접기"
-        >
-          전체 {posts.length}편 보기
-        </button>
-      )}
-    </div>
+    ))
   )
 }
 
 <script>
-  // 호버 포커스: 한 글에 올리면 그 글의 후속 사슬(부모·자식)만 남기고 흐린다.
-  const graph = document.querySelector<HTMLElement>(".graph");
-  if (graph) {
-    const flinks = [...graph.querySelectorAll<SVGPathElement>("path.follows")];
-    const adj = new Map<string, Set<string>>();
-    const link = (x: string, yy: string) => {
-      if (!adj.has(x)) adj.set(x, new Set());
-      adj.get(x)!.add(yy);
-    };
-    for (const p of flinks) {
-      link(p.dataset.a!, p.dataset.b!);
-      link(p.dataset.b!, p.dataset.a!);
-    }
-    const focus = (id: string) => {
-      const near = new Set<string>([id, ...(adj.get(id) ?? [])]);
-      graph.classList.add("focused");
-      for (const el of graph.querySelectorAll<HTMLElement>("[data-id]"))
-        el.classList.toggle("active", near.has(el.dataset.id!));
-      for (const p of flinks)
-        p.classList.toggle("active", p.dataset.a === id || p.dataset.b === id);
-    };
-    const clear = () => {
-      graph.classList.remove("focused");
-      for (const el of graph.querySelectorAll(".active"))
-        el.classList.remove("active");
-    };
-    for (const el of graph.querySelectorAll<HTMLElement>("[data-id]")) {
-      const id = el.dataset.id!;
-      el.addEventListener("pointerenter", () => focus(id));
-      el.addEventListener("pointerleave", clear);
-      el.addEventListener("focusin", () => focus(id));
-      el.addEventListener("focusout", clear);
-    }
-
-    // ── 카테고리 필터: 범례 클릭 → 그 카테고리만 남기고 나머지를 흐린다.
-    //    같은 카테고리를 다시 클릭하면 해제. (좌표 고정 그래프라 '숨김' 대신 '흐림') ──
-    const legend = document.querySelector<HTMLElement>(".legend");
-    const legendEls = legend
-      ? [...legend.querySelectorAll<HTMLElement>(".lg[data-sec]")]
-      : [];
-    // 페이지 어디든 data-graph-filter="<sec>"를 단 요소(예: topics의 카테고리 목록)도
-    // 같은 필터 컨트롤이 된다 — 링크 이동 대신 그래프를 거른다(JS 없으면 href로 폴백).
-    const extEls = [
-      ...document.querySelectorAll<HTMLElement>("[data-graph-filter]"),
+  // 그래프 변형(전체 + 카테고리별)이 모두 렌더돼 있고, 범례 클릭은 '흐림' 대신
+  // 해당 카테고리로 재구성된 그래프로 교체한다. 호버 포커스·모바일 cap은
+  // 각 변형에 개별 바인딩. View Transitions 후에도 새 DOM에 다시 붙도록
+  // astro:page-load마다 초기화한다(요소가 새것이라 중복 바인딩 없음).
+  function initPostGraph() {
+    const graphs = [
+      ...document.querySelectorAll<HTMLElement>(".graph[data-variant]"),
     ];
-    // 세로선·가지·노드·글행처럼 단일 카테고리를 가진 요소들.
-    const secEls = [...graph.querySelectorAll<HTMLElement>("[data-sec]")];
-    // 후속 곡선은 양끝 카테고리로 판정(한 카테고리 안에서만 완전히 표시).
-    const followEls = [...graph.querySelectorAll<SVGPathElement>("path.follows")];
-    const resetBtn = legend?.querySelector<HTMLButtonElement>(".lg-reset");
-    let activeFilter: string | null = null;
+    if (!graphs.length) return;
 
-    // ── 모바일 cap: 최근 15행만 기본 노출. 버튼으로 전체/접기 토글. ──
-    const moreBtn = document.querySelector<HTMLButtonElement>("[data-graph-expand]");
-    // 서버 렌더 시 rows>15면 data-capped가 있다. 사용자가 직접 펼쳤는지 기억해
-    // 필터 해제 시 원래 상태로 복원한다(처음부터 cap이 없던 짧은 그래프는 그대로).
-    const initiallyCapped = graph.hasAttribute("data-capped");
-    let manualExpand = false;
-    const setCapped = (capped: boolean) => {
-      graph.toggleAttribute("data-capped", capped);
-      if (moreBtn) {
+    for (const graph of graphs) {
+      // 호버 포커스: 한 글에 올리면 그 글의 후속 사슬(부모·자식)만 남기고 흐린다.
+      const flinks = [...graph.querySelectorAll<SVGPathElement>("path.follows")];
+      const adj = new Map<string, Set<string>>();
+      const link = (x: string, yy: string) => {
+        if (!adj.has(x)) adj.set(x, new Set());
+        adj.get(x)!.add(yy);
+      };
+      for (const p of flinks) {
+        link(p.dataset.a!, p.dataset.b!);
+        link(p.dataset.b!, p.dataset.a!);
+      }
+      const focus = (id: string) => {
+        const near = new Set<string>([id, ...(adj.get(id) ?? [])]);
+        graph.classList.add("focused");
+        for (const el of graph.querySelectorAll<HTMLElement>("[data-id]"))
+          el.classList.toggle("active", near.has(el.dataset.id!));
+        for (const p of flinks)
+          p.classList.toggle("active", p.dataset.a === id || p.dataset.b === id);
+      };
+      const clear = () => {
+        graph.classList.remove("focused");
+        for (const el of graph.querySelectorAll(".active"))
+          el.classList.remove("active");
+      };
+      for (const el of graph.querySelectorAll<HTMLElement>("[data-id]")) {
+        const id = el.dataset.id!;
+        el.addEventListener("pointerenter", () => focus(id));
+        el.addEventListener("pointerleave", clear);
+        el.addEventListener("focusin", () => focus(id));
+        el.addEventListener("focusout", clear);
+      }
+
+      // 모바일 cap: 최근 15행만 기본 노출, 그래프별 버튼으로 전체/접기 토글.
+      const moreBtn = graph.querySelector<HTMLButtonElement>("[data-graph-expand]");
+      moreBtn?.addEventListener("click", () => {
+        const capped = !graph.hasAttribute("data-capped");
+        graph.toggleAttribute("data-capped", capped);
         moreBtn.textContent = capped
           ? moreBtn.dataset.more!
           : moreBtn.dataset.less!;
         moreBtn.setAttribute("aria-expanded", String(!capped)); // chevron 방향
-      }
-    };
-    moreBtn?.addEventListener("click", () => {
-      const nowCapped = graph.hasAttribute("data-capped");
-      manualExpand = nowCapped; // 펼치는 클릭이면 수동 펼침으로 기억
-      setCapped(!nowCapped);
-    });
+      });
+    }
 
-    const applyFilter = (sec: string | null) => {
-      activeFilter = sec;
-      graph.classList.toggle("filtered", !!sec);
-      legend?.classList.toggle("filtering", !!sec);
-      if (resetBtn) resetBtn.hidden = !sec;
-      // 필터 중엔 전체 펼침(결과가 cap에 잘리지 않게) + 토글 버튼 숨김.
-      // 해제 시 수동 펼침이 아니었다면 cap 복원.
-      if (moreBtn) moreBtn.hidden = !!sec;
-      if (sec) setCapped(false);
-      else if (initiallyCapped && !manualExpand) setCapped(true);
-      for (const el of secEls)
-        el.classList.toggle("dim", !!sec && el.dataset.sec !== sec);
-      for (const p of followEls) {
-        const within = p.dataset.secA === sec && p.dataset.secB === sec;
-        p.classList.toggle("dim", !!sec && !within);
-      }
+    // ── 범례 → 변형 교체. 같은 카테고리를 다시 클릭하면 전체로 복귀. ──
+    const legend = document.querySelector<HTMLElement>(".legend");
+    if (!legend) return;
+    const legendEls = [...legend.querySelectorAll<HTMLElement>(".lg[data-sec]")];
+    const resetBtn = legend.querySelector<HTMLButtonElement>(".lg-reset");
+    let active = "all";
+    const show = (key: string) => {
+      active = key;
+      for (const g of graphs) g.hidden = g.dataset.variant !== key;
+      legend.classList.toggle("filtering", key !== "all");
+      if (resetBtn) resetBtn.hidden = key === "all";
       for (const l of legendEls) {
-        l.classList.toggle("sel", l.dataset.sec === sec);
-        l.classList.toggle("off", !!sec && l.dataset.sec !== sec);
-      }
-      for (const l of extEls) {
-        l.classList.toggle("sel", l.dataset.graphFilter === sec);
-        l.classList.toggle("off", !!sec && l.dataset.graphFilter !== sec);
+        l.classList.toggle("sel", l.dataset.sec === key);
+        l.classList.toggle("off", key !== "all" && l.dataset.sec !== key);
       }
     };
-
     for (const l of legendEls) {
       l.addEventListener("click", (e) => {
-        e.preventDefault(); // 카테고리 페이지로 이동 대신 그래프를 필터링
-        applyFilter(activeFilter === l.dataset.sec ? null : l.dataset.sec!);
+        e.preventDefault(); // 카테고리 페이지로 이동 대신 그래프를 교체
+        show(active === l.dataset.sec ? "all" : l.dataset.sec!);
       });
     }
-    // 외부 컨트롤: 필터를 걸면 결과가 보이도록 그래프(범례)로 스크롤한다.
-    for (const l of extEls) {
-      l.addEventListener("click", (e) => {
-        e.preventDefault();
-        const next =
-          activeFilter === l.dataset.graphFilter ? null : l.dataset.graphFilter!;
-        applyFilter(next);
-        if (next)
-          (legend ?? graph).scrollIntoView({
-            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-              ? "auto"
-              : "smooth",
-            block: "start",
-          });
-      });
-    }
-    // 명시적 해제: 버튼 클릭 또는 Esc.
-    resetBtn?.addEventListener("click", () => applyFilter(null));
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && activeFilter) applyFilter(null);
-    });
+    resetBtn?.addEventListener("click", () => show("all"));
   }
+  document.addEventListener("astro:page-load", initPostGraph);
+
+  // Esc = 필터 해제. 문서 레벨이라 모듈에서 한 번만 바인딩(중복 방지),
+  // 상태는 DOM(리셋 버튼 노출 여부)에서 읽는다.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const reset = document.querySelector<HTMLButtonElement>(".lg-reset");
+    if (reset && !reset.hidden) reset.click();
+  });
 </script>
 
 <style>
@@ -541,8 +607,11 @@ for (const p of posts) {
 
   /* ── 그래프 ── */
   .graph {
-    position: relative;
     margin-top: var(--space-2);
+  }
+  /* 레일+행 묶음 — 모바일 cap 시 SVG를 행 높이에서 잘라내는 클리핑 경계 */
+  .gbody {
+    position: relative;
   }
   .wire {
     position: absolute;
@@ -550,6 +619,10 @@ for (const p of posts) {
     left: 0;
     pointer-events: none;
     overflow: visible;
+  }
+  /* 모바일 전용 슬림 레일 — 데스크톱에선 숨긴다 */
+  .wire-m {
+    display: none;
   }
 
   /* 세로 트렁크·가지 선 */
@@ -613,21 +686,7 @@ for (const p of posts) {
     opacity: 0.4;
   }
 
-  /* ── 카테고리 필터(범례 클릭 → 선택 카테고리만 남기고 흐림) ── */
-  .graph.filtered .vline.dim,
-  .graph.filtered .branch.dim {
-    opacity: 0.07;
-  }
-  .graph.filtered .node.dim {
-    opacity: 0.13;
-  }
-  .graph.filtered .follows.dim {
-    opacity: 0.05;
-  }
-  .graph.filtered .post.dim {
-    opacity: 0.3;
-  }
-  /* 범례 선택/비선택 상태 */
+  /* 범례 선택/비선택 상태 (필터 = 카테고리별로 재구성된 그래프 변형 교체) */
   .lg {
     cursor: pointer;
     transition: opacity 0.15s;
@@ -737,24 +796,32 @@ for (const p of posts) {
   }
   @media (max-width: 767px) {
     /*
-     * 좁은 폭에선 다열 커밋 그래프 레일(--rail-w, 현재 데이터로 ~324px)이
-     * 뷰포트를 통째로 잡아먹는다. 오버플로가 사라지는 561px 부근에서도 제목 칸이
-     * 40px까지 쪼그라들어 읽을 수 없다. 그래서 레일이 제목과 공존할 수 있는
-     * 폭(≈768px, 태블릿 세로)부터만 그래프를 보이고, 그 아래에선 SVG 레일을 감춰
-     * 시간순 리스트로 접는다 — 제목이 폭을 온전히 쓰고, 카테고리 색은
-     * 왼쪽 hue 보더로만 최소한 남긴다. (레일이 더 커지면 이 경계도 올려야 한다.)
+     * 좁은 폭에선 다열 레일(--rail-w, 전체 ~324px)이 뷰포트를 잡아먹어
+     * 제목 칸이 사라진다. 그래서 가지(area 서브컬럼)를 접은 슬림 레일
+     * (--rail-w-m: 전체 124px, 카테고리 변형 44px)로 바꿔 단다 —
+     * 트렁크·후속 화살표 같은 연결고리는 모바일에서도 유지된다.
      */
     .wire {
       display: none;
     }
+    .wire.wire-m {
+      display: block;
+    }
     .grow {
-      padding-left: var(--space-3);
+      padding-left: calc(var(--rail-w-m) + 0.5rem);
     }
-    .post {
-      border-left: 2px solid var(--hue-on);
-    }
-    .pchars {
+    .pmeta {
+      /* 메타(area 필·날짜·글자수)는 좁은 폭에서 제목을 잡아먹는다 —
+         모바일에선 제목만. 시간축은 월 마커가, 카테고리는 트렁크 색이 말해준다. */
       display: none;
+    }
+    /* 제목 폰트도 한 단계 낮춰(17→15px) 잘리는 글자 수를 줄인다. */
+    .ptitle {
+      font-size: var(--fs-sm);
+    }
+    /* cap으로 행을 접었을 때 SVG(전체 높이)가 아래로 새지 않게 클리핑 */
+    .gbody {
+      overflow: hidden;
     }
     /* cap: 최근 15행만 기본 노출 — 47행(≈2.6화면)이 페이지를 삼키는 것 방지.
        (:nth-child(n+16)의 16은 마크업의 rows>15 조건과 짝 — 바꿀 땐 함께.) */

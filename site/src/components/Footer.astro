@@ -194,7 +194,12 @@ const explore = [
         <span class="footer-stat"><b>{sectionCount}</b> 카테고리</span>
       </div>
       <p class="muted footer-built">
-        © {year} · Astro로 빌드 ·
+        © {year} {author.name} · 글은
+        <a
+          href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko"
+          target="_blank"
+          rel="noopener license">CC BY-NC-SA 4.0</a
+        > · Astro로 빌드 ·
         <a href={repo} target="_blank" rel="noopener">GitHub</a>에 공개
       </p>
     </div>
@@ -536,17 +541,27 @@ const explore = [
     }
   }
 
-  /* 모바일: 1열. Latest는 본문 글 목록과 중복인 데다 1열에서 푸터를
-     지나치게 길게 만들어 숨긴다 — 태그·내비·저자만 남긴다. */
+  /* 모바일: Latest는 본문 글 목록과 중복인 데다 1열에서 푸터를
+     지나치게 길게 만들어 숨긴다 — 태그·내비·저자만 남긴다.
+     Explore는 링크 3개뿐이라 1열로 두면 우측이 휑해서, Author와 한 줄에 나눠 앉힌다. */
   @media (max-width: 520px) {
     .footer-inner {
       padding: var(--space-6) var(--space-4) var(--space-5);
     }
     .footer-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
     }
     .footer-latest {
       display: none;
+    }
+    .footer-col {
+      grid-column: 1 / -1; /* 기본(태그)은 전체 폭 */
+    }
+    nav.footer-col {
+      grid-column: 1; /* Explore */
+    }
+    .footer-about {
+      grid-column: 2; /* Author — Explore와 같은 줄 */
     }
   }
 </style>

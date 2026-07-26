@@ -92,6 +92,11 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 
 발행된 글은 `site/src/content/blog/`에 저장된다(환경변수 `BLOG_CONTENT_DIR`로 재정의 가능).
 
+## 라이선스
+
+- **코드**: [MIT](LICENSE)
+- **블로그 글**(`site/src/content/blog/`): [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko) — 출처를 밝히면 비영리 목적으로 같은 조건 하에 공유·변형 가능
+
 ## 빠른 시작
 
 ```bash
