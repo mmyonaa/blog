@@ -40,6 +40,8 @@ const a = (f: string) => `${base}/hero3d/${f}`;
        끊긴다. 오브젝트 좌표가 전부 경계 안이라 데스크톱에선 클리핑이 불필요. */
     position: absolute;
     inset: 0;
+    /* 다크 폴리시 훅 — 다크에서만 아래 변수들이 채워진다(라이트는 기본값 = 무효과). */
+    filter: var(--scene-dim, none);
   }
   /* 클러스터 = 고정 종횡비 '무대 박스'.
      핵심: 오브젝트의 left/top/width를 전부 이 박스 기준 %로 매핑한다.
@@ -61,13 +63,23 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     height: auto;
     will-change: transform;
   }
+  /* 접지용 앰비언트 글로우 — 다크에서 드롭섀도가 배경에 묻혀 오브젝트가 떠 보이는
+     문제를, 클러스터 뒤 은은한 코랄 광원으로 대신 접지한다. 라이트에선 투명. */
+  .cluster::before {
+    content: "";
+    position: absolute;
+    inset: -14%;
+    z-index: -1;
+    background: radial-gradient(closest-side, var(--scene-glow, transparent), transparent 72%);
+  }
 
   /* ══ 클러스터 — 좌표·크기 전부 .cluster 박스 기준 %(1440 구도를 그대로 매핑). ══ */
 
   /* ── 뒤: 간유리 버블(주인공 좌상단 아래로 파고든다) ── */
   .bg-glass {
     left: 9.4%; top: 14.3%; width: 28.9%;
-    opacity: 0.92;
+    /* 간유리는 다크에서 탁한 회색 얼룩이 되므로 다크에서만 투명도를 더 낮춘다. */
+    opacity: var(--glass-opacity, 0.92);
     /* 구는 회전이 안 보인다 — 비눗방울처럼 떠오르는 이동+팽창 전용 모션. */
     animation: ob-bob 9s ease-in-out infinite alternate;
     filter: drop-shadow(0 20px 30px rgb(36 37 46 / 0.10));
@@ -224,6 +236,24 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     }
     /* 외톨이 액센트만 예외 — 좁은 화면엔 텍스트↔클러스터 복도가 없어 숨긴다. */
     .lone { display: none; }
+  }
+
+  /* ── 다크 폴리시: 구도는 그대로, 값만 셋 바꾼다 ──
+     ① 전체를 한 톤 눌러 파스텔의 형광 글레어를 가라앉히고
+     ② 죽은 드롭섀도 대신 코랄 글로우로 접지하고
+     ③ 회색 얼룩이 되는 간유리만 더 투명하게.
+     셀렉터 이중화는 global.css 컨벤션(OS 다크 + data-theme 강제)을 따른다. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .scene {
+      --scene-dim: brightness(0.87) saturate(0.92);
+      --scene-glow: color-mix(in srgb, var(--c-accent) 14%, transparent);
+      --glass-opacity: 0.6;
+    }
+  }
+  :root[data-theme="dark"] .scene {
+    --scene-dim: brightness(0.87) saturate(0.92);
+    --scene-glow: color-mix(in srgb, var(--c-accent) 14%, transparent);
+    --glass-opacity: 0.6;
   }
 
   @media (prefers-reduced-motion: reduce) {
