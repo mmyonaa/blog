@@ -6,6 +6,7 @@ import Hero from "../components/home/HeroV2.astro";
 import PostCard from "../components/home/PostCard.astro";
 import SectionNav from "../components/home/SectionNav.astro";
 import PopularTags from "../components/home/PopularTags.astro";
+import OutroBanner from "../components/home/OutroBanner.astro";
 import { getTagCounts } from "../lib/tags.ts";
 import { getSectionCounts } from "../lib/sections.ts";
 
@@ -97,6 +98,8 @@ const stats = [
             </div>
           </>
         )}
+
+        <OutroBanner />
       </>
     )
   }
