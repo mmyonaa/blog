@@ -3,6 +3,8 @@
 > 블로그 글을 자동으로 쓰고 발행하는 것을 목표로,
 > 그 과정에서 **MCP(Model Context Protocol) 서버를 직접 만들어보고 배우는** 학습 프로젝트.
 
+**사이트**: https://mmyonaa.github.io/blog/ · **버전**: 1.0.0 ([CHANGELOG](CHANGELOG.md))
+
 **진짜 목적은 결과물(블로그)이 아니라 MCP를 제대로 익히는 것이다.** 그래서 발행 파이프라인은 최대한 단순하게 두고, MCP 서버 설계에 집중한다.
 
 > 발행되는 블로그는 **섹션(section)** 으로 나뉜다. 섹션은 레지스트리(`server/src/topics.ts`)에 한 줄 추가로 늘릴 수 있는 확장 축이다.
@@ -58,7 +60,7 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 
 - **MCP 서버**: TypeScript + [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol) (stdio transport, zod 스키마)
 - **오케스트레이터**: `@anthropic-ai/claude-agent-sdk` (Phase 3)
-- **블로그 렌더링**: [Astro](https://astro.build) SSG (섹션·태그 페이지 · RSS 피드 · 클라이언트 검색) → GitHub Pages
+- **블로그 렌더링**: [Astro](https://astro.build) SSG (섹션·태그 페이지 · RSS 피드 · 클라이언트 검색) → GitHub Pages 자동 배포 (`.github/workflows/deploy.yml`, main push 시)
 - **댓글·의견**: giscus(GitHub Discussions 기반 공개 댓글) + 익명 의견 모달(폼 엔드포인트)
 - **트리거**: GitHub Actions cron (Phase 3)
 - **패키지 관리**: pnpm workspace (`server` + `site`)
@@ -114,5 +116,5 @@ claude mcp add blog-mcp -- node server/dist/index.js
 ## 상태
 
 🚧 **Phase 2 진행 중** — MCP 서버(Phase 1) 완성, Claude Code에 붙여 대화형으로 도구를 다듬는 단계.
-현재까지 **43편 발행**(`블로그·웹 만들기` 14 · `MCP·에이전트 만들기` 12 · `정처기` 12 · `보안` 3 · `알고리즘` 2).
-배포 워크플로(GitHub Actions Pages)는 준비 중이다.
+현재까지 **47편 발행**(`블로그·웹 만들기` 16 · `MCP·에이전트 만들기` 14 · `정처기` 12 · `보안` 3 · `알고리즘` 2).
+**v1.0.0(2026-07-26)** 부터 사이트가 https://mmyonaa.github.io/blog/ 에 자동 배포된다 — main에 push하면 GitHub Actions가 빌드·배포한다. 버전 이력은 [CHANGELOG.md](CHANGELOG.md)에 기록한다.

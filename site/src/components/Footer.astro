@@ -5,9 +5,12 @@ import { sectionOf, hueOf } from "../lib/sections.ts";
 import { getTagCounts, tagHref } from "../lib/tags.ts";
 import { fmtDate } from "../lib/date.ts";
 import { AUTHOR as author, REPO_URL as repo } from "../lib/author.ts";
+// 프로젝트 버전의 단일 출처는 루트 package.json — 빌드 타임에 읽어 박는다.
+import { version } from "../../../package.json";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const year = new Date().getFullYear();
+const changelogUrl = `${repo}/blob/main/CHANGELOG.md`;
 
 // 최근 글 3편 — 빌드 타임에 실제 글에서.
 const posts = (await getCollection("blog")).sort(
@@ -185,6 +188,7 @@ const explore = [
     <div class="footer-bottom">
       <div class="footer-brand-line">
         <a href={`${base}/`} class="footer-word">daily.mcp<span class="footer-dot" aria-hidden="true"></span></a>
+        <a class="footer-version" href={changelogUrl} target="_blank" rel="noopener" title="버전 이력(CHANGELOG)">v{version}</a>
         <span class="footer-badge">매일 자동 발행</span>
         <span class="footer-stat"><b>{postCount}</b> 편</span>
         <span class="footer-stat"><b>{sectionCount}</b> 카테고리</span>
@@ -467,6 +471,23 @@ const explore = [
   }
   .footer-word:hover {
     color: var(--c-accent);
+    text-decoration: none;
+  }
+  /* 버전 — 워드마크 옆 작은 mono 라벨, CHANGELOG로 연결 */
+  .footer-version {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--c-muted);
+    text-decoration: none;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    padding: 0.15em 0.55em;
+    white-space: nowrap;
+  }
+  .footer-version:hover {
+    color: var(--c-accent);
+    border-color: var(--c-accent);
     text-decoration: none;
   }
   .footer-badge {

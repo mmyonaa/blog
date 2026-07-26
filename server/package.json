@@ -1,6 +1,6 @@
 {
   "name": "@blog-mcp/server",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "description": "블로그 발행용 MCP 서버 (stdio). suggest_topic / publish_post 도구, blog://posts 리소스 제공",
   "type": "module",
