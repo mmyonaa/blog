@@ -51,17 +51,45 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     tags.length === 0 ? (
       <p class="muted">아직 태그가 없습니다.</p>
     ) : (
-      <div class="taglist">
-        {tags.map(({ tag, count }) => (
-          <a class="tag tag-pill" href={tagHref(base, tag)}>
-            {tag} <span class="count">{count}</span>
-          </a>
-        ))}
-      </div>
+      <>
+        {/* data-collapsed: 모바일에선 빈도순 상위 20개만 기본 노출(CSS가 가림).
+            데스크톱은 미디어쿼리 밖이라 항상 전체 표시. */}
+        <div class="taglist" data-collapsed>
+          {tags.map(({ tag, count }) => (
+            <a class="tag tag-pill" href={tagHref(base, tag)}>
+              {tag} <span class="count">{count}</span>
+            </a>
+          ))}
+        </div>
+        {tags.length > 20 && (
+          <button
+            class="taglist-more"
+            type="button"
+            data-taglist-toggle
+            data-more={`태그 ${tags.length}개 모두 보기`}
+            data-less="태그 접기"
+          >
+            태그 {tags.length}개 모두 보기
+          </button>
+        )}
+      </>
     )
   }
 
   <h2 class="hub-title" id="graph">발행 그래프</h2>
+  <script>
+    // 태그 접기/펼치기(모바일). 문서 위임으로 한 번만 바인딩(View Transitions 안전).
+    document.addEventListener("click", (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(
+        "[data-taglist-toggle]",
+      );
+      if (!btn) return;
+      const list = document.querySelector(".taglist");
+      if (!list) return;
+      const collapsed = list.toggleAttribute("data-collapsed");
+      btn.textContent = collapsed ? btn.dataset.more! : btn.dataset.less!;
+    });
+  </script>
   <p class="muted">
     발행한 모든 글을 시간축 위 git 그래프로. 세로 트렁크는 카테고리, 옆으로 뻗는 가지는
     그 안의 세부 갈래, 화살표 곡선은 글의 후속입니다.
@@ -70,8 +98,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 </Base>
 
 <style>
+  /* 섹션 타이틀 — 항목(.sec-name, fs-lg 700)과 같은 스타일이라 위계가 안 보였다.
+     푸터(.footer-head)·글 상세(.side-title)와 같은 아이브로우 라벨 결로 낮춰
+     '작은 라벨 → 큰 항목'의 대비를 만든다. */
   .hub-title {
-    font-size: var(--fs-lg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--c-muted);
     margin: var(--space-8) 0 var(--space-4);
   }
   /* 모바일: 섹션 사이 48px는 과해 32px로, 구분선 바로 아래는
@@ -175,5 +210,31 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   /* 태그 허브에선 태그를 목록 본문만큼 키운다(기본 .tag는 xs). */
   .tag-pill {
     font-size: var(--fs-sm);
+  }
+  /* 모바일: 태그 110개가 ~1.2화면을 차지해 빈도순 상위 20개만 남기고 접는다.
+     (:nth-child(n+21)의 21은 마크업의 상위 20개와 짝 — 바꿀 땐 함께.) */
+  .taglist-more {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .taglist[data-collapsed] .tag:nth-child(n + 21) {
+      display: none;
+    }
+    .taglist-more {
+      display: inline-flex;
+      margin-top: var(--space-3);
+      padding: 0.35em 0.9em;
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius-pill);
+      background: var(--c-surface);
+      color: var(--c-muted);
+      font: inherit;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .taglist-more:hover {
+      color: var(--c-text);
+    }
   }
 </style>

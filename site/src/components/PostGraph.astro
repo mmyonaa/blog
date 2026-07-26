@@ -209,7 +209,7 @@ for (const p of posts) {
   posts.length === 0 ? (
     <p class="muted">아직 발행된 글이 없습니다.</p>
   ) : (
-    <div class="graph" style={`--rail-w: ${railW}px`}>
+    <div class="graph" data-capped={rows.length > 15} style={`--rail-w: ${railW}px`}>
       <svg
         class="wire"
         width={railW}
@@ -304,6 +304,20 @@ for (const p of posts) {
           ),
         )}
       </div>
+
+      {/* 모바일 리스트 모드 전용(CSS로 노출): capped 상태 해제/복원 토글.
+          카테고리 필터 중엔 스크립트가 숨긴다(필터 결과가 잘리지 않게 전체 펼침). */}
+      {rows.length > 15 && (
+        <button
+          class="graph-more"
+          type="button"
+          data-graph-expand
+          data-more={`전체 ${posts.length}편 보기`}
+          data-less="접기"
+        >
+          전체 {posts.length}편 보기
+        </button>
+      )}
     </div>
   )
 }
@@ -361,11 +375,35 @@ for (const p of posts) {
     const resetBtn = legend?.querySelector<HTMLButtonElement>(".lg-reset");
     let activeFilter: string | null = null;
 
+    // ── 모바일 cap: 최근 15행만 기본 노출. 버튼으로 전체/접기 토글. ──
+    const moreBtn = document.querySelector<HTMLButtonElement>("[data-graph-expand]");
+    // 서버 렌더 시 rows>15면 data-capped가 있다. 사용자가 직접 펼쳤는지 기억해
+    // 필터 해제 시 원래 상태로 복원한다(처음부터 cap이 없던 짧은 그래프는 그대로).
+    const initiallyCapped = graph.hasAttribute("data-capped");
+    let manualExpand = false;
+    const setCapped = (capped: boolean) => {
+      graph.toggleAttribute("data-capped", capped);
+      if (moreBtn)
+        moreBtn.textContent = capped
+          ? moreBtn.dataset.more!
+          : moreBtn.dataset.less!;
+    };
+    moreBtn?.addEventListener("click", () => {
+      const nowCapped = graph.hasAttribute("data-capped");
+      manualExpand = nowCapped; // 펼치는 클릭이면 수동 펼침으로 기억
+      setCapped(!nowCapped);
+    });
+
     const applyFilter = (sec: string | null) => {
       activeFilter = sec;
       graph.classList.toggle("filtered", !!sec);
       legend?.classList.toggle("filtering", !!sec);
       if (resetBtn) resetBtn.hidden = !sec;
+      // 필터 중엔 전체 펼침(결과가 cap에 잘리지 않게) + 토글 버튼 숨김.
+      // 해제 시 수동 펼침이 아니었다면 cap 복원.
+      if (moreBtn) moreBtn.hidden = !!sec;
+      if (sec) setCapped(false);
+      else if (initiallyCapped && !manualExpand) setCapped(true);
       for (const el of secEls)
         el.classList.toggle("dim", !!sec && el.dataset.sec !== sec);
       for (const p of followEls) {
@@ -689,6 +727,11 @@ for (const p of posts) {
     text-transform: uppercase;
   }
 
+  /* 데스크톱(그래프 모드)에선 cap 개념이 없다 — 전체 보기 버튼 숨김.
+     (미디어 블록보다 앞에 두어야 모바일 규칙이 이긴다.) */
+  .graph-more {
+    display: none;
+  }
   @media (max-width: 767px) {
     /*
      * 좁은 폭에선 다열 커밋 그래프 레일(--rail-w, 현재 데이터로 ~324px)이
@@ -709,6 +752,27 @@ for (const p of posts) {
     }
     .pchars {
       display: none;
+    }
+    /* cap: 최근 15행만 기본 노출 — 47행(≈2.6화면)이 페이지를 삼키는 것 방지.
+       (:nth-child(n+16)의 16은 마크업의 rows>15 조건과 짝 — 바꿀 땐 함께.) */
+    .graph[data-capped] .rows .grow:nth-child(n + 16) {
+      display: none;
+    }
+    .graph-more {
+      display: inline-flex;
+      margin-top: var(--space-3);
+      padding: 0.35em 0.9em;
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius-pill);
+      background: var(--c-surface);
+      color: var(--c-muted);
+      font: inherit;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .graph-more:hover {
+      color: var(--c-text);
     }
   }
 </style>
