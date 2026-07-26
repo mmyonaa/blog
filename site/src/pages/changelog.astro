@@ -21,7 +21,7 @@ import { Content as Changelog } from "../../../CHANGELOG.md";
     padding-top: var(--space-6);
   }
   .cl-body :global(h1) {
-    font-size: var(--fs-3xl, 2rem);
+    /* 크기는 global h1 clamp(모바일 축소)에 맡긴다 — 여기서 고정하면 좁은 폰에서 안 줄어듦. */
     letter-spacing: -0.02em;
     margin: 0 0 var(--space-3);
   }
