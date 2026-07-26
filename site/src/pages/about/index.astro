@@ -8,6 +8,8 @@ import { getSectionCounts, sectionHref, hueOf, blurbOf } from "../../lib/section
 import { getCollection } from "astro:content";
 import { fmtDate } from "../../lib/date.ts";
 import McpOrbit from "../../components/McpOrbit.astro";
+import ActivityHeatmap from "../../components/home/ActivityHeatmap.astro";
+import { buildActivity } from "../../lib/activity.ts";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const sections = await getSectionCounts();
@@ -17,6 +19,10 @@ const posts = (await getCollection("blog")).sort(
 );
 const postCount = posts.length;
 const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
+
+// 발행 스트릭 잔디 — 리드의 "N편을 쌓았어요"를 시각 증거로 뒷받침 (홈 히어로에서 이동).
+// minWeeks 25는 본문 폭에 맞는 주 수.
+const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 });
 ---
 
 <Base
@@ -64,6 +70,17 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
     {firstDate && <>{firstDate}에 첫 글을 올린 뒤 지금까지 <strong>{postCount}편</strong>을 쌓았어요.</>}
   </p>
 
+  {/* 발행 스트릭 — 위 문장의 시각 증거. 홈 히어로에서 이동해 왔다. */}
+  {postCount > 0 && (
+    <div class="ab-heat">
+      <div class="ab-heat-cap">
+        <span class="ab-heat-cap-title">발행 스트릭</span>
+        <span class="ab-heat-cap-meta">최근 {activity.weeks}주 · {activity.total}편</span>
+      </div>
+      <ActivityHeatmap activity={activity} />
+    </div>
+  )}
+
   <hr />
 
   <h2>무엇을 쓰나</h2>
@@ -87,8 +104,10 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
   <!-- ── 콜로폰: 이 블로그가 어떻게 만들어지나 ── -->
   <h2 id="colophon">이 블로그는 어떻게 만들어지나</h2>
   <p>
-    이 사이트의 글은 사람이 웹 에디터에서 쓰는 대신,
-    <strong>직접 만든 MCP(Model Context Protocol) 서버</strong>를 통해 발행됩니다.
+    이 사이트의 글은 사람이 웹 에디터에서 쓰는 대신, <strong>AI(Claude)가
+    직접 만든 MCP(Model Context Protocol) 서버</strong>를 통해 작성하고 발행합니다.
+    사람(저)은 글을 쓰지 않는 대신 파이프라인을 설계해요 — 주제 선정 규칙, 입력 검증,
+    발행 전 자기 검토 같은 품질 장치를 만들고 결과를 관리합니다.
     "매일 배운 걸 자동으로 한 편씩 남긴다"는 목표로 서버부터 만들며 배우는 프로젝트예요.
   </p>
 
@@ -210,6 +229,43 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
     }
     hr + h2 {
       margin-top: var(--space-4);
+    }
+  }
+
+  /* ── 발행 스트릭 카드 (홈 히어로에서 이동 — lead 문장의 시각 증거) ── */
+  .ab-heat {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-5);
+    margin-top: var(--space-5);
+  }
+  .ab-heat-cap {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--c-border);
+  }
+  .ab-heat-cap-title {
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--c-text);
+  }
+  .ab-heat-cap-meta {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .ab-heat {
+      padding: var(--space-3) var(--space-4);
     }
   }
 

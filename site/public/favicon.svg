@@ -1,5 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="8" fill="#ee4f6a" />
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8296" />
+      <stop offset="0.55" stop-color="#ee4f6a" />
+      <stop offset="1" stop-color="#e13d5b" />
+    </linearGradient>
+    <radialGradient id="sheen" cx="0.28" cy="0.18" r="0.85">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.38" />
+      <stop offset="0.6" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="ball" cx="0.35" cy="0.3" r="0.95">
+      <stop offset="0" stop-color="#63e0d4" />
+      <stop offset="0.55" stop-color="#22beb0" />
+      <stop offset="1" stop-color="#17958c" />
+    </radialGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#bg)" />
+  <rect width="32" height="32" rx="8" fill="url(#sheen)" />
+  <text x="16" y="24.3" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#a92a44" text-anchor="middle">b</text>
   <text x="15.5" y="23.5" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#ffffff" text-anchor="middle">b</text>
-  <circle cx="24.5" cy="22" r="2.4" fill="#22beb0" />
+  <circle cx="24.5" cy="22" r="2.4" fill="url(#ball)" />
+  <circle cx="23.7" cy="21.1" r="0.65" fill="#ffffff" fill-opacity="0.85" />
 </svg>

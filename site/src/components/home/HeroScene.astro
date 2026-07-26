@@ -1,0 +1,137 @@
+---
+// 히어로 우측 3D 정물 — gpt-image로 만든 투명배경 단품(public/hero3d/)을
+// CSS로 배치·모션 합성한다. 배치는 docs/ai_img/ref-b-torus-depth.png의 구도를
+// 매핑한 것(데모 hero-demo.html에서 확정). 영상이 아니라 코드 합성이라
+// 무한 루프·무용량·reduced-motion 대응이 공짜다.
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const a = (f: string) => `${base}/hero3d/${f}`;
+---
+
+<div class="scene" aria-hidden="true">
+  <!-- 뒤 → 앞 (큐브는 토러스 뒤, 소품은 앞) -->
+  <img class="sparkle" src={a("sparkle.webp")} alt="" loading="eager" decoding="async" />
+  <img class="glass-a" src={a("glass-bead.webp")} alt="" loading="eager" decoding="async" />
+  <img class="sphere-blue-a" src={a("sphere-blue.webp")} alt="" loading="eager" decoding="async" />
+  <img class="sphere-blue-b" src={a("sphere-blue.webp")} alt="" loading="eager" decoding="async" />
+  <img class="cube" src={a("cube.webp")} alt="" loading="eager" decoding="async" />
+  <img class="torus" src={a("torus.webp")} alt="" loading="eager" decoding="async" />
+  <img class="glass-b" src={a("glass-bead.webp")} alt="" loading="lazy" decoding="async" />
+  <img class="asterisk" src={a("asterisk.webp")} alt="" loading="eager" decoding="async" />
+  <img class="sphere-coral-a" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
+  <img class="sphere-coral-b" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
+  <img class="glass-c" src={a("glass-bead.webp")} alt="" loading="lazy" decoding="async" />
+</div>
+
+<style>
+  .scene {
+    /* 히어로 전체를 덮는 배경 레이어 — 부모(.hero-bg)가 absolute로 깔아준다. */
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  .scene img {
+    position: absolute;
+    height: auto;
+    will-change: transform;
+  }
+
+  /* ── 배치: 히어로 전폭에 좌우로 흩뿌림 — 텍스트(daily.mcp)가 위(z)에 얹힌다 ── */
+  .torus {
+    left: 60%; top: 0%; width: 24%;
+    animation: sc-float-a 7s ease-in-out infinite alternate;
+    filter: drop-shadow(0 26px 34px rgb(36 37 46 / 0.16));
+  }
+  .cube {
+    left: 42%; top: 14%; width: 11%;
+    animation: sc-tumble 9s ease-in-out infinite alternate;
+    filter: drop-shadow(0 18px 24px rgb(36 37 46 / 0.13));
+  }
+  .asterisk {
+    left: 84%; top: 14%; width: 12%;
+    animation: sc-spin 11s ease-in-out infinite alternate;
+    filter: drop-shadow(0 18px 24px rgb(36 37 46 / 0.13));
+  }
+  /* 제목 글자 뒤로 지나가는 왼쪽 액센트들 */
+  .sphere-blue-a {
+    left: 6%; top: 18%; width: 5.5%;
+    animation: sc-orbit-a 10s ease-in-out infinite;
+    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
+  }
+  .glass-c {
+    left: 30%; top: 64%; width: 6.5%;
+    animation: sc-float-b 11s ease-in-out infinite alternate;
+    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08));
+  }
+  .sphere-coral-a {
+    left: 35%; top: 42%; width: 4.5%;
+    animation: sc-orbit-a 13s ease-in-out infinite reverse;
+    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
+  }
+  .sphere-blue-b {
+    left: 57%; top: 62%; width: 4.8%;
+    animation: sc-orbit-b 12s ease-in-out infinite;
+    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
+  }
+  .sphere-coral-b {
+    left: 94%; top: 50%; width: 4.2%;
+    animation: sc-orbit-b 9s ease-in-out infinite reverse;
+    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
+  }
+  .glass-a {
+    left: 20%; top: 4%; width: 7%;
+    animation: sc-float-b 12s ease-in-out infinite alternate-reverse;
+    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08));
+  }
+  .glass-b {
+    left: 88%; top: 66%; width: 6%;
+    animation: sc-float-a 10s ease-in-out infinite alternate-reverse;
+    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08));
+  }
+  .sparkle {
+    left: 50%; top: 5%; width: 4.2%;
+    animation: sc-twinkle 6s ease-in-out infinite alternate;
+    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.10));
+  }
+
+  /* ── 모션: 전부 '돌아오는 운동'(왕복·원궤도)이라 루프가 이음새 없이 돈다 ── */
+  @keyframes sc-float-a {
+    from { transform: translateY(0) rotate(0deg); }
+    to { transform: translateY(-1.6%) rotate(1.8deg); }
+  }
+  @keyframes sc-float-b {
+    from { transform: translateY(0) rotate(0deg); }
+    to { transform: translateY(2%) rotate(-6deg); }
+  }
+  @keyframes sc-tumble {
+    from { transform: translateY(0) rotate(-3deg); }
+    to { transform: translateY(-2.4%) rotate(4deg); }
+  }
+  @keyframes sc-spin {
+    from { transform: rotate(-14deg) translateY(0); }
+    to { transform: rotate(14deg) translateY(-1.4%); }
+  }
+  @keyframes sc-twinkle {
+    from { transform: rotate(-10deg) scale(0.92); opacity: 0.85; }
+    to { transform: rotate(14deg) scale(1.08); opacity: 1; }
+  }
+  @keyframes sc-orbit-a {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(16%, -12%); }
+    50% { transform: translate(0, -24%); }
+    75% { transform: translate(-16%, -12%); }
+    100% { transform: translate(0, 0); }
+  }
+  @keyframes sc-orbit-b {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-14%, 14%); }
+    50% { transform: translate(0, 26%); }
+    75% { transform: translate(14%, 14%); }
+    100% { transform: translate(0, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene img {
+      animation: none !important;
+    }
+  }
+</style>

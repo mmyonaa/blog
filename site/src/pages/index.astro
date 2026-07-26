@@ -1,13 +1,13 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
-import Hero from "../components/home/Hero.astro";
+// v2 실험 중 — v1은 Hero.astro/HeroScene.astro에 그대로 보존 (되돌리려면 import만 교체)
+import Hero from "../components/home/HeroV2.astro";
 import PostCard from "../components/home/PostCard.astro";
 import SectionNav from "../components/home/SectionNav.astro";
 import PopularTags from "../components/home/PopularTags.astro";
 import { getTagCounts } from "../lib/tags.ts";
 import { getSectionCounts } from "../lib/sections.ts";
-import { buildActivity } from "../lib/activity.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -52,17 +52,12 @@ const stats = [
   { value: tags.length, label: "태그", href: `${base}/topics/#tags` },
 ];
 
-// 발행 스트릭 잔디(heatmap): 글 pubDate를 주×요일 격자로.
-// minWeeks 25는 히어로 오른쪽 열 폭(Hero.astro의 30rem)을 채우는 주 수 — 함께 조정.
-const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 });
+// 발행 스트릭 잔디는 About(콜로폰)으로 이동 — lead의 "N편을 쌓았어요" 옆이
+// 서사상 제자리다. 홈 히어로는 3D 배경 + 텍스트 + 통계 라인만.
 ---
 
 <Base title="daily.mcp" description="MCP 서버로 글을 발행하며 배운 것을 기록하는 블로그">
-  <Hero
-    hasPosts={posts.length > 0}
-    stats={stats}
-    activity={activity}
-  />
+  <Hero hasPosts={posts.length > 0} stats={stats} />
 
   {
     posts.length === 0 ? (
@@ -179,6 +174,11 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     justify-content: space-between;
     gap: var(--space-4);
     margin: var(--space-8) 0 var(--space-4);
+  }
+  /* 히어로(3D 무대) 바로 아래 첫 섹션은 큰 상단 마진을 접어 타이트하게 —
+     히어로가 세로로 커진 만큼 다음 콘텐츠는 빨리 시작한다. */
+  .section-head:first-of-type {
+    margin-top: var(--space-3);
   }
   /* 섹션 라벨 — Topics의 .hub-title과 같은 mono eyebrow로 통일(허브 페이지 공통 언어). */
   .section-title {
