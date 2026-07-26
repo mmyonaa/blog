@@ -192,10 +192,12 @@ const explore = [
     padding: var(--space-8) var(--space-5) var(--space-5);
   }
 
-  /* 4컬럼: Brand · Tags · Explore · About */
+  /* 4컬럼: Brand · Tags · Explore · About
+     — Brand는 내용이 적어 좁혀도 되고, Tags는 필 8개가 3줄로 어중간하게
+     끊기지 않도록 넓게 잡는다(2줄 목표). */
   .footer-grid {
     display: grid;
-    grid-template-columns: 1.4fr 1fr 0.9fr 1.2fr;
+    grid-template-columns: 1.2fr 1.4fr 0.8fr 1.2fr;
     gap: var(--space-6) var(--space-5);
   }
 
