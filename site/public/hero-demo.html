@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>hero motion demo — 3d assets</title>
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: #f7f8fb; min-height: 100vh; display: grid; place-items: center; }
+  .stage {
+    position: relative;
+    width: min(1100px, 96vw);
+    aspect-ratio: 1586 / 992; /* 레퍼런스(ref-b-torus-depth)와 같은 좌표계 */
+    overflow: hidden;
+  }
+  .stage img { position: absolute; height: auto; will-change: transform; }
+
+  /* ── 배치: ref-b-torus-depth.png의 오브젝트 자리를 그대로 매핑 ── */
+  .torus       { left: 39%;   top: 11%;   width: 41%;
+                 animation: float-a 7s ease-in-out infinite alternate;
+                 filter: drop-shadow(0 26px 34px rgb(36 37 46 / 0.16)); }
+  .cube        { left: 28%;   top: 43%;   width: 17.5%;
+                 animation: tumble 9s ease-in-out infinite alternate;
+                 filter: drop-shadow(0 18px 24px rgb(36 37 46 / 0.13)); }
+  .asterisk    { left: 71.5%; top: 53%;   width: 17.5%;
+                 animation: spin 11s ease-in-out infinite alternate;
+                 filter: drop-shadow(0 18px 24px rgb(36 37 46 / 0.13)); }
+
+  /* 블루 구슬 ×2 (ref: 좌상단·중앙) */
+  .sphere-blue-a { left: 35%;   top: 24.5%; width: 6%;
+                   animation: orbit-a 10s ease-in-out infinite;
+                   filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12)); }
+  /* 토러스 뒤에서 우측 가장자리로 살짝 내다보게 (도넛을 가리지 않음) */
+  .sphere-blue-b { left: 76.5%; top: 29%;   width: 5.8%;
+                   animation: orbit-b 12s ease-in-out infinite;
+                   filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12)); }
+  /* 코랄 구슬 ×2 (ref: 하단 중앙·우측) */
+  .sphere-coral-a { left: 56.5%; top: 79%;  width: 5.6%;
+                    animation: orbit-a 13s ease-in-out infinite reverse;
+                    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12)); }
+  .sphere-coral-b { left: 90.5%; top: 55.5%; width: 4.4%;
+                    animation: orbit-b 9s ease-in-out infinite reverse;
+                    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12)); }
+  /* 유리 방울 ×3 (ref: 상단·우중단·좌하단) */
+  .glass-a { left: 36%;   top: 6.5%;  width: 9%;
+             animation: float-b 12s ease-in-out infinite alternate-reverse;
+             filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08)); }
+  .glass-b { left: 80.5%; top: 40%;   width: 6.6%;
+             animation: float-a 10s ease-in-out infinite alternate-reverse;
+             filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08)); }
+  .glass-c { left: 36.5%; top: 80.5%; width: 7.4%;
+             animation: float-b 11s ease-in-out infinite alternate;
+             filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08)); }
+
+  .sparkle   { left: 63%;  top: 6%;    width: 4.4%;
+               animation: twinkle 6s ease-in-out infinite alternate;
+               filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.10)); }
+
+  /* ── 모션 ── */
+  @keyframes float-a { from { transform: translateY(0) rotate(0deg); }
+                       to   { transform: translateY(-1.6%) rotate(1.8deg); } }
+  @keyframes float-b { from { transform: translateY(0) rotate(0deg); }
+                       to   { transform: translateY(2%) rotate(-6deg); } }
+  @keyframes tumble  { from { transform: translateY(0) rotate(-3deg); }
+                       to   { transform: translateY(-2.4%) rotate(4deg); } }
+  @keyframes spin    { from { transform: rotate(-14deg) translateY(0); }
+                       to   { transform: rotate(14deg) translateY(-1.4%); } }
+  @keyframes twinkle { from { transform: rotate(-10deg) scale(0.92); opacity: 0.85; }
+                       to   { transform: rotate(14deg) scale(1.08); opacity: 1; } }
+  @keyframes orbit-a {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(16%, -12%); }
+    50%  { transform: translate(0, -24%); }
+    75%  { transform: translate(-16%, -12%); }
+    100% { transform: translate(0, 0); } }
+  @keyframes orbit-b {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(-14%, 14%); }
+    50%  { transform: translate(0, 26%); }
+    75%  { transform: translate(14%, 14%); }
+    100% { transform: translate(0, 0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage img { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <!-- 뒤 → 앞 (ref와 동일: 큐브는 토러스 뒤, 소품은 앞) -->
+    <img class="sparkle"        src="./hero3d/sparkle.png" alt="" />
+    <img class="glass-a"        src="./hero3d/glass-bead.png" alt="" />
+    <img class="sphere-blue-a"  src="./hero3d/sphere-blue.png" alt="" />
+    <img class="sphere-blue-b"  src="./hero3d/sphere-blue.png" alt="" />
+    <img class="cube"           src="./hero3d/cube.png" alt="" />
+    <img class="torus"          src="./hero3d/torus.png" alt="" />
+    <img class="glass-b"        src="./hero3d/glass-bead.png" alt="" />
+    <img class="asterisk"       src="./hero3d/asterisk.png" alt="" />
+    <img class="sphere-coral-a" src="./hero3d/sphere-coral.png" alt="" />
+    <img class="sphere-coral-b" src="./hero3d/sphere-coral.png" alt="" />
+    <img class="glass-c"        src="./hero3d/glass-bead.png" alt="" />
+  </div>
+</body>
+</html>
