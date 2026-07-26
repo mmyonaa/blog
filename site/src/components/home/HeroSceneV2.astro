@@ -146,7 +146,7 @@ const a = (f: string) => `${base}/hero3d/${f}`;
 
   /* ══ 외톨이 액센트 — 텍스트와 클러스터 사이 빈 복도에 코랄 점 하나 ══ */
   .lone {
-    left: 37%; top: 21%; width: 3.4%;
+    left: 32%; top: 21%; width: 3.4%;
     animation: ob-drift-b 12s ease-in-out infinite alternate;
     filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
   }
@@ -212,6 +212,11 @@ const a = (f: string) => `${base}/hero3d/${f}`;
       transform: translateY(-50%);
       animation: none;
     }
+    /* 클러스터가 화면 우변에 붙는 구간 — 글로우(-14%)가 화면 밖으로 나가면
+       투명해도 박스가 스크롤 폭에 잡혀 가로 스크롤이 생긴다. 우변만 화면 안으로. */
+    .cluster::before {
+      right: 0;
+    }
     /* 외톨이 액센트가 앉을 '텍스트↔클러스터 복도'가 사라지므로 숨긴다. */
     .lone { display: none; }
   }
@@ -225,14 +230,26 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     .cluster {
       width: clamp(18rem, 92vw, 23rem);
       left: auto;
-      right: 0;
+      /* 우측으로 살짝 밀착 — 박스 우변 ~8%는 빈 영역이라 이미지는 안 잘린다.
+         -1rem이면 박스 우변이 정확히 뷰포트 우변(거터 1rem 밖)에 닿는 한계값. */
+      right: -1rem;
       top: auto;
-      /* 하단에서 살짝 띄워 클러스터를 통계 라인 뒤로 끌어올린다(통계와 겹침) +
-         드롭섀도가 히어로 안에서 흐를 여유를 둔다(아래 섹션으로 새지 않게). */
-      bottom: var(--space-8);
+      /* 히어로 바닥까지 내려 앉힌다 — 제목 라인과의 겹침을 풀고 무게중심을
+         통계~하단으로. 그림자는 페이드라 경계에서 잘리지 않는다. */
+      bottom: 0;
       transform: none;
       transform-origin: center;
       animation: none;
+    }
+    /* 박스가 거터 밖으로 나간 만큼 글로우 우변을 되물려 가로 스크롤 방지. */
+    .cluster::before {
+      right: 1rem;
+    }
+    /* 박스 자체는 우측 한계(-1rem)라, 오브젝트만 우측으로 더 민다.
+       translate 속성은 transform 애니메이션과 독립 합성이라 모션이 안 깨진다.
+       이동량은 최우측 오브젝트가 뷰포트 안에 남는 한도로 제한. */
+    .cluster .ob {
+      translate: 1rem 0.75rem;
     }
     /* 외톨이 액센트만 예외 — 좁은 화면엔 텍스트↔클러스터 복도가 없어 숨긴다. */
     .lone { display: none; }

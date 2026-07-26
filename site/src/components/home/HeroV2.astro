@@ -82,8 +82,9 @@ const { hasPosts, stats } = Astro.props;
      마스트헤드 제목 · 떠 있는 통계 바 · 액자에 담긴 잔디.
      ══════════════════════════════════════════════════════════ */
   .hero {
-    /* 세로로 넉넉한 무대(3D 배경이 숨 쉴 높이) + 아래 섹션과는 타이트하게(0). */
-    padding: var(--space-6) 0 0;
+    /* 세로로 넉넉한 무대(3D 배경이 숨 쉴 높이). 헤더와 아래 섹션 양쪽에
+       살짝 숨 돌릴 여백을 둔다. */
+    padding: var(--space-8) 0 var(--space-4);
   }
 
   /* 마스트헤드 제목 — 굵은 잉크 색. h1은 레이아웃·진입 reveal을 담당. */
@@ -274,14 +275,19 @@ const { hasPosts, stats } = Astro.props;
      무대 높이도 줄인다. 통계 라인은 2×2로 감싼다. 톤은 유지. */
   @media (max-width: 640px) {
     .hero {
-      padding: var(--space-5) 0 var(--space-2);
+      /* 모바일 첫 폴드 압축: 상하 모두 타이트하게(아래 카테고리 목록이 첫눈에 걸리게). */
+      padding: var(--space-2) 0 var(--space-2);
     }
     /* 모바일은 3D 클러스터가 통계 뒤로 크게 겹쳐 깔린다. 텍스트를 위로 붙이고
        (align-content:start) 무대를 세로로 키워, 넓어진 하단을 클러스터에 내주고
        통계 라인이 그 위에 얹히게 한다. */
     .hero-inner {
-      min-height: 25rem;
+      min-height: 16rem;
       align-content: start;
+    }
+    /* 제목 위 여백 압축 — 데스크톱용 내부 패딩(1rem)을 모바일에선 걷어낸다. */
+    .hero-main {
+      padding-top: 0;
     }
     /* 큰 마스트헤드가 첫 화면을 잡아먹지 않게 모바일 한정으로 축소(데스크톱 유지). */
     .hero-title {
