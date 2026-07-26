@@ -194,7 +194,12 @@ const explore = [
         <span class="footer-stat"><b>{sectionCount}</b> 카테고리</span>
       </div>
       <p class="muted footer-built">
-        © {year} · Astro로 빌드 ·
+        © {year} {author.name} · 글은
+        <a
+          href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko"
+          target="_blank"
+          rel="noopener license">CC BY-NC-SA 4.0</a
+        > · Astro로 빌드 ·
         <a href={repo} target="_blank" rel="noopener">GitHub</a>에 공개
       </p>
     </div>
