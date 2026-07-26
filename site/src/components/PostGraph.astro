@@ -35,7 +35,6 @@ const RAIL_PAD = 12; // 레일 좌우 여백
 const ROW_H = 46; // 글 행 높이(고정 → 노드 y)
 const MONTH_H = 30; // 월 마커 행 높이
 const NODE_R = 4.5;
-const colX = (i: number) => RAIL_PAD + i * SUBCOL_W + SUBCOL_W / 2;
 
 // 부드러운 세로 방향 곡선(깃 네트워크 그래프 풍) — 컬럼을 바꿀 때의 가지/후속 연결선.
 const curve = (x1: number, y1: number, x2: number, y2: number) => {
@@ -62,8 +61,15 @@ type PostRow = {
 type MonthRow = { type: "month"; label: string; h: number };
 type Row = PostRow | MonthRow;
 
-function layout(subset: typeof posts, opts: { branches?: boolean } = {}) {
+function layout(
+  subset: typeof posts,
+  opts: { branches?: boolean; subcolW?: number; railPad?: number } = {},
+) {
   const useBranches = opts.branches !== false;
+  // 모바일 레일은 컬럼 간격·패딩을 죄어(20→14, 12→8) 선과 제목 사이 여백을 줄인다.
+  const SC = opts.subcolW ?? SUBCOL_W;
+  const RP = opts.railPad ?? RAIL_PAD;
+  const colX = (i: number) => RP + i * SC + SC / 2;
   // ── 컬럼 배치: 카테고리 트렁크 + area 가지(같은 area 2편 이상일 때만 서브컬럼) ──
   //    branches:false면 가지를 접고 트렁크만 쓴다 — 모바일용 슬림 레일
   //    (전체 324px → 124px)로, 좁은 폭에서도 연결고리를 그릴 수 있게 한다.
@@ -99,7 +105,7 @@ function layout(subset: typeof posts, opts: { branches?: boolean } = {}) {
     });
     cursor += 1 + order.length;
   }
-  const railW = RAIL_PAD * 2 + cursor * SUBCOL_W; // 레일(=텍스트 들여쓰기) 폭
+  const railW = RP * 2 + cursor * SC; // 레일(=텍스트 들여쓰기) 폭
 
   // ── 표시 행 + y 좌표. 월이 바뀌면 마커 행을 끼운다 ──
   const rows: Row[] = [];
@@ -192,13 +198,15 @@ function layout(subset: typeof posts, opts: { branches?: boolean } = {}) {
 
 // 전체 + 카테고리별 변형. key는 범례의 data-sec과 짝.
 // d = 데스크톱, m = 모바일 레일. 행 순서·y는 같고 x·레일 폭만 다르다.
-// 모바일에서 '전체'는 가지 포함 레일이 324px라 불가능해 트렁크만 접어 보여주고(124px),
-// 카테고리 변형은 레일이 좁아(44~144px) PC처럼 가지까지 그대로 편다.
+// 모바일에서 '전체'는 가지 포함 레일이 너무 넓어 트렁크만 접어 보여주고,
+// 카테고리 변형은 레일이 좁아 PC처럼 가지까지 그대로 편다.
+// 모바일은 컬럼 척도도 죄어(SUBCOL 14·PAD 8) 선과 제목 사이 여백을 줄인다.
+const M = { subcolW: 14, railPad: 8 };
 const variants = [
-  { key: "all", d: layout(posts), m: layout(posts, { branches: false }) },
+  { key: "all", d: layout(posts), m: layout(posts, { branches: false, ...M }) },
   ...lanes.map((l) => {
-    const d = layout(posts.filter((p) => secOf.get(p.id) === l.id));
-    return { key: l.id, d, m: d };
+    const subset = posts.filter((p) => secOf.get(p.id) === l.id);
+    return { key: l.id, d: layout(subset), m: layout(subset, M) };
   }),
 ];
 ---
