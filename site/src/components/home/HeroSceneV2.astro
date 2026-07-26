@@ -126,17 +126,18 @@ const a = (f: string) => `${base}/hero3d/${f}`;
 
   /* ── 가장자리 크리스털 점 — 아주 작게, 클러스터 경계에 딱 붙여 흩뿌린다 ── */
   .dot { filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.10)); }
+  /* 크리스털 구슬은 회전(twinkle)이 안 보인다 — 서로 위상이 어긋난 부유로. */
   .dot-glass-a {
     left: 84.6%; top: 23.9%; width: 8.7%;
-    animation: ob-twinkle 7s ease-in-out infinite alternate;
+    animation: ob-drift-a 7s ease-in-out infinite alternate;
   }
   .dot-glass-b {
     left: 30.6%; top: 9.9%; width: 6.1%;
-    animation: ob-twinkle 8s ease-in-out infinite alternate-reverse;
+    animation: ob-drift-b 8s ease-in-out infinite alternate-reverse;
   }
   .dot-glass-c {
     left: 3.6%; top: 76.1%; width: 9.7%;
-    animation: ob-twinkle 8s ease-in-out infinite alternate-reverse;
+    animation: ob-drift-a 9s ease-in-out infinite alternate-reverse;
   }
   .dot-coral {
     left: 86.5%; top: 57%; width: 5.8%;
@@ -158,50 +159,56 @@ const a = (f: string) => `${base}/hero3d/${f}`;
      앵커를 덮어쓰지 않게 한다(정적/reduced-motion 상태의 .cluster transform과 동일). */
   @keyframes cl-breathe {
     from { transform: translateY(-50%) translate3d(0, 0, 0); }
-    to { transform: translateY(-50%) translate3d(-0.6%, -1%, 0); }
+    to { transform: translateY(-50%) translate3d(-0.9%, -1.5%, 0); }
+  }
+  /* 모바일용 숨쉬기 — 하단 앵커(transform 없음) 구간에서 쓰는 무앵커 변형. */
+  @keyframes cl-breathe-flat {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-0.9%, -1.5%, 0); }
   }
   @keyframes ob-hero {
-    from { transform: translateY(-1%) rotate(-8deg); }
-    to { transform: translateY(1.6%) rotate(-6.2deg); }
+    from { transform: translateY(-1.4%) rotate(-8deg); }
+    to { transform: translateY(2.2%) rotate(-5.6deg); }
   }
   @keyframes ob-float-a {
     from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(-3%) rotate(-3deg); }
+    to { transform: translateY(-4.5%) rotate(-4.5deg); }
   }
-  /* 유리 구슬용 — 대각선 부유 + 미세 팽창(비눗방울의 숨). */
+  /* 유리 구슬용 — 대각선 부유 + 미세 팽창(비눗방울의 숨).
+     구는 회전이 안 보이므로 이동·팽창을 다른 오브젝트보다 크게 준다. */
   @keyframes ob-bob {
     from { transform: translate(0, 0) scale(1); }
-    to { transform: translate(-2.5%, -8%) scale(1.04); }
+    to { transform: translate(-5%, -16%) scale(1.06); }
   }
   @keyframes ob-float-b {
     from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(3%) rotate(2.5deg); }
+    to { transform: translateY(4.5%) rotate(3.5deg); }
   }
   @keyframes ob-tumble {
-    from { transform: translateY(0) rotate(-6deg); }
-    to { transform: translateY(-8%) rotate(6deg); }
+    from { transform: translateY(0) rotate(-8deg); }
+    to { transform: translateY(-11%) rotate(8deg); }
   }
   @keyframes ob-glide {
-    from { transform: translate(-6%, 4%) rotate(-6deg); }
-    to { transform: translate(7%, -8%) rotate(5deg); }
+    from { transform: translate(-8%, 5%) rotate(-7deg); }
+    to { transform: translate(9%, -11%) rotate(6deg); }
   }
   @keyframes ob-drift-a {
     from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(-20%) rotate(-12deg); }
+    to { transform: translateY(-28%) rotate(-16deg); }
   }
   @keyframes ob-drift-b {
     from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(24%) rotate(14deg); }
+    to { transform: translateY(32%) rotate(18deg); }
   }
   @keyframes ob-twinkle {
-    from { transform: rotate(-10deg) scale(0.9); opacity: 0.82; }
-    to { transform: rotate(12deg) scale(1.08); opacity: 1; }
+    from { transform: rotate(-14deg) scale(0.86); opacity: 0.8; }
+    to { transform: rotate(16deg) scale(1.12); opacity: 1; }
   }
 
   /* ── 태블릿(641~980): 데스크톱과 '같은 구도'를, 화면에 맞게 크게 우측 중앙에.
         (예전엔 우상단에 작게 축소했지만, 이제 PC와 동일한 큰 클러스터가 텍스트·통계
         위로 겹쳐 앉는다 — 제목·부제 가독은 유지하되 오버랩은 의도된 것.)
-        전체 오브젝트 유지. cl-breathe는 정적 transform과 충돌하므로 끄고 개별 float만.
+        전체 오브젝트 유지. 앵커가 데스크톱과 같아(translateY -50%) cl-breathe도 그대로 돈다.
         무대(scene) overflow는 자르지 않아 그림자 직선 절단이 없고, 클러스터 우변을
         화면 안에 두어 가로 스크롤을 막는다. ── */
   @media (max-width: 980px) {
@@ -210,7 +217,6 @@ const a = (f: string) => `${base}/hero3d/${f}`;
       right: 0%;
       top: 50%;
       transform: translateY(-50%);
-      animation: none;
     }
     /* 클러스터가 화면 우변에 붙는 구간 — 글로우(-14%)가 화면 밖으로 나가면
        투명해도 박스가 스크롤 폭에 잡혀 가로 스크롤이 생긴다. 우변만 화면 안으로. */
@@ -239,7 +245,8 @@ const a = (f: string) => `${base}/hero3d/${f}`;
       bottom: 0;
       transform: none;
       transform-origin: center;
-      animation: none;
+      /* 하단 앵커(무 transform) 구간이라 -50% 앵커가 없는 flat 변형으로 숨쉰다. */
+      animation: cl-breathe-flat 14s ease-in-out infinite alternate;
     }
     /* 박스가 거터 밖으로 나간 만큼 글로우 우변을 되물려 가로 스크롤 방지. */
     .cluster::before {
