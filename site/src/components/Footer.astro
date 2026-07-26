@@ -10,7 +10,7 @@ import { version } from "../../../package.json";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const year = new Date().getFullYear();
-const changelogUrl = `${repo}/blob/main/CHANGELOG.md`;
+const changelogUrl = `${base}/changelog/`;
 
 // 최근 글 3편 — 빌드 타임에 실제 글에서.
 const posts = (await getCollection("blog")).sort(
@@ -188,7 +188,7 @@ const explore = [
     <div class="footer-bottom">
       <div class="footer-brand-line">
         <a href={`${base}/`} class="footer-word">daily.mcp<span class="footer-dot" aria-hidden="true"></span></a>
-        <a class="footer-version" href={changelogUrl} target="_blank" rel="noopener" title="버전 이력(CHANGELOG)">v{version}</a>
+        <a class="footer-version" href={changelogUrl} title="버전 이력(Changelog)">v{version}</a>
         <span class="footer-badge">매일 자동 발행</span>
         <span class="footer-stat"><b>{postCount}</b> 편</span>
         <span class="footer-stat"><b>{sectionCount}</b> 카테고리</span>
