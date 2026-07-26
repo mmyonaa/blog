@@ -1,6 +1,7 @@
 ---
 // 분류 허브: 카테고리(큰 분류)와 태그(세부 소재)를 한 페이지에서 보여준다.
-// 상세 페이지(/categories/[section]/, /tags/[tag]/)의 진입점 역할.
+// 카테고리는 클릭 시 페이지 이동 대신 아래 발행 그래프를 필터링하고(같은 걸 다시
+// 누르면 해제), 태그는 상세 페이지(/tags/[tag]/)로 들어가는 진입점이다.
 import Base from "../../layouts/Base.astro";
 import { getSectionCounts, sectionHref, hueOf } from "../../lib/sections.ts";
 import { getTagCounts, tagHref } from "../../lib/tags.ts";
@@ -13,7 +14,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 <Base title="Topics — blog" description="카테고리와 태그로 글을 모아봅니다">
   <h1>Topics</h1>
-  <p class="muted">큰 줄기는 카테고리로, 세부 소재는 태그로 글을 모아봅니다.</p>
+  <p class="muted">
+    큰 줄기는 카테고리로, 세부 소재는 태그로 글을 모아봅니다. 카테고리를 누르면 아래 발행
+    그래프가 그 갈래만 밝혀 보여줍니다.
+  </p>
   <hr />
 
   <h2 class="hub-title">카테고리</h2>
@@ -24,7 +28,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       <ul class="sec-toc">
         {sections.map((s) => (
           <li class="sec-row" style={`--hue: ${hueOf(s.id)}`}>
-            <a class="sec-link" href={sectionHref(base, s.id)}>
+            {/* data-graph-filter: 클릭하면 이동 대신 아래 발행 그래프를 이 카테고리로
+                거른다(PostGraph 스크립트가 가로챔). JS가 없으면 href로 폴백. */}
+            <a
+              class="sec-link"
+              href={sectionHref(base, s.id)}
+              data-graph-filter={s.id}
+            >
               <span class="sec-name">{s.label}</span>
               <span class="sec-leader" aria-hidden="true" />
               <span class="sec-count">{s.count}편</span>
@@ -41,17 +51,47 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     tags.length === 0 ? (
       <p class="muted">아직 태그가 없습니다.</p>
     ) : (
-      <div class="taglist">
-        {tags.map(({ tag, count }) => (
-          <a class="tag tag-pill" href={tagHref(base, tag)}>
-            {tag} <span class="count">{count}</span>
-          </a>
-        ))}
-      </div>
+      <>
+        {/* data-collapsed: 모바일에선 빈도순 상위 20개만 기본 노출(CSS가 가림).
+            데스크톱은 미디어쿼리 밖이라 항상 전체 표시. */}
+        <div class="taglist" data-collapsed>
+          {tags.map(({ tag, count }) => (
+            <a class="tag tag-pill" href={tagHref(base, tag)}>
+              {tag} <span class="count">{count}</span>
+            </a>
+          ))}
+        </div>
+        {tags.length > 20 && (
+          <button
+            class="taglist-more"
+            type="button"
+            aria-expanded="false"
+            data-taglist-toggle
+            data-more={`태그 ${tags.length}개 모두 보기`}
+            data-less="태그 접기"
+          >
+            태그 {tags.length}개 모두 보기
+          </button>
+        )}
+      </>
     )
   }
 
   <h2 class="hub-title" id="graph">발행 그래프</h2>
+  <script>
+    // 태그 접기/펼치기(모바일). 문서 위임으로 한 번만 바인딩(View Transitions 안전).
+    document.addEventListener("click", (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(
+        "[data-taglist-toggle]",
+      );
+      if (!btn) return;
+      const list = document.querySelector(".taglist");
+      if (!list) return;
+      const collapsed = list.toggleAttribute("data-collapsed");
+      btn.textContent = collapsed ? btn.dataset.more! : btn.dataset.less!;
+      btn.setAttribute("aria-expanded", String(!collapsed)); // chevron 방향도 이걸 따른다
+    });
+  </script>
   <p class="muted">
     발행한 모든 글을 시간축 위 git 그래프로. 세로 트렁크는 카테고리, 옆으로 뻗는 가지는
     그 안의 세부 갈래, 화살표 곡선은 글의 후속입니다.
@@ -60,9 +100,33 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 </Base>
 
 <style>
+  /* 섹션 타이틀 — 항목(.sec-name, fs-lg 700)과 같은 스타일이라 위계가 안 보였다.
+     푸터(.footer-head)·글 상세(.side-title)와 같은 아이브로우 라벨 결로 낮춰
+     '작은 라벨 → 큰 항목'의 대비를 만든다. */
   .hub-title {
-    font-size: var(--fs-lg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--c-muted);
     margin: var(--space-8) 0 var(--space-4);
+  }
+  /* 모바일: 섹션 사이 48px는 과해 32px로, 구분선 바로 아래는
+     hr 리듬(16px, global.css)과 같은 박자로 죈다.
+     카테고리 행도 세로 패딩을 한 단계 더 줄여 목록을 컴팩트하게. */
+  @media (max-width: 640px) {
+    .hub-title {
+      margin-top: var(--space-6);
+    }
+    hr + .hub-title {
+      margin-top: var(--space-4);
+    }
+    .sec-link {
+      padding: var(--space-2) 0;
+    }
+    .sec-toc {
+      margin-top: var(--space-3);
+    }
   }
   /* 카테고리 — 책 '차례'식 점선 리더 목록. 카드·컬러보더 없이,
      카테고리 색(--hue)은 hover에만 절제해서 드러낸다. */
@@ -91,14 +155,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     display: flex;
     align-items: baseline;
     gap: var(--space-3);
-    padding: var(--space-4) 0;
+    padding: var(--space-3) 0;
     color: var(--c-text);
     text-decoration: none;
   }
   .sec-name {
     flex: none;
-    /* 카테고리 이름: fs-xl(24px)은 5줄 목록에서 과대 → fs-lg(19px)로 차분하게. */
-    font-size: var(--fs-lg);
+    /* 카테고리 이름: 5줄 목록에서 fs-lg(19px)도 커서 fs-base로 —
+       섹션이 화면을 덜 차지하고, 아이브로우 타이틀과의 위계는 굵기(700)로 충분. */
+    font-size: var(--fs-base);
     font-weight: 700;
     letter-spacing: -0.01em;
   }
@@ -132,6 +197,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   .sec-link:hover .sec-arrow {
     transform: translateX(4px);
   }
+  /* 그래프 필터 상태(PostGraph 스크립트가 sel/off를 토글) —
+     선택된 카테고리는 hue로 밝히고, 나머지는 가라앉힌다. */
+  .sec-link.sel .sec-name,
+  .sec-link.sel .sec-count,
+  .sec-link.sel .sec-arrow {
+    color: var(--hue-on);
+  }
+  .sec-link.off {
+    opacity: 0.45;
+  }
   @media (prefers-reduced-motion: reduce) {
     .sec-arrow {
       transition: color 0.15s ease;
@@ -145,5 +220,50 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   /* 태그 허브에선 태그를 목록 본문만큼 키운다(기본 .tag는 xs). */
   .tag-pill {
     font-size: var(--fs-sm);
+  }
+  /* 모바일: 태그 110개가 ~1.2화면을 차지해 빈도순 상위 20개만 남기고 접는다.
+     (:nth-child(n+21)의 21은 마크업의 상위 20개와 짝 — 바꿀 땐 함께.) */
+  .taglist-more {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .taglist[data-collapsed] .tag:nth-child(n + 21) {
+      display: none;
+    }
+    /* pill 버튼 대신 텍스트+chevron 디스클로저 — 접힘 ⌄ / 펼침 ⌃ */
+    .taglist-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      margin-top: var(--space-3);
+      padding: 0.25em 0;
+      border: 0;
+      background: none;
+      color: var(--c-muted);
+      font: inherit;
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .taglist-more:hover {
+      color: var(--c-text);
+    }
+    .taglist-more::after {
+      content: "";
+      width: 0.45em;
+      height: 0.45em;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
+      transform: translateY(-0.15em) rotate(45deg);
+      transition: transform 0.15s ease;
+    }
+    .taglist-more[aria-expanded="true"]::after {
+      transform: translateY(0.1em) rotate(225deg);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .taglist-more::after {
+        transition: none;
+      }
+    }
   }
 </style>

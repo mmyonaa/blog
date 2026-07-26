@@ -200,7 +200,8 @@ const explore = [
 <style>
   .site-footer {
     border-top: 1px solid var(--c-border);
-    margin-top: var(--space-10);
+    /* 콘텐츠~푸터 간격은 .container 하단 패딩이 담당한다.
+       여기에 margin-top까지 주면 여백이 이중으로 쌓여 길어진다(제거). */
     background: var(--c-surface);
   }
   .footer-inner {
@@ -514,13 +515,17 @@ const explore = [
     }
   }
 
-  /* 모바일: 1열 */
+  /* 모바일: 1열. Latest는 본문 글 목록과 중복인 데다 1열에서 푸터를
+     지나치게 길게 만들어 숨긴다 — 태그·내비·저자만 남긴다. */
   @media (max-width: 520px) {
     .footer-inner {
       padding: var(--space-6) var(--space-4) var(--space-5);
     }
     .footer-grid {
       grid-template-columns: 1fr;
+    }
+    .footer-latest {
+      display: none;
     }
   }
 </style>

@@ -124,22 +124,6 @@ const jsonLd = {
 
     <div class="reading">
       <article class="prose">
-        {
-          toc.length > 0 && (
-            <details class="mobile-toc">
-              <summary>목차</summary>
-              <nav class="toc">
-                <ul>
-                  {toc.map((h) => (
-                    <li class:list={[`toc-h${h.depth}`]}>
-                      <a href={`#${h.slug}`}>{h.text}</a>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            </details>
-          )
-        }
         <Content />
       </article>
 
@@ -189,6 +173,56 @@ const jsonLd = {
         </aside>
       )
     }
+
+    {/* 모바일 목차: 글 위 아코디언 대신 우측 슬라이드 드로어(≤980).
+        읽는 중 어디서든 좌하단 FAB로 열어 섹션 점프할 수 있다. */}
+    {
+      toc.length > 0 && (
+        <>
+          <button
+            class="toc-fab"
+            type="button"
+            aria-label="목차 열기"
+            aria-expanded="false"
+            data-toc-open
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <circle cx="2.2" cy="3.4" r="1.15" fill="currentColor" />
+              <circle cx="2.2" cy="8" r="1.15" fill="currentColor" />
+              <circle cx="2.2" cy="12.6" r="1.15" fill="currentColor" />
+              <rect x="5.4" y="2.5" width="9.6" height="1.8" rx="0.9" fill="currentColor" />
+              <rect x="5.4" y="7.1" width="9.6" height="1.8" rx="0.9" fill="currentColor" />
+              <rect x="5.4" y="11.7" width="9.6" height="1.8" rx="0.9" fill="currentColor" />
+            </svg>
+          </button>
+          <div class="toc-overlay" data-toc-close aria-hidden="true" />
+          <aside class="toc-drawer" aria-label="목차">
+            <div class="toc-drawer-head">
+              <p class="side-title">목차</p>
+              <button
+                class="toc-drawer-x"
+                type="button"
+                aria-label="목차 닫기"
+                data-toc-close
+              >
+                ✕
+              </button>
+            </div>
+            <nav class="toc">
+              <ul>
+                {toc.map((h) => (
+                  <li class:list={[`toc-h${h.depth}`]}>
+                    <a href={`#${h.slug}`} data-slug={h.slug}>
+                      {h.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </aside>
+        </>
+      )
+    }
   </div>
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
 </Base>
@@ -201,16 +235,21 @@ const jsonLd = {
       document.querySelectorAll<HTMLAnchorElement>(".toc a[data-slug]"),
     );
     if (!links.length) return;
-    const bySlug = new Map(links.map((a) => [a.dataset.slug, a]));
+    // 같은 slug의 링크가 사이드 목차와 모바일 드로어 양쪽에 있으므로 배열로 모은다.
+    const bySlug = new Map<string, HTMLAnchorElement[]>();
+    for (const a of links) {
+      const k = a.dataset.slug!;
+      bySlug.set(k, [...(bySlug.get(k) ?? []), a]);
+    }
     const headings = document.querySelectorAll<HTMLElement>(
       ".prose h2[id], .prose h3[id]",
     );
-    let current: HTMLAnchorElement | null = null;
-    const setActive = (el: HTMLAnchorElement | undefined) => {
-      if (!el || el === current) return;
-      current?.classList.remove("active");
-      el.classList.add("active");
-      current = el;
+    let current: HTMLAnchorElement[] = [];
+    const setActive = (els: HTMLAnchorElement[] | undefined) => {
+      if (!els || els === current) return;
+      for (const el of current) el.classList.remove("active");
+      for (const el of els) el.classList.add("active");
+      current = els;
     };
     const obs = new IntersectionObserver(
       (entries) => {
@@ -223,6 +262,35 @@ const jsonLd = {
     headings.forEach((h) => obs.observe(h));
   }
   document.addEventListener("astro:page-load", initScrollSpy);
+
+  // 모바일 목차 드로어 — 문서 위임으로 한 번만 바인딩(View Transitions에도 안전).
+  // 열림 상태는 DOM 클래스가 단일 출처: html.toc-open은 배경 스크롤 잠금용.
+  function setTocDrawer(open: boolean) {
+    document.documentElement.classList.toggle("toc-open", open);
+    const drawer = document.querySelector(".toc-drawer");
+    const overlay = document.querySelector(".toc-overlay");
+    const fab = document.querySelector(".toc-fab");
+    if (!drawer || !overlay || !fab) return;
+    drawer.classList.toggle("open", open);
+    overlay.classList.toggle("open", open);
+    fab.setAttribute("aria-expanded", String(open));
+  }
+  document.addEventListener("click", (e) => {
+    const t = e.target as HTMLElement;
+    if (t.closest("[data-toc-open]")) {
+      setTocDrawer(
+        !document.querySelector(".toc-drawer")?.classList.contains("open"),
+      );
+    } else if (t.closest("[data-toc-close]") || t.closest(".toc-drawer a")) {
+      // 항목 클릭 = 점프 후 닫기(앵커 이동 자체는 브라우저 기본 동작에 맡긴다)
+      setTocDrawer(false);
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setTocDrawer(false);
+  });
+  // 글→다른 페이지로 View Transitions 이동 시 잔여 스크롤 잠금 해제
+  document.addEventListener("astro:page-load", () => setTocDrawer(false));
 
   // 헤딩 앵커: h2/h3 옆에 섹션 링크(#) 주입. 호버 시 노출.
   function initHeadingAnchors() {
@@ -446,78 +514,113 @@ const jsonLd = {
     font-size: var(--fs-xs);
   }
 
-  /* 모바일 접이식 목차: 좁은 화면(사이드 목차 숨김 구간)에서만 노출.
-     접혀 있을 땐 큰 빈 카드처럼 보이지 않도록 컴팩트한 단일 컨트롤 높이로. */
-  .mobile-toc {
+  /* ── 모바일 목차 드로어 (≤980, 사이드 목차 숨김 구간) ──
+     글 위 아코디언은 스크롤해 내려가면 못 쓰는 목차였다. 대신 좌하단 FAB
+     (우하단 ↑ 버튼과 대칭)로 여는 우측 슬라이드 패널 — 읽는 중 어디서든
+     섹션 점프. 항목·활성 강조 스타일은 사이드 목차(.toc)를 그대로 재사용. */
+  .toc-fab {
     display: none;
-    margin: 0 0 var(--space-5);
+    position: fixed;
+    left: clamp(var(--space-4), 4vw, var(--space-8));
+    bottom: clamp(var(--space-4), 4vw, var(--space-8));
+    z-index: 40;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
     border: 1px solid var(--c-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-pill);
     background: var(--c-surface);
-    box-shadow: var(--shadow-sm);
-    padding: 0 var(--space-4);
+    color: var(--c-text);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
   }
-  .mobile-toc > summary {
+  .toc-fab:hover {
+    color: var(--c-accent);
+    border-color: var(--c-accent);
+  }
+  .toc-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgb(0 0 0 / 0.35);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+  .toc-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+  .toc-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 91;
+    width: min(19rem, 82vw);
+    background: var(--c-bg);
+    border-left: 1px solid var(--c-border);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-5);
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+  }
+  .toc-drawer.open {
+    transform: none;
+  }
+  .toc-drawer-head {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+  .toc-drawer-head .side-title {
+    margin: 0;
+  }
+  .toc-drawer-x {
+    border: 0;
+    background: none;
+    color: var(--c-muted);
+    font: inherit;
+    line-height: 1;
+    padding: var(--space-1);
     cursor: pointer;
-    font-weight: 700;
-    font-size: var(--fs-sm);
-    letter-spacing: 0.01em;
-    padding: var(--space-3) 0;
-    list-style: none;
-    user-select: none;
   }
-  /* 기본 삼각형 마커 제거(Safari) */
-  .mobile-toc > summary::-webkit-details-marker {
-    display: none;
+  .toc-drawer-x:hover {
+    color: var(--c-text);
   }
-  /* 커스텀 chevron: 접힘=오른쪽(▶), 펼침=아래(▼).
-     라벨은 왼쪽, chevron은 오른쪽 끝으로 밀어 아코디언 헤더처럼 폭을 채운다. */
-  .mobile-toc > summary::before {
-    content: "";
-    order: 1;
-    flex-shrink: 0;
-    width: 0.5em;
-    height: 0.5em;
-    margin-left: auto;
-    margin-right: 0.15em;
-    border-right: 2px solid var(--c-accent);
-    border-bottom: 2px solid var(--c-accent);
-    transform: rotate(-45deg);
-    transition: transform 0.18s ease;
-  }
-  .mobile-toc[open] > summary::before {
-    transform: rotate(45deg);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .mobile-toc > summary::before {
-      transition: none;
-    }
-  }
-  /* 펼쳤을 때: 제목과 목록 사이 구분선 + 여백 */
-  .mobile-toc[open] > summary {
-    margin-bottom: var(--space-2);
-    padding-bottom: var(--space-3);
-    border-bottom: 1px solid var(--c-border);
-  }
-  .mobile-toc .toc {
-    padding-bottom: var(--space-2);
-  }
-  /* 모바일 목차 항목: 손가락 탭이 편하도록 세로 여백을 넉넉히 */
-  .mobile-toc .toc a {
-    padding-top: 0.4em;
-    padding-bottom: 0.4em;
-  }
-  .mobile-toc ul {
+  .toc-drawer ul {
     list-style: none;
     margin: 0;
     padding: 0;
   }
+  /* 드로어 항목: 손가락 탭이 편하도록 세로 여백을 넉넉히 */
+  .toc-drawer .toc a {
+    padding-top: 0.45em;
+    padding-bottom: 0.45em;
+  }
+  /* 드로어 열림 = 배경 스크롤 잠금 */
+  :global(html.toc-open) {
+    overflow: hidden;
+  }
   @media (max-width: 980px) {
-    .mobile-toc {
-      display: block;
+    .toc-fab {
+      display: grid;
+    }
+  }
+  /* 사이드 목차가 보이는 폭에선 드로어 일습 자체를 끈다 */
+  @media (min-width: 981px) {
+    .toc-fab,
+    .toc-overlay,
+    .toc-drawer {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toc-overlay,
+    .toc-drawer {
+      transition: none;
     }
   }
 

@@ -114,9 +114,36 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
     font-weight: 600;
     white-space: nowrap;
   }
+  /*
+   * 좁은 폭에선 탭들이 세그먼트 컨테이너 '안에서' 여러 줄로 꺾여
+   * 둥근 알약 속 두세 줄 텍스트라는 어색한 모양이 된다. 그래서 컨테이너가
+   * 한 줄로 못 담는 폭(현재 내용으로 ≲800px)부터는 컨테이너를 해체하고
+   * 개별 칩(자체 보더 pill)으로 바꾼다 — 칩은 원래 줄바꿈이 자연스럽다.
+   * 활성 칩은 동일하게 hue로 채워지므로 디자인 언어는 이어진다.
+   */
+  @media (max-width: 800px) {
+    .fl-bar {
+      border: 0;
+      border-radius: 0;
+      background: none;
+      padding: 0;
+      gap: var(--space-2);
+    }
+    .fl-pill {
+      /* 활성 시 보더색은 기존 [aria-current] 규칙(border-color: hue)이 그대로 칠한다. */
+      border: 1px solid var(--c-border);
+      background: var(--c-surface);
+    }
+  }
+  /* 모바일에선 뷰 전환 없이 항상 카드(global.css) — 토글도 숨긴다.
+     여백도 죈다: 위아래 24px는 좁은 화면에서 과해 16px로 —
+     구분선(hr)의 모바일 리듬(global.css, 16px)과 같은 박자다. */
   @media (max-width: 640px) {
     .fl-more {
-      margin-left: 0;
+      display: none;
+    }
+    .filter-links {
+      margin: var(--space-4) 0 0;
     }
   }
 </style>

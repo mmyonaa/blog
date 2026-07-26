@@ -35,4 +35,10 @@ const { posts, toggle = true } = Astro.props as Props;
     justify-content: flex-end;
     margin-top: var(--space-4);
   }
+  /* 모바일은 항상 카드(global.css) — 토글도 숨긴다(BlogFilterLinks 쪽과 동일 정책). */
+  @media (max-width: 640px) {
+    .view-switch {
+      display: none;
+    }
+  }
 </style>
