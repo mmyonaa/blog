@@ -3,7 +3,7 @@
 > 블로그 글을 자동으로 쓰고 발행하는 것을 목표로,
 > 그 과정에서 **MCP(Model Context Protocol) 서버를 직접 만들어보고 배우는** 학습 프로젝트.
 
-**사이트**: https://mmyonaa.github.io/blog/ · **버전**: 1.0.0 ([CHANGELOG](CHANGELOG.md))
+**사이트**: https://mmyonaa.github.io/blog/ · [CHANGELOG](CHANGELOG.md)
 
 **진짜 목적은 결과물(블로그)이 아니라 MCP를 제대로 익히는 것이다.** 그래서 발행 파이프라인은 최대한 단순하게 두고, MCP 서버 설계에 집중한다.
 
@@ -116,5 +116,4 @@ claude mcp add blog-mcp -- node server/dist/index.js
 ## 상태
 
 🚧 **Phase 2 진행 중** — MCP 서버(Phase 1) 완성, Claude Code에 붙여 대화형으로 도구를 다듬는 단계.
-현재까지 **47편 발행**(`블로그·웹 만들기` 16 · `MCP·에이전트 만들기` 14 · `정처기` 12 · `보안` 3 · `알고리즘` 2).
-**v1.0.0(2026-07-26)** 부터 사이트가 https://mmyonaa.github.io/blog/ 에 자동 배포된다 — main에 push하면 GitHub Actions가 빌드·배포한다. 버전 이력은 [CHANGELOG.md](CHANGELOG.md)에 기록한다.
+main에 push하면 GitHub Actions가 사이트를 빌드해 GitHub Pages로 자동 배포한다. 버전 이력은 [CHANGELOG.md](CHANGELOG.md)에 기록한다.
