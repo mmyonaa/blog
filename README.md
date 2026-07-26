@@ -101,14 +101,3 @@ pnpm build                        # server + site 빌드
 # 서버 단독 실행 (stdio — 사람이 직접 보는 로그는 stderr로)
 pnpm --filter @blog-mcp/server start
 ```
-
-### Phase 2 — Claude Code에 붙여 대화로 테스트
-
-```bash
-# 레포 루트에서 빌드된 서버를 등록
-claude mcp add blog-mcp -- node server/dist/index.js
-```
-
-등록 후 Claude Code에서 `write_daily_post` 프롬프트를 부르거나
-"오늘 글 하나 써서 발행해줘"라고 시키면, `blog://posts`로 지난 글을 읽고
-`suggest_topic`으로 주제를 고른 뒤 `publish_post`로 발행하는 흐름을 대화로 확인할 수 있다.
