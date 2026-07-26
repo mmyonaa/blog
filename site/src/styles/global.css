@@ -215,6 +215,18 @@ hr {
   border-top: 1px solid var(--c-border);
   margin: var(--space-6) 0;
 }
+/* 모바일: 구분선 위아래 리듬을 전 페이지 공통 16px로 죈다 —
+   좁은 화면에서 32px는 섹션들을 너무 멀리 떼어놓는다.
+   구분선 바로 다음 제목의 큰 top 마진(48px)도 같은 박자로. */
+@media (max-width: 640px) {
+  hr {
+    margin: var(--space-4) 0;
+  }
+  hr + h2,
+  hr + h3 {
+    margin-top: var(--space-4);
+  }
+}
 
 /* ── 코드 ── */
 code {
@@ -500,13 +512,17 @@ a.pill:hover {
 
 /* ── 목록 뷰 전환 (카드/리스트) ──
  * 두 뷰를 다 렌더해두고 <html data-view>로 한쪽만 보인다.
- * data-view가 없으면(= JS 미실행/최초 방문) 카드가 기본. */
-:root[data-view="list"] .view-cards {
-  display: none;
-}
+ * data-view가 없으면(= JS 미실행/최초 방문) 카드가 기본.
+ * 모바일(≤640)은 전환 자체를 두지 않고 항상 카드 — 리스트 스왑 규칙을
+ * 641px 이상으로 한정한다(토글 버튼도 BlogFilterLinks에서 같은 폭에 숨김). */
 .view-list {
   display: none;
 }
-:root[data-view="list"] .view-list {
-  display: block;
+@media (min-width: 641px) {
+  :root[data-view="list"] .view-cards {
+    display: none;
+  }
+  :root[data-view="list"] .view-list {
+    display: block;
+  }
 }

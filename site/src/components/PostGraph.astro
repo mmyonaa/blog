@@ -349,6 +349,11 @@ for (const p of posts) {
     const legendEls = legend
       ? [...legend.querySelectorAll<HTMLElement>(".lg[data-sec]")]
       : [];
+    // 페이지 어디든 data-graph-filter="<sec>"를 단 요소(예: topics의 카테고리 목록)도
+    // 같은 필터 컨트롤이 된다 — 링크 이동 대신 그래프를 거른다(JS 없으면 href로 폴백).
+    const extEls = [
+      ...document.querySelectorAll<HTMLElement>("[data-graph-filter]"),
+    ];
     // 세로선·가지·노드·글행처럼 단일 카테고리를 가진 요소들.
     const secEls = [...graph.querySelectorAll<HTMLElement>("[data-sec]")];
     // 후속 곡선은 양끝 카테고리로 판정(한 카테고리 안에서만 완전히 표시).
@@ -371,12 +376,32 @@ for (const p of posts) {
         l.classList.toggle("sel", l.dataset.sec === sec);
         l.classList.toggle("off", !!sec && l.dataset.sec !== sec);
       }
+      for (const l of extEls) {
+        l.classList.toggle("sel", l.dataset.graphFilter === sec);
+        l.classList.toggle("off", !!sec && l.dataset.graphFilter !== sec);
+      }
     };
 
     for (const l of legendEls) {
       l.addEventListener("click", (e) => {
         e.preventDefault(); // 카테고리 페이지로 이동 대신 그래프를 필터링
         applyFilter(activeFilter === l.dataset.sec ? null : l.dataset.sec!);
+      });
+    }
+    // 외부 컨트롤: 필터를 걸면 결과가 보이도록 그래프(범례)로 스크롤한다.
+    for (const l of extEls) {
+      l.addEventListener("click", (e) => {
+        e.preventDefault();
+        const next =
+          activeFilter === l.dataset.graphFilter ? null : l.dataset.graphFilter!;
+        applyFilter(next);
+        if (next)
+          (legend ?? graph).scrollIntoView({
+            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+              ? "auto"
+              : "smooth",
+            block: "start",
+          });
       });
     }
     // 명시적 해제: 버튼 클릭 또는 Esc.
@@ -664,9 +689,23 @@ for (const p of posts) {
     text-transform: uppercase;
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 767px) {
+    /*
+     * 좁은 폭에선 다열 커밋 그래프 레일(--rail-w, 현재 데이터로 ~324px)이
+     * 뷰포트를 통째로 잡아먹는다. 오버플로가 사라지는 561px 부근에서도 제목 칸이
+     * 40px까지 쪼그라들어 읽을 수 없다. 그래서 레일이 제목과 공존할 수 있는
+     * 폭(≈768px, 태블릿 세로)부터만 그래프를 보이고, 그 아래에선 SVG 레일을 감춰
+     * 시간순 리스트로 접는다 — 제목이 폭을 온전히 쓰고, 카테고리 색은
+     * 왼쪽 hue 보더로만 최소한 남긴다. (레일이 더 커지면 이 경계도 올려야 한다.)
+     */
+    .wire {
+      display: none;
+    }
     .grow {
-      padding-left: calc(var(--rail-w) + 0.5rem);
+      padding-left: var(--space-3);
+    }
+    .post {
+      border-left: 2px solid var(--hue-on);
     }
     .pchars {
       display: none;

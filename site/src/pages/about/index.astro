@@ -202,6 +202,16 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
     font-size: var(--fs-xl);
     margin: var(--space-8) 0 var(--space-2);
   }
+  /* 모바일: 섹션 사이 48px→32px, 구분선 바로 아래는 hr 리듬(16px)과 같은 박자.
+     (스코프 셀렉터가 global.css의 hr+h2 규칙보다 특이도가 높아 여기서 다시 죈다.) */
+  @media (max-width: 640px) {
+    h2 {
+      margin-top: var(--space-6);
+    }
+    hr + h2 {
+      margin-top: var(--space-4);
+    }
+  }
 
   /* ── 카테고리: 사전식 정의 리스트. 색은 카테고리명 글씨에만, 장식(점·바·카드) 없음 ── */
   .ab-gloss {
