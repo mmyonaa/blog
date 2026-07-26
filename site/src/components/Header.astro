@@ -133,11 +133,23 @@ const searchIndexUrl = `${base}/search-index.json`;
     height: 2rem;
     font-size: var(--fs-sm);
   }
-  /* 활성 메뉴는 solid 액센트로 — soft 배경만으론 hover와 구분이 약하다 */
-  .nav .active,
-  .nav a.active:hover {
-    background: var(--c-accent);
-    color: var(--c-accent-contrast);
+  /* ── nav 링크: 회색 pill 박스를 벗기고 색으로만 상태 표시(에디토리얼) ──
+     검색·테마는 액션이라 버튼 유지, 이동 링크만 가벼운 텍스트로. */
+  .nav .pill {
+    height: auto;
+    padding: 0.3em 0.15em;
+    background: none;
+    border-radius: 0;
+    color: var(--c-muted);
+    font-weight: 500;
+    transition: color 0.15s ease;
+  }
+  .nav a.pill:hover {
+    background: none;
+    color: var(--c-text);
+  }
+  .nav .active {
+    color: var(--c-accent);
     font-weight: 600;
   }
 
