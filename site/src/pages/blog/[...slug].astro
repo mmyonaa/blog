@@ -127,6 +127,13 @@ const jsonLd = {
         <Content />
       </article>
 
+      <!-- AI 작성 고지 — 이 블로그의 콘셉트이자 투명성 장치. 모든 글에 자동 적용. -->
+      <aside class="ai-note" role="note">
+        이 글은 AI(Claude)가 MCP 파이프라인으로 작성·발행했습니다.
+        <a href={`${base}/about/#colophon`}>어떻게 만들어지나</a> ·
+        오류 지적은 댓글이나 Feedback으로 부탁드려요.
+      </aside>
+
       <RelatedPosts items={related} />
 
       {
@@ -399,6 +406,27 @@ const jsonLd = {
     width: 100%;
     /* 사이드바는 hr 보더 라인에서 시작하고, 본문 텍스트만 보더와 여백을 둔다. */
     padding-top: var(--space-6);
+  }
+
+  /* ── AI 작성 고지 — 본문 끝, 관련 글 앞의 얇은 노트 ── */
+  .ai-note {
+    margin-top: var(--space-7);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-md);
+    background: var(--c-surface);
+    color: var(--c-muted);
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    word-break: keep-all;
+  }
+  .ai-note a {
+    color: var(--c-muted);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+  .ai-note a:hover {
+    color: var(--c-accent);
   }
 
   /* ── 사이드바 공통 ── */
