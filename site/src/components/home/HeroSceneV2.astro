@@ -1,147 +1,207 @@
 ---
-// 히어로 우측 3D 정물 — gpt-image로 만든 투명배경 단품(public/hero3d/)을
-// CSS로 배치·모션 합성한다. 배치는 docs/ai_img/ref-b-torus-depth.png의 구도를
-// 매핑한 것(데모 hero-demo.html에서 확정). 영상이 아니라 코드 합성이라
-// 무한 루프·무용량·reduced-motion 대응이 공짜다.
+// 히어로 V2 — glu 레퍼런스(docs/ref/…3.27.58.png)의 '클러스터' 문법:
+//   ① 한 덩어리: 오브젝트들이 30~60% 겹치며 하나의 유기적 blob 실루엣으로 읽힌다.
+//   ② 압도적 위계: 주인공(달력 카드)이 클러스터를 지배하고, 서포트는 절반,
+//      나머지는 가장자리에 흩뿌린 아주 작은 크리스털 점.
+//   ③ 레이어링: 주인공 뒤에 큰 배경(간유리 버블·말풍선), 앞에 하나(연필)가 올라온다.
+//   ④ 왼쪽 절반은 텍스트 여백, 텍스트 근처엔 외톨이 액센트 하나만.
+// 소재는 블로그 서사와 1:1 — 달력(매일)·연필(쓰다)·말풍선(이야기)·
+// 종이비행기(발행)·b 로고(브랜드). 톤은 코랄/피치/크림으로 통일(청록·블루는 제외).
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const a = (f: string) => `${base}/hero3d/${f}`;
 ---
 
 <div class="scene" aria-hidden="true">
-  <!-- 뒤 → 앞 (큐브는 토러스 뒤, 소품은 앞) -->
-  <img class="sparkle" src={a("sparkle.webp")} alt="" loading="eager" decoding="async" />
-  <img class="glass-a" src={a("glass-bead.webp")} alt="" loading="eager" decoding="async" />
-  <img class="sphere-blue-a" src={a("sphere-blue.webp")} alt="" loading="eager" decoding="async" />
-  <img class="sphere-blue-b" src={a("sphere-blue.webp")} alt="" loading="eager" decoding="async" />
-  <img class="cube" src={a("cube.webp")} alt="" loading="eager" decoding="async" />
-  <img class="torus" src={a("/ver2/pencil.webp")} alt="" loading="eager" decoding="async" />
-  <img class="glass-b" src={a("glass-bead.webp")} alt="" loading="lazy" decoding="async" />
-  <img class="asterisk" src={a("/ver2/hashtag.webp")} alt="" loading="eager" decoding="async" />
-  <img class="sphere-coral-a" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
-  <img class="sphere-coral-b" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
-  <img class="glass-c" src={a("glass-bead.webp")} alt="" loading="lazy" decoding="async" />
+  <div class="cluster">
+    <!-- ── 뒤 레이어: 큰 배경 오브젝트 (주인공을 감싼다) ── -->
+    <img class="ob bg-glass" src={a("glass-bead.webp")} alt="" loading="eager" decoding="async" />
+    <img class="ob bg-bubble" src={a("ver2/speech-bubble.webp")} alt="" loading="eager" decoding="async" />
+    <img class="ob brand" src={a("logo/b_logo.webp")} alt="" loading="lazy" decoding="async" />
+    <!-- ── 주인공: 달력(매일) ── -->
+    <img class="ob card" src={a("ver2/calendar.webp")} alt="" loading="eager" decoding="async" />
+    <!-- ── 앞 레이어: 서포트 + 겹쳐 오르는 소품 ── -->
+    <img class="ob plane" src={a("ver2/paper-plane.webp")} alt="" loading="eager" decoding="async" />
+    <img class="ob pencil" src={a("ver2/pencil.webp")} alt="" loading="eager" decoding="async" />
+    <img class="ob bead" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
+    <!-- ── 가장자리 크리스털 점(레퍼런스의 작은 다이아몬드) ── -->
+    <img class="ob dot dot-glass-a" src={a("ver2/glass-bead.webp")} alt="" loading="lazy" decoding="async" />
+    <img class="ob dot dot-glass-b" src={a("ver2/glass-bead.webp")} alt="" loading="lazy" decoding="async" />
+    <img class="ob dot dot-glass-c" src={a("ver2/glass-bead.webp")} alt="" loading="lazy" decoding="async" />
+    <img class="ob dot dot-coral" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
+  </div>
+  <!-- ── 왼쪽 외톨이 액센트 — 클러스터와 떨어져 텍스트 곁에서 균형만 잡는다 ── -->
+  <img class="ob lone" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
 </div>
 
 <style>
   .scene {
-    /* 히어로 전체를 덮는 배경 레이어 — 부모(.hero-bg)가 absolute로 깔아준다. */
+    /* 히어로 전체를 덮는 배경 레이어 — 부모(.hero-bg)가 absolute로 깔아준다.
+       overflow는 자르지 않는다 — hidden이면 하단 경계에서 드롭섀도가 직선으로
+       끊긴다. 오브젝트 좌표가 전부 경계 안이라 데스크톱에선 클리핑이 불필요. */
     position: absolute;
     inset: 0;
-    overflow: hidden;
   }
-  .scene img {
+  /* 클러스터를 하나의 좌표계로 묶어, 무게중심(우측 중앙)을 통째로 옮기고
+     은은하게 전체가 함께 숨 쉬게 한다(개별 float 위에 얹히는 공통 부유). */
+  .cluster {
+    position: absolute;
+    inset: 0;
+    animation: cl-breathe 14s ease-in-out infinite alternate;
+  }
+  .ob {
     position: absolute;
     height: auto;
     will-change: transform;
   }
 
-  /* ── 배치: 히어로 전폭에 좌우로 흩뿌림 — 텍스트(daily.mcp)가 위(z)에 얹힌다 ── */
-  .torus {
-    left: 52%; top: 0%; width: 32%;
-    animation: sc-float-a 7s ease-in-out infinite alternate;
-    filter: drop-shadow(0 26px 34px rgb(36 37 46 / 0.16));
+  /* ══ 클러스터 — 우측 중앙에 한 덩어리. 좌표는 .scene 폭 기준(%). ══ */
+
+  /* ── 뒤: 간유리 버블(주인공 좌상단 아래로 파고든다) ── */
+  .bg-glass {
+    left: 45%; top: 9%; width: 15%;
+    opacity: 0.92;
+    /* 구는 회전이 안 보인다 — 비눗방울처럼 떠오르는 이동+팽창 전용 모션. */
+    animation: ob-bob 9s ease-in-out infinite alternate;
+    filter: drop-shadow(0 20px 30px rgb(36 37 46 / 0.10));
   }
-  .cube {
-    left: 42%; top: 14%; width: 11%;
-    animation: sc-tumble 9s ease-in-out infinite alternate;
-    filter: drop-shadow(0 18px 24px rgb(36 37 46 / 0.13));
+  /* ── 뒤: 말풍선 큰 쿠션(주인공 우하단을 받친다) ── */
+  .bg-bubble {
+    left: 73%; top: 60%; width: 15%;
+    animation: ob-float-b 13s ease-in-out infinite alternate;
+    filter: drop-shadow(0 26px 34px rgb(36 37 46 / 0.13));
   }
-  .asterisk {
-    left: 81%; top: 14%; width: 10%;
-    animation: sc-spin 11s ease-in-out infinite alternate;
-    filter: drop-shadow(0 18px 24px rgb(36 37 46 / 0.13));
-  }
-  /* 제목 글자 뒤로 지나가는 왼쪽 액센트들 */
-  .sphere-blue-a {
-    left: 6%; top: 18%; width: 5.5%;
-    animation: sc-orbit-a 10s ease-in-out infinite;
-    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
-  }
-  .glass-c {
-    left: 30%; top: 70%; width: 6.5%;
-    animation: sc-drift-b 11s ease-in-out infinite alternate;
-    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08));
-  }
-  .sphere-coral-a {
-    left: 35%; top: 42%; width: 4.5%;
-    animation: sc-orbit-a 13s ease-in-out infinite reverse;
-    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
-  }
-  .sphere-blue-b {
-    left: 50%; top: 62%; width: 4.8%;
-    animation: sc-orbit-b 12s ease-in-out infinite;
-    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
-  }
-  .sphere-coral-b {
-    left: 94%; top: 50%; width: 4.2%;
-    animation: sc-orbit-b 9s ease-in-out infinite reverse;
-    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
-  }
-  .glass-a {
-    left: 20%; top: 4%; width: 3%;
-    animation: sc-drift-b 12s ease-in-out infinite alternate-reverse;
-    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08));
-  }
-  .glass-b {
-    left: 88%; top: 66%; width: 5%;
-    animation: sc-drift-a 10s ease-in-out infinite alternate-reverse;
-    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08));
-  }
-  .sparkle {
-    left: 55%; top: 5%; width: 4.2%;
-    animation: sc-twinkle 6s ease-in-out infinite alternate;
-    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.10));
+  /* ── 뒤: b 로고(주인공 위쪽 테두리 뒤로 빼꼼 = glu의 폼폼 자리) ── */
+  .brand {
+    left: 60%; top: 2%; width: 7.5%;
+    animation: ob-tumble 12s ease-in-out infinite alternate-reverse;
+    filter: drop-shadow(0 16px 22px rgb(36 37 46 / 0.14));
   }
 
-  /* ── 모션: 전부 '돌아오는 운동'(왕복·원궤도)이라 루프가 이음새 없이 돈다 ──
-     주의: translateY(%)는 요소 자신의 크기 기준이라, float(대형용)와
-     drift(소품용)의 수치 스케일이 다르다 — 소품에 float를 걸면 1px도 안 움직인다. */
-  @keyframes sc-float-a {
+  /* ── 주인공: 달력. 클러스터를 지배(≈뷰포트 폭의 큰 비중) ── */
+  .card {
+    left: 51%; top: 10%; width: 32%;
+    transform: rotate(-8deg);
+    animation: ob-hero 9s ease-in-out infinite alternate;
+    filter: drop-shadow(0 32px 42px rgb(36 37 46 / 0.22));
+  }
+
+  /* ── 앞: 종이비행기(우상단으로 활공하듯 빠져나온다) ── */
+  .plane {
+    left: 75%; top: 6%; width: 12%;
+    animation: ob-glide 10s ease-in-out infinite alternate;
+    filter: drop-shadow(0 18px 24px rgb(36 37 46 / 0.16));
+  }
+  /* ── 앞: 연필(주인공 좌하단 위로 가로질러 겹친다 = glu의 앞 별표 역할) ── */
+  .pencil {
+    left: 44%; top: 48%; width: 18%;
+    animation: ob-hero 8s ease-in-out infinite alternate-reverse;
+    filter: drop-shadow(0 24px 30px rgb(36 37 46 / 0.20));
+  }
+  /* ── 앞: 코랄 구슬(클러스터 아래 틈새에 박힌다) ── */
+  .bead {
+    left: 60%; top: 76%; width: 5.5%;
+    animation: ob-drift-a 9s ease-in-out infinite alternate;
+    filter: drop-shadow(0 12px 16px rgb(36 37 46 / 0.16));
+  }
+
+  /* ── 가장자리 크리스털 점 — 아주 작게, 클러스터 경계에 딱 붙여 흩뿌린다 ── */
+  .dot { filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.10)); }
+  .dot-glass-a {
+    left: 84%; top: 20%; width: 4.5%;
+    animation: ob-twinkle 7s ease-in-out infinite alternate;
+  }
+  .dot-glass-b {
+    left: 56%; top: 4%; width: 3.2%;
+    animation: ob-twinkle 8s ease-in-out infinite alternate-reverse;
+  }
+  .dot-glass-c {
+    left: 42%; top: 80%; width: 5%;
+    animation: ob-twinkle 8s ease-in-out infinite alternate-reverse;
+  }
+  .dot-coral {
+    left: 85%; top: 58%; width: 3%;
+    animation: ob-drift-b 10s ease-in-out infinite alternate;
+    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.14));
+  }
+
+  /* ══ 외톨이 액센트 — 텍스트와 클러스터 사이 빈 복도에 코랄 점 하나 ══ */
+  .lone {
+    left: 37%; top: 21%; width: 3.4%;
+    animation: ob-drift-b 12s ease-in-out infinite alternate;
+    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.12));
+  }
+
+  /* ── 모션: 전부 '돌아오는 왕복'이라 alternate로 이음새 없이 돈다. ──
+     주의: translateY(%)는 요소 자신의 크기 기준 → 큰 오브젝트는 작은 수치로도
+     충분하고(hero/float), 작은 점은 큰 수치를 줘야 티가 난다(drift/twinkle). */
+  @keyframes cl-breathe {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-0.6%, -1%, 0); }
+  }
+  @keyframes ob-hero {
+    from { transform: translateY(-1%) rotate(-8deg); }
+    to { transform: translateY(1.6%) rotate(-6.2deg); }
+  }
+  @keyframes ob-float-a {
     from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(-1.6%) rotate(1.8deg); }
+    to { transform: translateY(-3%) rotate(-3deg); }
   }
-  @keyframes sc-float-b {
+  /* 유리 구슬용 — 대각선 부유 + 미세 팽창(비눗방울의 숨). */
+  @keyframes ob-bob {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(-2.5%, -8%) scale(1.04); }
+  }
+  @keyframes ob-float-b {
     from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(2%) rotate(-6deg); }
+    to { transform: translateY(3%) rotate(2.5deg); }
   }
-  /* 소품(유리·구슬)용 — 작은 요소는 수치를 크게 줘야 티가 난다 */
-  @keyframes sc-drift-a {
+  @keyframes ob-tumble {
+    from { transform: translateY(0) rotate(-6deg); }
+    to { transform: translateY(-8%) rotate(6deg); }
+  }
+  @keyframes ob-glide {
+    from { transform: translate(-6%, 4%) rotate(-6deg); }
+    to { transform: translate(7%, -8%) rotate(5deg); }
+  }
+  @keyframes ob-drift-a {
     from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(-22%) rotate(-10deg); }
+    to { transform: translateY(-20%) rotate(-12deg); }
   }
-  @keyframes sc-drift-b {
+  @keyframes ob-drift-b {
     from { transform: translateY(0) rotate(0deg); }
-    to { transform: translateY(26%) rotate(12deg); }
+    to { transform: translateY(24%) rotate(14deg); }
   }
-  @keyframes sc-tumble {
-    from { transform: translateY(0) rotate(-3deg); }
-    to { transform: translateY(-2.4%) rotate(4deg); }
+  @keyframes ob-twinkle {
+    from { transform: rotate(-10deg) scale(0.9); opacity: 0.82; }
+    to { transform: rotate(12deg) scale(1.08); opacity: 1; }
   }
-  @keyframes sc-spin {
-    from { transform: rotate(-14deg) translateY(0); }
-    to { transform: rotate(14deg) translateY(-1.4%); }
+
+  /* ── 태블릿(≤900): 클러스터를 살짝 키우고 우측으로 밀어 텍스트와 안 겹치게 ── */
+  @media (max-width: 900px) {
+    .lone { display: none; }
   }
-  @keyframes sc-twinkle {
-    from { transform: rotate(-10deg) scale(0.92); opacity: 0.85; }
-    to { transform: rotate(14deg) scale(1.08); opacity: 1; }
-  }
-  @keyframes sc-orbit-a {
-    0% { transform: translate(0, 0); }
-    25% { transform: translate(16%, -12%); }
-    50% { transform: translate(0, -24%); }
-    75% { transform: translate(-16%, -12%); }
-    100% { transform: translate(0, 0); }
-  }
-  @keyframes sc-orbit-b {
-    0% { transform: translate(0, 0); }
-    25% { transform: translate(-14%, 14%); }
-    50% { transform: translate(0, 26%); }
-    75% { transform: translate(14%, 14%); }
-    100% { transform: translate(0, 0); }
+
+  /* ── 모바일(≤640): 텍스트가 주인공. 클러스터는 우상단 코너로 축소·이동하고
+        살짝 투명하게 눕혀 배경 텍스처로만 남긴다(본문 가독 우선). ── */
+  @media (max-width: 640px) {
+    /* 코너 피크는 클러스터를 화면 밖으로 밀어 연출하므로 여기서만 잘라낸다
+       (안 자르면 우측으로 삐져나가 가로 스크롤이 생긴다). */
+    .scene {
+      overflow: hidden;
+    }
+    .cluster {
+      transform: translate(13%, -15%) scale(0.64);
+      transform-origin: top right;
+      animation: none;
+    }
+    /* 좁은 화면: 큰 오브젝트(달력·b·연필·비행기)만 우상단 코너 미니 클러스터로.
+       간유리·틈새 점·외톨이 액센트는 지워 잡티를 줄이고 본문 가독을 살린다. */
+    .bg-glass, .bead, .dot, .lone { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .scene img {
+    .cluster,
+    .ob {
       animation: none !important;
     }
   }
