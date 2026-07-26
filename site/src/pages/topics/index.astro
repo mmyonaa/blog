@@ -1,7 +1,7 @@
 ---
 // 분류 허브: 카테고리(큰 분류)와 태그(세부 소재)를 한 페이지에서 보여준다.
-// 카테고리는 클릭 시 페이지 이동 대신 아래 발행 그래프를 필터링하고(같은 걸 다시
-// 누르면 해제), 태그는 상세 페이지(/tags/[tag]/)로 들어가는 진입점이다.
+// 카테고리·태그 모두 상세 페이지(/categories/[section]/, /tags/[tag]/) 진입점.
+// 발행 그래프의 인플레이스 필터링은 그래프 위 범례(legend)가 담당한다.
 import Base from "../../layouts/Base.astro";
 import { getSectionCounts, sectionHref, hueOf } from "../../lib/sections.ts";
 import { getTagCounts, tagHref } from "../../lib/tags.ts";
@@ -14,10 +14,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 <Base title="Topics — blog" description="카테고리와 태그로 글을 모아봅니다">
   <h1>Topics</h1>
-  <p class="muted">
-    큰 줄기는 카테고리로, 세부 소재는 태그로 글을 모아봅니다. 카테고리를 누르면 아래 발행
-    그래프가 그 갈래만 밝혀 보여줍니다.
-  </p>
+  <p class="muted">큰 줄기는 카테고리로, 세부 소재는 태그로 글을 모아봅니다.</p>
   <hr />
 
   <h2 class="hub-title">카테고리</h2>
@@ -28,13 +25,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       <ul class="sec-toc">
         {sections.map((s) => (
           <li class="sec-row" style={`--hue: ${hueOf(s.id)}`}>
-            {/* data-graph-filter: 클릭하면 이동 대신 아래 발행 그래프를 이 카테고리로
-                거른다(PostGraph 스크립트가 가로챔). JS가 없으면 href로 폴백. */}
-            <a
-              class="sec-link"
-              href={sectionHref(base, s.id)}
-              data-graph-filter={s.id}
-            >
+            <a class="sec-link" href={sectionHref(base, s.id)}>
               <span class="sec-name">{s.label}</span>
               <span class="sec-leader" aria-hidden="true" />
               <span class="sec-count">{s.count}편</span>
@@ -196,16 +187,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   }
   .sec-link:hover .sec-arrow {
     transform: translateX(4px);
-  }
-  /* 그래프 필터 상태(PostGraph 스크립트가 sel/off를 토글) —
-     선택된 카테고리는 hue로 밝히고, 나머지는 가라앉힌다. */
-  .sec-link.sel .sec-name,
-  .sec-link.sel .sec-count,
-  .sec-link.sel .sec-arrow {
-    color: var(--hue-on);
-  }
-  .sec-link.off {
-    opacity: 0.45;
   }
   @media (prefers-reduced-motion: reduce) {
     .sec-arrow {

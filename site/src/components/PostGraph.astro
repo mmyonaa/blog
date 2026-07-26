@@ -364,11 +364,6 @@ for (const p of posts) {
     const legendEls = legend
       ? [...legend.querySelectorAll<HTMLElement>(".lg[data-sec]")]
       : [];
-    // 페이지 어디든 data-graph-filter="<sec>"를 단 요소(예: topics의 카테고리 목록)도
-    // 같은 필터 컨트롤이 된다 — 링크 이동 대신 그래프를 거른다(JS 없으면 href로 폴백).
-    const extEls = [
-      ...document.querySelectorAll<HTMLElement>("[data-graph-filter]"),
-    ];
     // 세로선·가지·노드·글행처럼 단일 카테고리를 가진 요소들.
     const secEls = [...graph.querySelectorAll<HTMLElement>("[data-sec]")];
     // 후속 곡선은 양끝 카테고리로 판정(한 카테고리 안에서만 완전히 표시).
@@ -417,32 +412,12 @@ for (const p of posts) {
         l.classList.toggle("sel", l.dataset.sec === sec);
         l.classList.toggle("off", !!sec && l.dataset.sec !== sec);
       }
-      for (const l of extEls) {
-        l.classList.toggle("sel", l.dataset.graphFilter === sec);
-        l.classList.toggle("off", !!sec && l.dataset.graphFilter !== sec);
-      }
     };
 
     for (const l of legendEls) {
       l.addEventListener("click", (e) => {
         e.preventDefault(); // 카테고리 페이지로 이동 대신 그래프를 필터링
         applyFilter(activeFilter === l.dataset.sec ? null : l.dataset.sec!);
-      });
-    }
-    // 외부 컨트롤: 필터를 걸면 결과가 보이도록 그래프(범례)로 스크롤한다.
-    for (const l of extEls) {
-      l.addEventListener("click", (e) => {
-        e.preventDefault();
-        const next =
-          activeFilter === l.dataset.graphFilter ? null : l.dataset.graphFilter!;
-        applyFilter(next);
-        if (next)
-          (legend ?? graph).scrollIntoView({
-            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-              ? "auto"
-              : "smooth",
-            block: "start",
-          });
       });
     }
     // 명시적 해제: 버튼 클릭 또는 Esc.
