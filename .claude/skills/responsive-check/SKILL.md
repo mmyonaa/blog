@@ -30,7 +30,7 @@ argument-hint: "[optional: page path, e.g. /topics]"
 ## 절차
 
 1. **서버 기동** — dev 서버가 안 떠 있으면 `cd site && npm run dev` (백그라운드).
-   URL은 `http://localhost:4321/mcp/` (astro `base: /mcp/` 때문에 `/mcp/` 필수).
+   URL은 `http://localhost:4321/blog/` (astro `base: /blog/` 때문에 `/blog/` 필수).
    포트는 4321 하나만 쓰고, 넓은 `pkill` 금지 — 이미 떠 있으면 재사용한다.
 
 2. **각 기기에서 순회** — Playwright **headless**로 위 3종 뷰포트 각각:
