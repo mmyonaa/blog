@@ -22,14 +22,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     sections.length === 0 ? (
       <p class="muted">아직 카테고리가 없습니다.</p>
     ) : (
-      <ul class="sec-toc">
+      <ul class="sec-grid">
         {sections.map((s) => (
-          <li class="sec-row" style={`--hue: ${hueOf(s.id)}`}>
+          <li class="sec-item" style={`--hue: ${hueOf(s.id)}`}>
             <a class="sec-link" href={sectionHref(base, s.id)}>
               <span class="sec-name">{s.label}</span>
               <span class="sec-leader" aria-hidden="true" />
               <span class="sec-count">{s.count}편</span>
-              <span class="sec-arrow" aria-hidden="true">→</span>
             </a>
           </li>
         ))}
@@ -37,6 +36,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     )
   }
 
+  <hr />
   <h2 class="hub-title" id="tags">태그</h2>
   {
     tags.length === 0 ? (
@@ -68,6 +68,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     )
   }
 
+  <hr />
   <h2 class="hub-title" id="graph">발행 그래프</h2>
   <script>
     // 태그 접기/펼치기(모바일). 문서 위임으로 한 번만 바인딩(View Transitions 안전).
@@ -102,96 +103,75 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     color: var(--c-muted);
     margin: var(--space-8) 0 var(--space-4);
   }
-  /* 모바일: 섹션 사이 48px는 과해 32px로, 구분선 바로 아래는
-     hr 리듬(16px, global.css)과 같은 박자로 죈다.
-     카테고리 행도 세로 패딩을 한 단계 더 줄여 목록을 컴팩트하게. */
+  /* 섹션 사이는 hr이 구분을 담당 — 구분선 바로 아래 타이틀은 큰 top 마진을
+     버리고 hr의 리듬(데스크톱 32/모바일 16, global.css)에 맡긴다. */
+  hr + .hub-title {
+    margin-top: var(--space-4);
+  }
+  /* 모바일: 카테고리 목록 위 여백을 살짝 죈다(섹션 구분은 hr이 담당). */
   @media (max-width: 640px) {
-    .hub-title {
-      margin-top: var(--space-6);
-    }
-    hr + .hub-title {
-      margin-top: var(--space-4);
-    }
-    .sec-link {
-      padding: var(--space-2) 0;
-    }
-    .sec-toc {
+    .sec-grid {
       margin-top: var(--space-3);
     }
   }
-  /* 카테고리 — 책 '차례'식 점선 리더 목록. 카드·컬러보더 없이,
-     카테고리 색(--hue)은 hover에만 절제해서 드러낸다. */
-  .sec-toc {
+  /* 카테고리 — '차례'식 점선 리더는 유지하되(이 사이트 고유의 결),
+     한 줄 전체 대신 다열 그리드로 압축: 데스크톱은 한 줄에 다 들어가고
+     좁은 화면에선 2열로 흐른다. 카드·보더·점 장식 없이 텍스트+점선만. */
+  .sec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    column-gap: var(--space-6);
     list-style: none;
-    margin: var(--space-5) 0 0;
+    margin: var(--space-4) 0 0;
     padding: 0;
   }
-  .sec-row {
+  .sec-item {
     /* --hue는 인라인 style로 주입. 다크에선 채도를 낮춘 파생색으로 보정. */
     --hue-on: var(--hue, var(--c-accent));
-    border-bottom: 1px solid var(--c-border);
   }
-  .sec-row:first-child {
-    border-top: 1px solid var(--c-border);
-  }
-  :global(:root[data-theme="dark"]) .sec-row {
+  :global(:root[data-theme="dark"]) .sec-item {
     --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .sec-row {
+    :global(:root:not([data-theme="light"])) .sec-item {
       --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
     }
   }
   .sec-link {
     display: flex;
     align-items: baseline;
-    gap: var(--space-3);
-    padding: var(--space-3) 0;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
     color: var(--c-text);
     text-decoration: none;
   }
   .sec-name {
     flex: none;
-    /* 카테고리 이름: 5줄 목록에서 fs-lg(19px)도 커서 fs-base로 —
-       섹션이 화면을 덜 차지하고, 아이브로우 타이틀과의 위계는 굵기(700)로 충분. */
-    font-size: var(--fs-base);
+    font-size: var(--fs-sm);
     font-weight: 700;
     letter-spacing: -0.01em;
   }
   /* 점선 리더 — 이름과 편수 사이를 점선으로 채운다(차례 특유의 결). */
   .sec-leader {
     flex: 1;
+    min-width: 0.75rem;
     align-self: flex-end;
     height: 0;
-    margin-bottom: 0.35em;
+    margin-bottom: 0.3em;
     border-bottom: 1px dotted var(--c-border);
   }
   .sec-count {
     flex: none;
     font-family: var(--font-mono);
-    font-size: var(--fs-sm);
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--c-muted);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
-  .sec-arrow {
-    flex: none;
-    color: var(--c-muted);
-    transition: transform 0.15s ease, color 0.15s ease;
-  }
   .sec-link:hover .sec-name,
-  .sec-link:hover .sec-count,
-  .sec-link:hover .sec-arrow {
+  .sec-link:hover .sec-count {
     color: var(--hue-on);
-  }
-  .sec-link:hover .sec-arrow {
-    transform: translateX(4px);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .sec-arrow {
-      transition: color 0.15s ease;
-    }
   }
   .taglist {
     display: flex;
