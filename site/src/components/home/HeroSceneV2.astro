@@ -41,11 +41,19 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     position: absolute;
     inset: 0;
   }
-  /* 클러스터를 하나의 좌표계로 묶어, 무게중심(우측 중앙)을 통째로 옮기고
-     은은하게 전체가 함께 숨 쉬게 한다(개별 float 위에 얹히는 공통 부유). */
+  /* 클러스터 = 고정 종횡비 '무대 박스'.
+     핵심: 오브젝트의 left/top/width를 전부 이 박스 기준 %로 매핑한다.
+     박스는 clamp 폭 + aspect-ratio로 항상 같은 비율을 유지하므로,
+     뷰포트가 좁아지면 가로·세로가 함께 스케일되어 구도(겹침 관계)가 통째로 보존된다.
+     (예전엔 width는 뷰포트 폭 %, top은 고정 히어로 높이 % → 좁아지면 세로만 벌어져
+      클러스터가 풀어헤쳐졌다.) 우측 가장자리에 앵커하고 세로 중앙에 앉힌다. */
   .cluster {
     position: absolute;
-    inset: 0;
+    top: 50%;
+    right: 8%;
+    width: clamp(20rem, 43vw, 44rem);
+    aspect-ratio: 31 / 23;
+    transform: translateY(-50%);
     animation: cl-breathe 14s ease-in-out infinite alternate;
   }
   .ob {
@@ -54,11 +62,11 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     will-change: transform;
   }
 
-  /* ══ 클러스터 — 우측 중앙에 한 덩어리. 좌표는 .scene 폭 기준(%). ══ */
+  /* ══ 클러스터 — 좌표·크기 전부 .cluster 박스 기준 %(1440 구도를 그대로 매핑). ══ */
 
   /* ── 뒤: 간유리 버블(주인공 좌상단 아래로 파고든다) ── */
   .bg-glass {
-    left: 45%; top: 9%; width: 15%;
+    left: 9.4%; top: 14.3%; width: 28.9%;
     opacity: 0.92;
     /* 구는 회전이 안 보인다 — 비눗방울처럼 떠오르는 이동+팽창 전용 모션. */
     animation: ob-bob 9s ease-in-out infinite alternate;
@@ -66,20 +74,20 @@ const a = (f: string) => `${base}/hero3d/${f}`;
   }
   /* ── 뒤: 말풍선 큰 쿠션(주인공 우하단을 받친다) ── */
   .bg-bubble {
-    left: 73%; top: 60%; width: 15%;
+    left: 63.4%; top: 58.7%; width: 28.9%;
     animation: ob-float-b 13s ease-in-out infinite alternate;
     filter: drop-shadow(0 26px 34px rgb(36 37 46 / 0.13));
   }
   /* ── 뒤: b 로고(주인공 위쪽 테두리 뒤로 빼꼼 = glu의 폼폼 자리) ── */
   .brand {
-    left: 60%; top: 2%; width: 7.5%;
+    left: 38.4%; top: 8.2%; width: 14.4%;
     animation: ob-tumble 12s ease-in-out infinite alternate-reverse;
     filter: drop-shadow(0 16px 22px rgb(36 37 46 / 0.14));
   }
 
-  /* ── 주인공: 달력. 클러스터를 지배(≈뷰포트 폭의 큰 비중) ── */
+  /* ── 주인공: 달력. 클러스터를 지배(박스 폭의 ~62%) ── */
   .card {
-    left: 51%; top: 10%; width: 32%;
+    left: 21.1%; top: 15.1%; width: 61.5%;
     transform: rotate(-8deg);
     animation: ob-hero 9s ease-in-out infinite alternate;
     filter: drop-shadow(0 32px 42px rgb(36 37 46 / 0.22));
@@ -87,19 +95,19 @@ const a = (f: string) => `${base}/hero3d/${f}`;
 
   /* ── 앞: 종이비행기(우상단으로 활공하듯 빠져나온다) ── */
   .plane {
-    left: 75%; top: 6%; width: 12%;
+    left: 67.3%; top: 11.7%; width: 23.1%;
     animation: ob-glide 10s ease-in-out infinite alternate;
     filter: drop-shadow(0 18px 24px rgb(36 37 46 / 0.16));
   }
   /* ── 앞: 연필(주인공 좌하단 위로 가로질러 겹친다 = glu의 앞 별표 역할) ── */
   .pencil {
-    left: 44%; top: 48%; width: 18%;
+    left: 7.5%; top: 48.3%; width: 34.7%;
     animation: ob-hero 8s ease-in-out infinite alternate-reverse;
     filter: drop-shadow(0 24px 30px rgb(36 37 46 / 0.20));
   }
   /* ── 앞: 코랄 구슬(클러스터 아래 틈새에 박힌다) ── */
   .bead {
-    left: 60%; top: 76%; width: 5.5%;
+    left: 38.4%; top: 72.7%; width: 10.7%;
     animation: ob-drift-a 9s ease-in-out infinite alternate;
     filter: drop-shadow(0 12px 16px rgb(36 37 46 / 0.16));
   }
@@ -107,19 +115,19 @@ const a = (f: string) => `${base}/hero3d/${f}`;
   /* ── 가장자리 크리스털 점 — 아주 작게, 클러스터 경계에 딱 붙여 흩뿌린다 ── */
   .dot { filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.10)); }
   .dot-glass-a {
-    left: 84%; top: 20%; width: 4.5%;
+    left: 84.6%; top: 23.9%; width: 8.7%;
     animation: ob-twinkle 7s ease-in-out infinite alternate;
   }
   .dot-glass-b {
-    left: 56%; top: 4%; width: 3.2%;
+    left: 30.6%; top: 9.9%; width: 6.1%;
     animation: ob-twinkle 8s ease-in-out infinite alternate-reverse;
   }
   .dot-glass-c {
-    left: 42%; top: 80%; width: 5%;
+    left: 3.6%; top: 76.1%; width: 9.7%;
     animation: ob-twinkle 8s ease-in-out infinite alternate-reverse;
   }
   .dot-coral {
-    left: 85%; top: 58%; width: 3%;
+    left: 86.5%; top: 57%; width: 5.8%;
     animation: ob-drift-b 10s ease-in-out infinite alternate;
     filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.14));
   }
@@ -134,9 +142,11 @@ const a = (f: string) => `${base}/hero3d/${f}`;
   /* ── 모션: 전부 '돌아오는 왕복'이라 alternate로 이음새 없이 돈다. ──
      주의: translateY(%)는 요소 자신의 크기 기준 → 큰 오브젝트는 작은 수치로도
      충분하고(hero/float), 작은 점은 큰 수치를 줘야 티가 난다(drift/twinkle). */
+  /* 세로 중앙 앵커(translateY -50%)를 키프레임에 함께 실어, 공통 부유가
+     앵커를 덮어쓰지 않게 한다(정적/reduced-motion 상태의 .cluster transform과 동일). */
   @keyframes cl-breathe {
-    from { transform: translate3d(0, 0, 0); }
-    to { transform: translate3d(-0.6%, -1%, 0); }
+    from { transform: translateY(-50%) translate3d(0, 0, 0); }
+    to { transform: translateY(-50%) translate3d(-0.6%, -1%, 0); }
   }
   @keyframes ob-hero {
     from { transform: translateY(-1%) rotate(-8deg); }
@@ -176,27 +186,44 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     to { transform: rotate(12deg) scale(1.08); opacity: 1; }
   }
 
-  /* ── 태블릿(≤900): 클러스터를 살짝 키우고 우측으로 밀어 텍스트와 안 겹치게 ── */
-  @media (max-width: 900px) {
+  /* ── 태블릿(641~980): 데스크톱과 '같은 구도'를, 화면에 맞게 크게 우측 중앙에.
+        (예전엔 우상단에 작게 축소했지만, 이제 PC와 동일한 큰 클러스터가 텍스트·통계
+        위로 겹쳐 앉는다 — 제목·부제 가독은 유지하되 오버랩은 의도된 것.)
+        전체 오브젝트 유지. cl-breathe는 정적 transform과 충돌하므로 끄고 개별 float만.
+        무대(scene) overflow는 자르지 않아 그림자 직선 절단이 없고, 클러스터 우변을
+        화면 안에 두어 가로 스크롤을 막는다. ── */
+  @media (max-width: 980px) {
+    .cluster {
+      width: clamp(24rem, 58vw, 34rem);
+      right: 0%;
+      top: 50%;
+      transform: translateY(-50%);
+      animation: none;
+    }
+    /* 외톨이 액센트가 앉을 '텍스트↔클러스터 복도'가 사라지므로 숨긴다. */
     .lone { display: none; }
   }
 
-  /* ── 모바일(≤640): 텍스트가 주인공. 클러스터는 우상단 코너로 축소·이동하고
-        살짝 투명하게 눕혀 배경 텍스처로만 남긴다(본문 가독 우선). ── */
+  /* ── 모바일(≤640): 데스크톱과 같은 전체 클러스터를 크게 깔고, 통계(.stats)가
+        그 위에 겹쳐 얹히는 레이어드 구성. 무게중심을 하단에 두어 제목·부제(상단)
+        가독은 지키고 통계와는 의도적으로 겹친다. 오브젝트 몸통은 히어로 안에 온전히
+        (상단 절단 없이). overflow를 자르지 않아(직선 절단 방지) 그림자는 자연스럽게
+        흐르고, 클러스터를 무대 폭 안에 담아 가로 스크롤을 막는다. ── */
   @media (max-width: 640px) {
-    /* 코너 피크는 클러스터를 화면 밖으로 밀어 연출하므로 여기서만 잘라낸다
-       (안 자르면 우측으로 삐져나가 가로 스크롤이 생긴다). */
-    .scene {
-      overflow: hidden;
-    }
     .cluster {
-      transform: translate(13%, -15%) scale(0.64);
-      transform-origin: top right;
+      width: clamp(18rem, 92vw, 23rem);
+      left: auto;
+      right: 0;
+      top: auto;
+      /* 하단에서 살짝 띄워 클러스터를 통계 라인 뒤로 끌어올린다(통계와 겹침) +
+         드롭섀도가 히어로 안에서 흐를 여유를 둔다(아래 섹션으로 새지 않게). */
+      bottom: var(--space-8);
+      transform: none;
+      transform-origin: center;
       animation: none;
     }
-    /* 좁은 화면: 큰 오브젝트(달력·b·연필·비행기)만 우상단 코너 미니 클러스터로.
-       간유리·틈새 점·외톨이 액센트는 지워 잡티를 줄이고 본문 가독을 살린다. */
-    .bg-glass, .bead, .dot, .lone { display: none; }
+    /* 외톨이 액센트만 예외 — 좁은 화면엔 텍스트↔클러스터 복도가 없어 숨긴다. */
+    .lone { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {

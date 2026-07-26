@@ -257,6 +257,18 @@ const { hasPosts, stats } = Astro.props;
     }
   }
 
+  /* 태블릿·모바일(≤980): PC와 동일한 큰 클러스터가 텍스트 뒤로 겹칠 수 있으므로,
+     제목·부제에 배경색 헤일로를 둘러 오브젝트 위에서도 가독을 지킨다. 헤일로는
+     배경색(--c-bg)이라 겹치지 않는 구간에선 보이지 않고, 라이트·다크 모두에서
+     동작한다. 데스크톱(>980)은 텍스트와 클러스터가 분리돼 적용하지 않는다. */
+  @media (max-width: 980px) {
+    .hero-title,
+    .hero-sub {
+      text-shadow: 0 0 8px var(--c-bg), 0 0 5px var(--c-bg),
+        0 0 2px var(--c-bg);
+    }
+  }
+
   /* ── 모바일 (#27) ──
      랜딩 first-fold를 히어로가 통째로 삼키지 않도록 제목 스케일을 낮추고
      무대 높이도 줄인다. 통계 라인은 2×2로 감싼다. 톤은 유지. */
@@ -264,8 +276,12 @@ const { hasPosts, stats } = Astro.props;
     .hero {
       padding: var(--space-5) 0 var(--space-2);
     }
+    /* 모바일은 3D 클러스터가 통계 뒤로 크게 겹쳐 깔린다. 텍스트를 위로 붙이고
+       (align-content:start) 무대를 세로로 키워, 넓어진 하단을 클러스터에 내주고
+       통계 라인이 그 위에 얹히게 한다. */
     .hero-inner {
-      min-height: 20rem;
+      min-height: 25rem;
+      align-content: start;
     }
     /* 큰 마스트헤드가 첫 화면을 잡아먹지 않게 모바일 한정으로 축소(데스크톱 유지). */
     .hero-title {
@@ -283,6 +299,16 @@ const { hasPosts, stats } = Astro.props;
       column-gap: var(--space-6);
       row-gap: var(--space-3);
       margin-top: var(--space-5);
+    }
+    /* 클러스터가 통계 뒤로 크게 깔려도 숫자·라벨·캡션이 또렷하게 뜨도록, 글자마다
+       배경색(--c-bg) 헤일로를 촘촘히 두른다. 넓은 배경 스크림은 다크에서 어두운
+       얼룩처럼 보여 피하고, 글자 주변만 국소적으로 강하게 감싼다. --c-bg가 테마 따라
+       뒤집혀(라이트=밝은, 다크=어두운) 어떤 오브젝트 위에서도 대비를 확보한다. */
+    .stats::before,
+    .stat-value,
+    .stat-label {
+      text-shadow: 0 0 8px var(--c-bg), 0 0 5px var(--c-bg),
+        0 0 3px var(--c-bg), 0 0 2px var(--c-bg);
     }
     .stat {
       padding: 0;
