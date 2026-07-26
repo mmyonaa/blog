@@ -21,18 +21,16 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: site
     steps:
       - uses: actions/checkout@v4
+      # pnpm 버전은 루트 package.json의 packageManager 필드를 따른다
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: site/package-lock.json
-      - run: npm ci
-      - run: npm run build
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @blog-mcp/site build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist
