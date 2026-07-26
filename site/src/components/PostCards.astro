@@ -28,7 +28,7 @@ const TAG_MAX = 3;
               {initialOf(section)}
             </a>
             <div class="card-headtext">
-              <h2 class="card-title">
+              <h2 class="card-title" transition:name={`post-${post.id}`}>
                 <a href={href(post.id)}>{post.data.title}</a>
               </h2>
               <span class="card-date">{fmtDateTime(post.data.pubDate)}</span>
