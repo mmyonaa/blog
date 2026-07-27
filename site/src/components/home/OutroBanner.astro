@@ -1,0 +1,369 @@
+---
+// 아웃트로 배너 — 랜딩의 코다(coda)이자 몰입형 풀블리드 배너.
+// 히어로(3D 정물 클러스터)와 수미상관을 이루되, 여기선 대형 오브젝트가 패널
+// 모서리에서 과감히 블리드/크롭되어 밴드를 가득 채우고, 카피가 그 위에 얹힌다.
+//
+// 패널이 overflow:hidden 프레임이라 오브젝트가 라운드 모서리 안에서 잘리는 건
+// '의도된 연출'(히어로의 부유 오브젝트 잘림 금지와 다른 맥락). 단 그림자가 직선으로
+// 잘려 하드라인이 생기지 않게, 블리드 오브젝트는 잘리는 모서리 쪽으로 그림자가
+// 향하도록 배치한다.
+//
+// 팔레트: 코랄 주도 + 청록 대형 액센트 하나로 대비를 만든다(배너는 히어로와 분리된
+// 존이라 청록 허용). 대형 3덩어리가 주인공:
+//   · sphere-coral = 좌상단 대형 코랄 스피어(패널 높이 초과, 모서리 블리드) — 카피의 배경.
+//   · asterisk     = 중앙 하단 대형 청록 블룸(하단 모서리에서 크롭되어 올라옴) — 청록 대비.
+//   · torus        = 우측 대형 코랄 토러스('매일 도는 루프', 온전한 몸통).
+//   · cube         = 토러스 위에 얹히는 피치 큐브.
+//   · outro/book   = 바닥의 책 더미('쌓인 기록' 서사, 전용 생성 애셋).
+//
+// 카피 가독: 오브젝트 위에 얹히므로 히어로와 동일한 --c-bg 헤일로(text-shadow)로
+// 라이트·다크 모두 대비를 확보한다. 다크는 --scene-dim 문법으로 오브젝트를 눌러 앉힌다.
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const a = (f: string) => `${base}/hero3d/${f}`;
+---
+
+<section class="outro" aria-labelledby="outro-title">
+  <div class="outro-panel">
+    <!-- ── 대형 3D 오브젝트(몰입 배경) — aria-hidden, 카피 뒤 z0에서 모서리 블리드 ── -->
+    <div class="outro-scene" aria-hidden="true">
+      <img class="ob sphere" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
+      <img class="ob asterisk" src={a("asterisk.webp")} alt="" loading="lazy" decoding="async" />
+      <!-- <img class="ob torus" src={a("torus.webp")} alt="" loading="lazy" decoding="async" /> -->
+      <!-- <img class="ob cube" src={a("cube.webp")} alt="" loading="lazy" decoding="async" /> -->
+      <img class="ob book" src={a("outro/book.webp")} alt="" loading="lazy" decoding="async" />
+    </div>
+
+    <!-- ── 카피 + CTA — z1으로 오브젝트 위에 얹힌다(헤일로로 가독 확보) ── -->
+    <div class="outro-copy">
+      <p class="outro-eyebrow">daily.mcp</p>
+      <h2 id="outro-title" class="outro-title">매일 한 편씩, 계속 쌓입니다.</h2>
+      <p class="outro-sub">
+        직접 만든 MCP 서버가 오늘도 글을 씁니다. 그동안 쌓인 기록을 처음부터 둘러보세요.
+      </p>
+      <div class="outro-cta">
+        <a class="outro-btn" href={`${base}/blog/`}>전체 글 보기</a>
+        <a class="outro-link" href={`${base}/about/`}>블로그 소개 <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ══════════════════════════════════════════════════════════
+     아웃트로 배너 — 페이지 끝의 몰입형 코다.
+     대형 오브젝트가 패널 모서리에서 블리드/크롭되어 밴드를 채우고,
+     좌측 카피/CTA가 헤일로를 두른 채 그 위에 얹힌다.
+     ══════════════════════════════════════════════════════════ */
+  .outro {
+    /* '최근 글' 그리드와 푸터 사이의 마무리 밴드. 위로 넉넉히 떼어 리듬을 끊는다. */
+    margin: var(--space-10) 0 var(--space-8);
+  }
+
+  .outro-panel {
+    position: relative;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--c-border);
+    background:
+      radial-gradient(
+        120% 140% at 84% 24%,
+        var(--c-accent-soft),
+        transparent 60%
+      ),
+      var(--c-surface);
+    box-shadow: var(--shadow-md);
+    /* 패널이 오브젝트의 클리핑 프레임 — 대형 오브젝트가 라운드 모서리 안에서
+       잘리는 게 의도된 연출. */
+    overflow: hidden;
+    padding: clamp(var(--space-6), 5vw, var(--space-10))
+      clamp(var(--space-5), 5vw, var(--space-10));
+    min-height: 17rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ── 대형 오브젝트 레이어 — 패널 전체를 무대로, 카피 뒤 z0 ── */
+  .outro-scene {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: inherit;
+    /* 다크 폴리시 훅 — 다크에서만 채워져 오브젝트 톤을 누른다. */
+    filter: var(--scene-dim, none);
+  }
+  .ob {
+    position: absolute;
+    height: auto;
+    will-change: transform;
+  }
+
+  /* ── 좌상단 대형 코랄 스피어 — 패널 높이를 넘겨 상단·좌측 모서리로 블리드.
+        카피의 배경이 된다. 그림자는 우하단(패널 안)으로 향해 직선 잘림 없음.
+        구는 회전이 안 보여 미세 드리프트만. ── */
+  .sphere {
+    left: -6%;
+    top: -42%;
+    width: clamp(18rem, 40vw, 30rem);
+    animation: outro-breathe 12s ease-in-out infinite alternate;
+    filter: drop-shadow(0 30px 40px rgb(36 37 46 / 0.16));
+  }
+  /* ── 중앙 하단 대형 청록 블룸 — 하단 모서리에서 크롭되어 올라온다. 코랄 대비.
+        꽃형이라 느린 회전이 잘 보인다. 잘리는 하단으로 그림자가 빠져 하드라인 없음. ── */
+  .asterisk {
+    left: 36%;
+    bottom: -46%;
+    width: clamp(10rem, 30vw, 23rem);
+    animation: outro-bloom 16s ease-in-out infinite alternate;
+    filter: drop-shadow(0 20px 30px rgb(36 37 46 / 0.14));
+  }
+  /* ── 우측 대형 코랄 토러스 — 온전한 몸통, 밴드 우측을 지배. ── */
+  .torus {
+    right: 4%;
+    top: 52%;
+    width: clamp(9rem, 19vw, 14rem);
+    transform: translateY(-50%);
+    animation: outro-loop 11s ease-in-out infinite alternate;
+    filter: drop-shadow(0 24px 32px rgb(36 37 46 / 0.18));
+  }
+  /* ── 피치 큐브 — 토러스 좌상단 어깨 위에 얹히듯 겹친다. ── */
+  .cube {
+    right: 9%;
+    top: 15%;
+    width: clamp(4rem, 8.5vw, 6rem);
+    animation: outro-tumble 13s ease-in-out infinite alternate-reverse;
+    filter: drop-shadow(0 16px 20px rgb(36 37 46 / 0.16));
+  }
+  /* ── 바닥 책 더미 — '쌓인 기록' 서사. 블룸과 토러스 사이 바닥에 앉는다.
+        애셋 자체에 소프트 접지 그림자가 구워져 있어 drop-shadow는 옅게만. ── */
+  .book {
+    right: 2%;
+    bottom: 0%;
+    /* 1440에서 33vw ≈ 30rem(사용자 확정 크기)이 되도록 잡은 유동 스케일.
+       ~1455px 이상에서 30rem 고정, ~776px 이하에서 16rem 고정. */
+    width: clamp(16rem, 33vw, 30rem);
+    animation: outro-float 9s ease-in-out infinite alternate;
+    filter: drop-shadow(0 12px 16px rgb(36 37 46 / 0.10));
+  }
+
+  /* ── 카피/CTA — z1으로 오브젝트 위에 얹힌다. 헤일로로 가독 확보. ── */
+  .outro-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 33rem;
+  }
+  .outro-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--c-accent);
+    margin: 0 0 var(--space-3);
+    padding-left: 1.1em;
+    position: relative;
+    /* 오브젝트 위 가독 — 배경색 헤일로(히어로와 동일 문법). */
+    text-shadow: 0 0 8px var(--c-bg), 0 0 5px var(--c-bg), 0 0 2px var(--c-bg);
+  }
+  /* 앞의 코랄 점 = 살아있는 표시(히어로 stats 캡션과 같은 언어). */
+  .outro-eyebrow::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--c-accent);
+    box-shadow: 0 0 0 0.16em var(--c-accent-soft);
+  }
+  .outro-title {
+    font-family: var(--font-mono);
+    font-size: clamp(1.6rem, 4vw, 2.35rem);
+    line-height: var(--lh-tight);
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    color: var(--c-text);
+    margin: 0 0 var(--space-4);
+    /* 제목은 헤일로를 두껍게 — 대형 스피어 위에서도 또렷하게. */
+    text-shadow: 0 0 12px var(--c-bg), 0 0 7px var(--c-bg), 0 0 3px var(--c-bg);
+  }
+  .outro-sub {
+    color: var(--c-text);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-snug);
+    max-width: 34ch;
+    margin: 0 0 var(--space-6);
+    text-shadow: 0 0 10px var(--c-bg), 0 0 6px var(--c-bg), 0 0 3px var(--c-bg);
+  }
+
+  .outro-cta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-5);
+  }
+  /* 프라이머리 — 코랄 필 버튼(불투명이라 어떤 오브젝트 위에서도 또렷). */
+  .outro-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.7em 1.4em;
+    border-radius: var(--radius-pill);
+    background: var(--c-accent);
+    color: var(--c-accent-contrast);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: var(--shadow-md);
+    transition: background 0.15s ease, transform 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .outro-btn:hover {
+    background: var(--c-accent-hover);
+    color: var(--c-accent-contrast);
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  /* 세컨더리 — 밑줄 와이프 액센트 링크(헤일로로 오브젝트 위 가독). */
+  .outro-link {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--c-text);
+    white-space: nowrap;
+    transition: color 0.15s ease;
+    text-shadow: 0 0 8px var(--c-bg), 0 0 5px var(--c-bg), 0 0 2px var(--c-bg);
+  }
+  .outro-link span {
+    display: inline-block;
+    transition: transform 0.15s ease;
+  }
+  .outro-link:hover {
+    color: var(--c-accent);
+    text-decoration: none;
+  }
+  .outro-link:hover span {
+    transform: translateX(3px);
+  }
+
+  /* ── 모션: 히어로 문법(돌아오는 왕복, alternate). 대형일수록 은은하게. ── */
+  @keyframes outro-loop {
+    from { transform: translateY(-52%) rotate(-4deg); }
+    to { transform: translateY(-56%) rotate(4deg); }
+  }
+  @keyframes outro-tumble {
+    from { transform: translateY(0) rotate(-8deg); }
+    to { transform: translateY(-16%) rotate(10deg); }
+  }
+  @keyframes outro-float {
+    from { transform: translateY(0) rotate(-3deg); }
+    to { transform: translateY(-12%) rotate(3deg); }
+  }
+  @keyframes outro-bloom {
+    from { transform: translateY(0) rotate(-5deg); }
+    to { transform: translateY(-4%) rotate(5deg); }
+  }
+  @keyframes outro-breathe {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(1.5%, 1.8%) scale(1.025); }
+  }
+
+  /* ── 태블릿(≤900): 스피어(카피 배경) + 책(우측 앵커) 중심. 청록 블룸은
+        하단 중앙 크롭으로 되돌려 책과 안 겹치게, 카피 폭은 좁힌다. ── */
+  @media (max-width: 900px) {
+    .outro-panel {
+      min-height: 15rem;
+    }
+    .outro-copy {
+      max-width: 24rem;
+    }
+    .sphere {
+      left: -14%;
+      top: -34%;
+      width: clamp(16rem, 46vw, 24rem);
+    }
+    /* 블룸은 하단 중앙에서 크롭 — 우측은 책의 자리. */
+    .asterisk {
+      left: 38%;
+      bottom: -44%;
+      width: clamp(11rem, 30vw, 16rem);
+    }
+    .book {
+      right: 0%;
+      bottom: -4%;
+      width: clamp(13rem, 30vw, 17rem);
+    }
+  }
+
+  /* ── 모바일(≤640): 대형 1~2개가 모서리에서 시원하게 걸치는 구성.
+        스피어(상단 블리드, 카피 배경) + 토러스(우하단 코너 크롭). 나머지는 접는다. ── */
+  @media (max-width: 640px) {
+    .outro {
+      margin: var(--space-8) 0 var(--space-6);
+    }
+    .outro-panel {
+      min-height: 13rem;
+      padding: var(--space-8) var(--space-5);
+    }
+    .outro-copy {
+      max-width: 100%;
+    }
+    /* 스피어는 우상단으로 크게 블리드 — 카피(좌측 정렬) 뒤 상단 배경. */
+    .sphere {
+      left: auto;
+      right: -22%;
+      top: -34%;
+      width: clamp(15rem, 62vw, 20rem);
+    }
+    /* 책은 우하단 코너에서 크롭되어 걸친다('쌓인 기록'이 모바일에도 남는다). */
+    .book {
+      right: -6%;
+      bottom: -12%;
+      width: clamp(10rem, 44vw, 13rem);
+    }
+    /* 좁은 폭에선 나머지 대형·소품은 접는다(파편 무더기 방지). */
+    .asterisk,
+    .cube {
+      display: none;
+    }
+    .outro-sub {
+      font-size: var(--fs-base);
+      max-width: 100%;
+    }
+  }
+  /* 모바일 토러스용 — 세로 앵커(translateY -50%)가 없는 무앵커 왕복. */
+  @keyframes outro-loop-flat {
+    from { transform: rotate(-4deg); }
+    to { transform: rotate(6deg) translateY(-6%); }
+  }
+
+  /* ── 다크 폴리시: 히어로와 동일 문법 — 오브젝트 톤 다운(형광 글레어 완화). ── */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .outro-scene {
+      --scene-dim: brightness(0.82) saturate(0.9);
+    }
+    :root:not([data-theme="light"]) .outro-panel {
+      /* 다크에선 코랄 그라디언트를 더 눌러 얼룩지지 않게. */
+      background:
+        radial-gradient(
+          120% 140% at 84% 24%,
+          var(--c-accent-soft),
+          transparent 62%
+        ),
+        var(--c-surface);
+    }
+  }
+  :root[data-theme="dark"] .outro-scene {
+    --scene-dim: brightness(0.82) saturate(0.9);
+  }
+
+  /* 모션 최소화: 부유만 끈다. 각 오브젝트는 자기 base transform으로 되돌아간다
+     (데스크톱 토러스는 translateY(-52%) 중앙 앵커, 모바일 토러스는 none). */
+  @media (prefers-reduced-motion: reduce) {
+    .ob {
+      animation: none !important;
+    }
+    .outro-btn:hover {
+      transform: none;
+    }
+  }
+</style>
