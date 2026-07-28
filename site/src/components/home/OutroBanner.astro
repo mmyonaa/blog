@@ -202,14 +202,18 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     flex-wrap: wrap;
     gap: var(--space-4) var(--space-5);
   }
-  /* 프라이머리 — 코랄 필 버튼(불투명이라 어떤 오브젝트 위에서도 또렷). */
+  /* 프라이머리 — 글래스 필 버튼. 코랄 필은 뒤의 코랄 스피어와 한 덩어리로 뭉개져,
+     반투명 서피스 + 블러로 스피어 위에서 분리되게 한다(서피스 색이라 다크에서도 동작). */
   .outro-btn {
     display: inline-flex;
     align-items: center;
     padding: 0.7em 1.4em;
     border-radius: var(--radius-pill);
-    background: var(--c-accent);
-    color: var(--c-accent-contrast);
+    background: color-mix(in srgb, var(--c-surface) 72%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid color-mix(in srgb, var(--c-surface) 85%, transparent);
+    color: var(--c-text);
     font-size: var(--fs-sm);
     font-weight: 700;
     line-height: 1;
@@ -218,8 +222,8 @@ const a = (f: string) => `${base}/hero3d/${f}`;
       box-shadow 0.15s ease;
   }
   .outro-btn:hover {
-    background: var(--c-accent-hover);
-    color: var(--c-accent-contrast);
+    background: var(--c-surface);
+    color: var(--c-text);
     text-decoration: none;
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);

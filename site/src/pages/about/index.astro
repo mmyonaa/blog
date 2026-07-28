@@ -4,12 +4,12 @@
 // 만든 사람 정보는 lib/author.ts, 카테고리 소개는 lib/sections.ts가 단일 출처.
 import Base from "../../layouts/Base.astro";
 import { AUTHOR, REPO_URL } from "../../lib/author.ts";
-import { getSectionCounts, sectionHref, hueOf, blurbOf } from "../../lib/sections.ts";
+import { getSectionCounts, sectionHref, hueOf, blurbOf, sectionLabel, sectionOf } from "../../lib/sections.ts";
 import { getCollection } from "astro:content";
 import { fmtDate } from "../../lib/date.ts";
 import McpOrbit from "../../components/McpOrbit.astro";
-import ActivityHeatmap from "../../components/home/ActivityHeatmap.astro";
-import { buildActivity } from "../../lib/activity.ts";
+import ActivityHeatmap, { type DayPost } from "../../components/home/ActivityHeatmap.astro";
+import { buildActivity, dayKey } from "../../lib/activity.ts";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const sections = await getSectionCounts();
@@ -23,6 +23,26 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
 // 발행 스트릭 잔디 — 리드의 "N편을 쌓았어요"를 시각 증거로 뒷받침 (홈 히어로에서 이동).
 // minWeeks 25는 본문 폭에 맞는 주 수.
 const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 });
+// 모바일 기본 그리드 — 전체를 균등 축소하면 칸이 너무 작아져, 최근 13주(약 3개월)만
+// 따로 빌드해 보여주고 캡션 토글로 전체와 전환한다(SSG라 두 벌을 미리 만든다).
+const activityRecent = buildActivity(posts.map((p) => p.data.pubDate), {
+  minWeeks: 13,
+  maxWeeks: 13,
+});
+
+// 잔디 클릭 패널용 — 일자별 글(제목·링크·카테고리) 맵. SSG가 JSON으로 심는다.
+const dayPosts: Record<string, DayPost[]> = {};
+for (const p of posts) {
+  const sec = sectionOf(p);
+  (dayPosts[dayKey(p.data.pubDate)] ??= []).push({
+    t: p.data.title,
+    h: `${base}/blog/${p.id}/`,
+    s: sectionLabel(sec),
+    c: hueOf(sec),
+  });
+}
+// JSON 임베드 — </script> 조기 종료 방지용으로 <를 이스케이프.
+const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
 ---
 
 <Base
@@ -75,23 +95,67 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     <div class="ab-heat">
       <div class="ab-heat-cap">
         <span class="ab-heat-cap-title">발행 스트릭</span>
-        <span class="ab-heat-cap-meta">최근 {activity.weeks}주 · {activity.total}편</span>
+        <span class="ab-heat-cap-right">
+          {/* 모바일 전용 토글 — 최근 13주 ↔ 전체 기간. 데스크톱은 항상 전체. */}
+          <button
+            class="ab-heat-toggle"
+            type="button"
+            aria-pressed="false"
+            data-label-full={`최근 ${activityRecent.weeks}주`}
+            data-label-recent="전체 기간"
+          >전체 기간</button>
+          <span class="ab-heat-cap-meta">최근 {activity.weeks}주 · {activity.total}편</span>
+        </span>
       </div>
-      <ActivityHeatmap activity={activity} />
+      {/* PC(>900px)에선 잔디 좌 / 분포·클릭 패널 우 2열 — 우측 빈 공간을 채운다. */}
+      <div class="ab-heat-body">
+        <div class="hm-wrap">
+          <div class="hm-wrap-full"><ActivityHeatmap activity={activity} /></div>
+          <div class="hm-wrap-recent"><ActivityHeatmap activity={activityRecent} /></div>
+        </div>
+        <div class="ab-heat-side">
+          {/* 카테고리 분포 — GitHub activity overview 자리의 미니 요약(스택 바 + 범례). */}
+          <div
+            class="ab-dist"
+            role="img"
+            aria-label={`카테고리 분포: ${sections.map((s) => `${s.label} ${s.count}편`).join(", ")}`}
+          >
+            <div class="ab-dist-bar">
+              {sections.map((s) => (
+                <span class="ab-dist-seg" style={`--hue: ${hueOf(s.id)}; flex: ${s.count}`} />
+              ))}
+            </div>
+            <ul class="ab-dist-legend" aria-hidden="true">
+              {sections.map((s) => (
+                <li style={`--hue: ${hueOf(s.id)}`}>
+                  <span class="ab-dist-dot" />
+                  {s.label} <b>{s.count}</b>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {/* 잔디 클릭 상세 — 데이터 JSON과 패널. 채우는 건 ActivityHeatmap의 핸들러. */}
+          <script is:inline type="application/json" class="hm-days-data" set:html={daysJson} />
+          <div class="hm-day" role="region" aria-live="polite" aria-label="선택한 날짜의 글" hidden>
+            <p class="hm-day-date"></p>
+            <ul class="hm-day-list"></ul>
+          </div>
+        </div>
+      </div>
     </div>
   )}
 
   <hr />
 
   <h2>무엇을 쓰나</h2>
-  <p class="muted">배우는 큰 줄기를 네 갈래로 나눠 씁니다.</p>
+  <p class="muted">배우는 큰 줄기를 갈래별로 나눠 씁니다.</p>
   <dl class="ab-gloss">
     {
       sections.map((s) => (
         <div class="gl-item" style={`--hue: ${hueOf(s.id)}`}>
+          {/* 편수는 위 발행 스트릭 카드의 분포 범례가 이미 보여줘 여기선 뺀다. */}
           <dt class="gl-term">
             <a class="gl-name" href={sectionHref(base, s.id)}>{s.label}</a>
-            <span class="gl-count">{s.count}편</span>
           </dt>
           {blurbOf(s.id) && <dd class="gl-def">{blurbOf(s.id)}</dd>}
         </div>
@@ -148,6 +212,19 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     <a href={REPO_URL} target="_blank" rel="noopener">GitHub</a>에 공개돼 있습니다.
   </p>
 </Base>
+
+<script>
+  // 잔디 기간 토글(모바일) — 최근 13주 ↔ 전체. 문서 위임이라 View Transitions에도 유효.
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement)?.closest?.<HTMLElement>(".ab-heat-toggle");
+    if (!btn) return;
+    const card = btn.closest(".ab-heat");
+    if (!card) return;
+    const full = card.classList.toggle("show-full");
+    btn.textContent = full ? btn.dataset.labelFull! : btn.dataset.labelRecent!;
+    btn.setAttribute("aria-pressed", String(full));
+  });
+</script>
 
 <style>
   /* ── 프로필 헤더 ── */
@@ -263,10 +340,197 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
+  .ab-heat-cap-right {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+  /* 기간 토글 — 모바일 전용(데스크톱은 항상 전체 기간이라 숨김). */
+  .ab-heat-toggle {
+    display: none;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    background: var(--c-bg);
+    color: var(--c-muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    padding: 0.3em 0.8em;
+    cursor: pointer;
+  }
+  .ab-heat-toggle:hover {
+    color: var(--c-accent);
+    border-color: var(--c-accent);
+  }
+  /* 전체/최근 그리드 전환 — 기본(데스크톱)은 전체만. */
+  .hm-wrap {
+    min-width: 0;
+  }
+  .hm-wrap-recent {
+    display: none;
+  }
+  /* 폰(≤480) 전용 — 그보다 넓으면 25주 전체가 fluid로 폭을 채워도 칸이 적당해서
+     (481px에서 ~14px) 최근 13주로 줄일 이유가 없다. 13주 그리드를 넓은 폭에 두면
+     칸이 30px대로 비대해진다. */
+  @media (max-width: 480px) {
+    .ab-heat-toggle {
+      display: inline-block;
+    }
+    /* 폰 기본: 최근 13주. .show-full이면 전체(균등 축소)로 전환. */
+    .ab-heat:not(.show-full) .hm-wrap-full {
+      display: none;
+    }
+    .ab-heat:not(.show-full) .hm-wrap-recent {
+      display: block;
+    }
+  }
   @media (max-width: 640px) {
     .ab-heat {
       padding: var(--space-3) var(--space-4);
     }
+  }
+
+  /* ── 잔디 본문: 모바일 1열(잔디 → 분포·패널), PC 2열(잔디 좌 / 사이드 우) ── */
+  .ab-heat-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .ab-heat-side {
+    min-width: 0;
+  }
+  @media (min-width: 901px) {
+    .ab-heat-body {
+      /* 잔디는 자기 폭(주×16px 상한)만, 나머지를 사이드가 채운다. */
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+    .ab-heat-side {
+      border-left: 1px solid var(--c-border);
+      padding-left: var(--space-6);
+    }
+  }
+
+  /* ── 카테고리 분포 미니 요약 — 스택 바 + 범례 ── */
+  .ab-dist {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--c-border);
+  }
+  /* PC 사이드 열에선 세로 구분(border-left)이 이미 있어 상단 선·여백을 걷는다. */
+  @media (min-width: 901px) {
+    .ab-dist {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+  }
+  .ab-dist-bar {
+    display: flex;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    gap: 2px;
+  }
+  .ab-dist-seg,
+  .ab-dist-legend li {
+    --hue-on: var(--hue, var(--c-accent));
+  }
+  :global(:root[data-theme="dark"]) :is(.ab-dist-seg, .ab-dist-legend li) {
+    --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) :is(.ab-dist-seg, .ab-dist-legend li) {
+      --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+    }
+  }
+  .ab-dist-seg {
+    background: var(--hue-on);
+    min-width: 4px;
+  }
+  .ab-dist-legend {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+  .ab-dist-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+  }
+  .ab-dist-legend b {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--c-text);
+    font-variant-numeric: tabular-nums;
+  }
+  .ab-dist-dot {
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 50%;
+    background: var(--hue-on);
+  }
+
+  /* ── 잔디 클릭 상세 패널 — 그날 발행한 글 목록(내용은 JS가 채운다) ── */
+  .hm-day {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--c-border);
+  }
+  .hm-day[hidden] {
+    display: none;
+  }
+  .hm-day-date {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+  .hm-day-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .hm-day-list :global(li) {
+    --hue-on: var(--hue, var(--c-accent));
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    min-width: 0;
+  }
+  :global(:root[data-theme="dark"]) .hm-day-list :global(li) {
+    --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .hm-day-list :global(li) {
+      --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+    }
+  }
+  .hm-day-list :global(.hm-day-sec) {
+    flex: none;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--hue-on);
+    white-space: nowrap;
+  }
+  .hm-day-list :global(a) {
+    color: var(--c-text);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hm-day-list :global(a:hover) {
+    color: var(--c-accent);
+    text-decoration: underline;
   }
 
   /* ── 카테고리: 사전식 정의 리스트. 색은 카테고리명 글씨에만, 장식(점·바·카드) 없음 ── */
@@ -303,12 +567,6 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
   .gl-name:hover {
     text-decoration: underline;
     text-underline-offset: 0.2em;
-  }
-  .gl-count {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--c-muted);
-    font-variant-numeric: tabular-nums;
   }
   .gl-def {
     margin: 0.15em 0 0;
