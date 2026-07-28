@@ -148,14 +148,14 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
   <hr />
 
   <h2>무엇을 쓰나</h2>
-  <p class="muted">배우는 큰 줄기를 네 갈래로 나눠 씁니다.</p>
+  <p class="muted">배우는 큰 줄기를 갈래별로 나눠 씁니다.</p>
   <dl class="ab-gloss">
     {
       sections.map((s) => (
         <div class="gl-item" style={`--hue: ${hueOf(s.id)}`}>
+          {/* 편수는 위 발행 스트릭 카드의 분포 범례가 이미 보여줘 여기선 뺀다. */}
           <dt class="gl-term">
             <a class="gl-name" href={sectionHref(base, s.id)}>{s.label}</a>
-            <span class="gl-count">{s.count}편</span>
           </dt>
           {blurbOf(s.id) && <dd class="gl-def">{blurbOf(s.id)}</dd>}
         </div>
@@ -567,12 +567,6 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
   .gl-name:hover {
     text-decoration: underline;
     text-underline-offset: 0.2em;
-  }
-  .gl-count {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--c-muted);
-    font-variant-numeric: tabular-nums;
   }
   .gl-def {
     margin: 0.15em 0 0;
