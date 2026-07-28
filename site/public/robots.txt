@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # 사이트맵 위치
-Sitemap: https://mmyonaa.github.io/mcp/sitemap-index.xml
+Sitemap: https://mmyonaa.github.io/blog/sitemap-index.xml
