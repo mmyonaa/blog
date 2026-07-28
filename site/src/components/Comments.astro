@@ -89,6 +89,10 @@ import { FEEDBACK_ENABLED } from "../lib/feedback.ts";
       (window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light");
+    // 커스텀 테마(#48): 프리셋 이름 대신 배포된 CSS의 HTTPS URL을 넘긴다.
+    // 절대 URL이라 localhost dev에서도 (배포돼 있는 한) 동일하게 먹는다.
+    const themeCss = () =>
+      `https://mmyonaa.github.io/blog/giscus-${currentTheme()}.css`;
 
     // 사이트 테마 전환 시 giscus iframe에도 postMessage로 전달.
     const syncTheme = () => {
@@ -96,7 +100,7 @@ import { FEEDBACK_ENABLED } from "../lib/feedback.ts";
         "iframe.giscus-frame",
       );
       frame?.contentWindow?.postMessage(
-        { giscus: { setConfig: { theme: currentTheme() } } },
+        { giscus: { setConfig: { theme: themeCss() } } },
         "https://giscus.app",
       );
     };
@@ -127,7 +131,7 @@ import { FEEDBACK_ENABLED } from "../lib/feedback.ts";
         reactionsEnabled: "1",
         emitMetadata: "0",
         inputPosition: "bottom",
-        theme: currentTheme(),
+        theme: themeCss(),
         lang: "ko",
       };
       for (const [k, v] of Object.entries(cfg)) s.dataset[k] = v;
