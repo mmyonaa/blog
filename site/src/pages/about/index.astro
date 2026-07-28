@@ -35,6 +35,8 @@ for (const p of posts) {
     c: hueOf(sec),
   });
 }
+// JSON 임베드 — </script> 조기 종료 방지용으로 <를 이스케이프.
+const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
 ---
 
 <Base
@@ -89,26 +91,37 @@ for (const p of posts) {
         <span class="ab-heat-cap-title">발행 스트릭</span>
         <span class="ab-heat-cap-meta">최근 {activity.weeks}주 · {activity.total}편</span>
       </div>
-      <ActivityHeatmap activity={activity} days={dayPosts} />
-      {/* 카테고리 분포 — GitHub activity overview 자리의 미니 요약(스택 바 + 범례). */}
-      <div
-        class="ab-dist"
-        role="img"
-        aria-label={`카테고리 분포: ${sections.map((s) => `${s.label} ${s.count}편`).join(", ")}`}
-      >
-        <div class="ab-dist-bar">
-          {sections.map((s) => (
-            <span class="ab-dist-seg" style={`--hue: ${hueOf(s.id)}; flex: ${s.count}`} />
-          ))}
+      {/* PC(>900px)에선 잔디 좌 / 분포·클릭 패널 우 2열 — 우측 빈 공간을 채운다. */}
+      <div class="ab-heat-body">
+        <ActivityHeatmap activity={activity} />
+        <div class="ab-heat-side">
+          {/* 카테고리 분포 — GitHub activity overview 자리의 미니 요약(스택 바 + 범례). */}
+          <div
+            class="ab-dist"
+            role="img"
+            aria-label={`카테고리 분포: ${sections.map((s) => `${s.label} ${s.count}편`).join(", ")}`}
+          >
+            <div class="ab-dist-bar">
+              {sections.map((s) => (
+                <span class="ab-dist-seg" style={`--hue: ${hueOf(s.id)}; flex: ${s.count}`} />
+              ))}
+            </div>
+            <ul class="ab-dist-legend" aria-hidden="true">
+              {sections.map((s) => (
+                <li style={`--hue: ${hueOf(s.id)}`}>
+                  <span class="ab-dist-dot" />
+                  {s.label} <b>{s.count}</b>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {/* 잔디 클릭 상세 — 데이터 JSON과 패널. 채우는 건 ActivityHeatmap의 핸들러. */}
+          <script is:inline type="application/json" class="hm-days-data" set:html={daysJson} />
+          <div class="hm-day" role="region" aria-live="polite" aria-label="선택한 날짜의 글" hidden>
+            <p class="hm-day-date"></p>
+            <ul class="hm-day-list"></ul>
+          </div>
         </div>
-        <ul class="ab-dist-legend" aria-hidden="true">
-          {sections.map((s) => (
-            <li style={`--hue: ${hueOf(s.id)}`}>
-              <span class="ab-dist-dot" />
-              {s.label} <b>{s.count}</b>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   )}
@@ -301,11 +314,40 @@ for (const p of posts) {
     }
   }
 
-  /* ── 카테고리 분포 미니 요약 — 잔디 아래 스택 바 + 범례 ── */
+  /* ── 잔디 본문: 모바일 1열(잔디 → 분포·패널), PC 2열(잔디 좌 / 사이드 우) ── */
+  .ab-heat-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .ab-heat-side {
+    min-width: 0;
+  }
+  @media (min-width: 901px) {
+    .ab-heat-body {
+      /* 잔디는 자기 폭(주×16px 상한)만, 나머지를 사이드가 채운다. */
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+    .ab-heat-side {
+      border-left: 1px solid var(--c-border);
+      padding-left: var(--space-6);
+    }
+  }
+
+  /* ── 카테고리 분포 미니 요약 — 스택 바 + 범례 ── */
   .ab-dist {
     margin-top: var(--space-4);
     padding-top: var(--space-4);
     border-top: 1px solid var(--c-border);
+  }
+  /* PC 사이드 열에선 세로 구분(border-left)이 이미 있어 상단 선·여백을 걷는다. */
+  @media (min-width: 901px) {
+    .ab-dist {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
   }
   .ab-dist-bar {
     display: flex;
@@ -356,6 +398,64 @@ for (const p of posts) {
     height: 0.6em;
     border-radius: 50%;
     background: var(--hue-on);
+  }
+
+  /* ── 잔디 클릭 상세 패널 — 그날 발행한 글 목록(내용은 JS가 채운다) ── */
+  .hm-day {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--c-border);
+  }
+  .hm-day[hidden] {
+    display: none;
+  }
+  .hm-day-date {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+  .hm-day-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .hm-day-list :global(li) {
+    --hue-on: var(--hue, var(--c-accent));
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    min-width: 0;
+  }
+  :global(:root[data-theme="dark"]) .hm-day-list :global(li) {
+    --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .hm-day-list :global(li) {
+      --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+    }
+  }
+  .hm-day-list :global(.hm-day-sec) {
+    flex: none;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--hue-on);
+    white-space: nowrap;
+  }
+  .hm-day-list :global(a) {
+    color: var(--c-text);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hm-day-list :global(a:hover) {
+    color: var(--c-accent);
+    text-decoration: underline;
   }
 
   /* ── 카테고리: 사전식 정의 리스트. 색은 카테고리명 글씨에만, 장식(점·바·카드) 없음 ── */
