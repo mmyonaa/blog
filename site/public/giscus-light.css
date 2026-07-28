@@ -1,0 +1,32 @@
+/* giscus 커스텀 라이트 테마(#48) — 프리셋을 @import로 깔고 색 변수만
+   사이트 팔레트(global.css 토큰)로 덮는다. 내부 마크업 변경엔 프리셋이 따라간다. */
+@import url("https://giscus.app/themes/light.css");
+
+main {
+  /* 페이지 배경(--c-bg)이 그대로 비치도록 캔버스는 투명하게 */
+  --color-canvas-default: transparent;
+  --color-canvas-overlay: #ffffff;
+  --color-canvas-inset: #eef0f5;
+  --color-canvas-subtle: #eef0f5;
+  --color-fg-default: #24252e;
+  --color-fg-muted: #6c6f7a;
+  --color-fg-subtle: #6c6f7a;
+  --color-border-default: #e6e8ef;
+  --color-border-muted: #eef0f5;
+  --color-accent-fg: #ee4f6a;
+  --color-accent-emphasis: #ee4f6a;
+  --color-accent-muted: #ee4f6a66;
+  --color-accent-subtle: #fceaee;
+  --color-btn-text: #24252e;
+  --color-btn-bg: #ffffff;
+  --color-btn-border: #e6e8ef;
+  --color-btn-hover-bg: #eef0f5;
+  --color-btn-hover-border: #e6e8ef;
+  --color-btn-primary-text: #ffffff;
+  --color-btn-primary-bg: #ee4f6a;
+  --color-btn-primary-border: transparent;
+  --color-btn-primary-hover-bg: #db3d59;
+  --color-btn-primary-hover-border: transparent;
+  --color-btn-primary-selected-bg: #db3d59;
+  --color-btn-primary-disabled-bg: #ee4f6a80;
+}
