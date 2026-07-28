@@ -368,11 +368,14 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
   .hm-wrap-recent {
     display: none;
   }
-  @media (max-width: 640px) {
+  /* 폰(≤480) 전용 — 그보다 넓으면 25주 전체가 fluid로 폭을 채워도 칸이 적당해서
+     (481px에서 ~14px) 최근 13주로 줄일 이유가 없다. 13주 그리드를 넓은 폭에 두면
+     칸이 30px대로 비대해진다. */
+  @media (max-width: 480px) {
     .ab-heat-toggle {
       display: inline-block;
     }
-    /* 모바일 기본: 최근 13주. .show-full이면 전체(균등 축소)로 전환. */
+    /* 폰 기본: 최근 13주. .show-full이면 전체(균등 축소)로 전환. */
     .ab-heat:not(.show-full) .hm-wrap-full {
       display: none;
     }

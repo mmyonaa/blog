@@ -213,6 +213,17 @@ const { activity } = Astro.props;
       margin-top: var(--space-6);
     }
   }
+  /* 태블릿~모바일(≤900, 잔디가 1열로 스택되는 구간): 16px 상한을 풀어 칸이
+     컨테이너 폭을 꽉 채우게 늘린다(정사각 유지) — 우측 빈 공간 제거. */
+  @media (max-width: 900px) {
+    .heatmap-months {
+      grid-template-columns: repeat(var(--weeks), minmax(0, 1fr));
+    }
+    .heatmap-grid {
+      grid-auto-columns: minmax(0, 1fr);
+    }
+  }
+
   /* 모바일: 잔디 비중을 낮춘다 — 범례 간격을 좁혀 카드 높이를 줄인다. */
   @media (max-width: 640px) {
     .heatmap-legend {
