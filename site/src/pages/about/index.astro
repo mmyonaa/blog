@@ -23,6 +23,12 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
 // 발행 스트릭 잔디 — 리드의 "N편을 쌓았어요"를 시각 증거로 뒷받침 (홈 히어로에서 이동).
 // minWeeks 25는 본문 폭에 맞는 주 수.
 const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 });
+// 모바일 기본 그리드 — 전체를 균등 축소하면 칸이 너무 작아져, 최근 13주(약 3개월)만
+// 따로 빌드해 보여주고 캡션 토글로 전체와 전환한다(SSG라 두 벌을 미리 만든다).
+const activityRecent = buildActivity(posts.map((p) => p.data.pubDate), {
+  minWeeks: 13,
+  maxWeeks: 13,
+});
 
 // 잔디 클릭 패널용 — 일자별 글(제목·링크·카테고리) 맵. SSG가 JSON으로 심는다.
 const dayPosts: Record<string, DayPost[]> = {};
@@ -89,11 +95,24 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
     <div class="ab-heat">
       <div class="ab-heat-cap">
         <span class="ab-heat-cap-title">발행 스트릭</span>
-        <span class="ab-heat-cap-meta">최근 {activity.weeks}주 · {activity.total}편</span>
+        <span class="ab-heat-cap-right">
+          {/* 모바일 전용 토글 — 최근 13주 ↔ 전체 기간. 데스크톱은 항상 전체. */}
+          <button
+            class="ab-heat-toggle"
+            type="button"
+            aria-pressed="false"
+            data-label-full={`최근 ${activityRecent.weeks}주`}
+            data-label-recent="전체 기간"
+          >전체 기간</button>
+          <span class="ab-heat-cap-meta">최근 {activity.weeks}주 · {activity.total}편</span>
+        </span>
       </div>
       {/* PC(>900px)에선 잔디 좌 / 분포·클릭 패널 우 2열 — 우측 빈 공간을 채운다. */}
       <div class="ab-heat-body">
-        <ActivityHeatmap activity={activity} />
+        <div class="hm-wrap">
+          <div class="hm-wrap-full"><ActivityHeatmap activity={activity} /></div>
+          <div class="hm-wrap-recent"><ActivityHeatmap activity={activityRecent} /></div>
+        </div>
         <div class="ab-heat-side">
           {/* 카테고리 분포 — GitHub activity overview 자리의 미니 요약(스택 바 + 범례). */}
           <div
@@ -193,6 +212,19 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
     <a href={REPO_URL} target="_blank" rel="noopener">GitHub</a>에 공개돼 있습니다.
   </p>
 </Base>
+
+<script>
+  // 잔디 기간 토글(모바일) — 최근 13주 ↔ 전체. 문서 위임이라 View Transitions에도 유효.
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement)?.closest?.<HTMLElement>(".ab-heat-toggle");
+    if (!btn) return;
+    const card = btn.closest(".ab-heat");
+    if (!card) return;
+    const full = card.classList.toggle("show-full");
+    btn.textContent = full ? btn.dataset.labelFull! : btn.dataset.labelRecent!;
+    btn.setAttribute("aria-pressed", String(full));
+  });
+</script>
 
 <style>
   /* ── 프로필 헤더 ── */
@@ -307,6 +339,46 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
     color: var(--c-muted);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+  }
+  .ab-heat-cap-right {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+  /* 기간 토글 — 모바일 전용(데스크톱은 항상 전체 기간이라 숨김). */
+  .ab-heat-toggle {
+    display: none;
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-pill);
+    background: var(--c-bg);
+    color: var(--c-muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    padding: 0.3em 0.8em;
+    cursor: pointer;
+  }
+  .ab-heat-toggle:hover {
+    color: var(--c-accent);
+    border-color: var(--c-accent);
+  }
+  /* 전체/최근 그리드 전환 — 기본(데스크톱)은 전체만. */
+  .hm-wrap {
+    min-width: 0;
+  }
+  .hm-wrap-recent {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .ab-heat-toggle {
+      display: inline-block;
+    }
+    /* 모바일 기본: 최근 13주. .show-full이면 전체(균등 축소)로 전환. */
+    .ab-heat:not(.show-full) .hm-wrap-full {
+      display: none;
+    }
+    .ab-heat:not(.show-full) .hm-wrap-recent {
+      display: block;
+    }
   }
   @media (max-width: 640px) {
     .ab-heat {

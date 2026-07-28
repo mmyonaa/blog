@@ -52,20 +52,13 @@ const { activity } = Astro.props;
   if (!(window as any).__heatmapBound) {
     (window as any).__heatmapBound = true;
 
-    // 모바일 가로 스크롤 초기 위치: 최근(오른쪽 끝) 구간부터 보이게.
-    const scrollRecent = () =>
-      document.querySelectorAll<HTMLElement>(".heatmap").forEach((el) => {
-        el.scrollLeft = el.scrollWidth;
-      });
-    scrollRecent();
-    document.addEventListener("astro:page-load", scrollRecent);
-
     // 잔디 칸/범례 호버 툴팁: '날짜 · N편'(칸) 또는 레벨 범위(범례)를 표시.
     // 툴팁은 .activity 기준 absolute. (.activity가 reveal 애니메이션으로 항등 transform을
     // 남겨 containing block이 되므로, 그 기준으로 좌표를 계산해야 어긋나지 않는다.)
     const showTip = (cell: HTMLElement) => {
-      const tip = document.querySelector<HTMLElement>(".hm-tip");
-      const host = tip?.parentElement;
+      // 한 페이지에 잔디가 여러 벌(전체/최근 토글)일 수 있어 자기 인스턴스의 툴팁을 쓴다.
+      const host = cell.closest<HTMLElement>(".activity");
+      const tip = host?.querySelector<HTMLElement>(".hm-tip");
       const text = cell.getAttribute("data-tip");
       if (!tip || !host || !text) return;
       tip.textContent = text;
@@ -79,8 +72,7 @@ const { activity } = Astro.props;
       tip.style.top = `${above < 0 ? c.bottom - h.top + 6 : above}px`;
     };
     const hideTip = () => {
-      const tip = document.querySelector<HTMLElement>(".hm-tip");
-      if (tip) tip.hidden = true;
+      document.querySelectorAll<HTMLElement>(".hm-tip").forEach((t) => (t.hidden = true));
     };
     document.addEventListener("pointerover", (e) => {
       const cell = (e.target as HTMLElement)?.closest?.<HTMLElement>(".hm-cell[data-tip]");
@@ -221,20 +213,8 @@ const { activity } = Astro.props;
       margin-top: var(--space-6);
     }
   }
-  /* 모바일: 잔디 비중을 낮춘다 — 범례 간격을 좁혀 카드 높이를 줄인다.
-     칸은 균등 축소 대신 크기를 고정하고 가로 스크롤로 전환 — 초기엔 최근 구간이
-     보이고(스크립트가 오른쪽 끝으로 스크롤) 과거는 왼쪽으로 넘겨 본다. */
+  /* 모바일: 잔디 비중을 낮춘다 — 범례 간격을 좁혀 카드 높이를 줄인다. */
   @media (max-width: 640px) {
-    .heatmap {
-      overflow-x: auto;
-      scrollbar-width: thin;
-    }
-    .heatmap-months {
-      grid-template-columns: repeat(var(--weeks), 13px);
-    }
-    .heatmap-grid {
-      grid-auto-columns: 13px;
-    }
     .heatmap-legend {
       margin-top: var(--space-2);
     }
