@@ -4,12 +4,12 @@
 // 만든 사람 정보는 lib/author.ts, 카테고리 소개는 lib/sections.ts가 단일 출처.
 import Base from "../../layouts/Base.astro";
 import { AUTHOR, REPO_URL } from "../../lib/author.ts";
-import { getSectionCounts, sectionHref, hueOf, blurbOf } from "../../lib/sections.ts";
+import { getSectionCounts, sectionHref, hueOf, blurbOf, sectionLabel, sectionOf } from "../../lib/sections.ts";
 import { getCollection } from "astro:content";
 import { fmtDate } from "../../lib/date.ts";
 import McpOrbit from "../../components/McpOrbit.astro";
-import ActivityHeatmap from "../../components/home/ActivityHeatmap.astro";
-import { buildActivity } from "../../lib/activity.ts";
+import ActivityHeatmap, { type DayPost } from "../../components/home/ActivityHeatmap.astro";
+import { buildActivity, dayKey } from "../../lib/activity.ts";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const sections = await getSectionCounts();
@@ -23,6 +23,18 @@ const firstDate = posts.length > 0 ? fmtDate(posts[0].data.pubDate) : null;
 // 발행 스트릭 잔디 — 리드의 "N편을 쌓았어요"를 시각 증거로 뒷받침 (홈 히어로에서 이동).
 // minWeeks 25는 본문 폭에 맞는 주 수.
 const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 });
+
+// 잔디 클릭 패널용 — 일자별 글(제목·링크·카테고리) 맵. SSG가 JSON으로 심는다.
+const dayPosts: Record<string, DayPost[]> = {};
+for (const p of posts) {
+  const sec = sectionOf(p);
+  (dayPosts[dayKey(p.data.pubDate)] ??= []).push({
+    t: p.data.title,
+    h: `${base}/blog/${p.id}/`,
+    s: sectionLabel(sec),
+    c: hueOf(sec),
+  });
+}
 ---
 
 <Base
@@ -77,7 +89,27 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
         <span class="ab-heat-cap-title">발행 스트릭</span>
         <span class="ab-heat-cap-meta">최근 {activity.weeks}주 · {activity.total}편</span>
       </div>
-      <ActivityHeatmap activity={activity} />
+      <ActivityHeatmap activity={activity} days={dayPosts} />
+      {/* 카테고리 분포 — GitHub activity overview 자리의 미니 요약(스택 바 + 범례). */}
+      <div
+        class="ab-dist"
+        role="img"
+        aria-label={`카테고리 분포: ${sections.map((s) => `${s.label} ${s.count}편`).join(", ")}`}
+      >
+        <div class="ab-dist-bar">
+          {sections.map((s) => (
+            <span class="ab-dist-seg" style={`--hue: ${hueOf(s.id)}; flex: ${s.count}`} />
+          ))}
+        </div>
+        <ul class="ab-dist-legend" aria-hidden="true">
+          {sections.map((s) => (
+            <li style={`--hue: ${hueOf(s.id)}`}>
+              <span class="ab-dist-dot" />
+              {s.label} <b>{s.count}</b>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   )}
 
@@ -267,6 +299,63 @@ const activity = buildActivity(posts.map((p) => p.data.pubDate), { minWeeks: 25 
     .ab-heat {
       padding: var(--space-3) var(--space-4);
     }
+  }
+
+  /* ── 카테고리 분포 미니 요약 — 잔디 아래 스택 바 + 범례 ── */
+  .ab-dist {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--c-border);
+  }
+  .ab-dist-bar {
+    display: flex;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    gap: 2px;
+  }
+  .ab-dist-seg,
+  .ab-dist-legend li {
+    --hue-on: var(--hue, var(--c-accent));
+  }
+  :global(:root[data-theme="dark"]) :is(.ab-dist-seg, .ab-dist-legend li) {
+    --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) :is(.ab-dist-seg, .ab-dist-legend li) {
+      --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+    }
+  }
+  .ab-dist-seg {
+    background: var(--hue-on);
+    min-width: 4px;
+  }
+  .ab-dist-legend {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+  .ab-dist-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+  }
+  .ab-dist-legend b {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--c-text);
+    font-variant-numeric: tabular-nums;
+  }
+  .ab-dist-dot {
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 50%;
+    background: var(--hue-on);
   }
 
   /* ── 카테고리: 사전식 정의 리스트. 색은 카테고리명 글씨에만, 장식(점·바·카드) 없음 ── */

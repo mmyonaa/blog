@@ -1,10 +1,22 @@
 ---
-import { heatLevel, HEAT_LEGEND, type Activity } from "../../lib/activity.ts";
+import { heatLevel, HEAT_LEGEND, dayKey, type Activity } from "../../lib/activity.ts";
+
+/** 잔디 클릭 패널용 — 그날 발행한 글 한 편(제목·링크·카테고리 라벨/색). */
+export interface DayPost {
+  t: string;
+  h: string;
+  s: string;
+  c: string;
+}
 
 interface Props {
   activity: Activity;
+  /** dayKey(YYYY-MM-DD) → 그날 글 목록. 주면 잔디 클릭 시 상세 패널이 열린다. */
+  days?: Record<string, DayPost[]>;
 }
-const { activity } = Astro.props;
+const { activity, days } = Astro.props;
+// JSON 임베드 — </script> 조기 종료 방지용으로 <를 이스케이프.
+const daysJson = days ? JSON.stringify(days).replace(/</g, "\\u003c") : null;
 ---
 
 <section class="activity reveal" aria-label="발행 활동">
@@ -21,6 +33,7 @@ const { activity } = Astro.props;
         <span
           class:list={["hm-cell", `lv${heatLevel(c.count)}`, { "hm-future": c.future }]}
           data-tip={c.future ? undefined : `${c.date.getFullYear()}. ${c.date.getMonth() + 1}. ${c.date.getDate()}. · ${c.count}편`}
+          data-day={days && c.count > 0 ? dayKey(c.date) : undefined}
         />
       ))}
     </div>
@@ -33,6 +46,13 @@ const { activity } = Astro.props;
     <span>많음</span>
   </div>
   <div class="hm-tip" role="status" aria-live="polite" hidden></div>
+  {daysJson && <script is:inline type="application/json" class="hm-days-data" set:html={daysJson} />}
+  {days && (
+    <div class="hm-day" role="region" aria-live="polite" aria-label="선택한 날짜의 글" hidden>
+      <p class="hm-day-date"></p>
+      <ul class="hm-day-list"></ul>
+    </div>
+  )}
 </section>
 
 <script>
@@ -70,6 +90,37 @@ const { activity } = Astro.props;
     document.addEventListener("pointerout", (e) => {
       const cell = (e.target as HTMLElement)?.closest?.<HTMLElement>(".hm-cell[data-tip]");
       if (cell) hideTip();
+    });
+
+    // 잔디 클릭 → 그날 발행한 글 목록 패널(.hm-day). 데이터는 SSG가 심은 JSON.
+    document.addEventListener("click", (e) => {
+      const cell = (e.target as HTMLElement)?.closest?.<HTMLElement>(".hm-cell[data-day]");
+      if (!cell) return;
+      const host = cell.closest(".activity");
+      const data = host?.querySelector(".hm-days-data")?.textContent;
+      const panel = host?.querySelector<HTMLElement>(".hm-day");
+      if (!data || !panel) return;
+      const posts = JSON.parse(data)[cell.dataset.day!] ?? [];
+      const esc = (s: string) =>
+        s.replace(/[&<>"]/g, (ch) =>
+          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!,
+        );
+      panel.querySelector(".hm-day-date")!.textContent =
+        `${cell.getAttribute("data-tip")}`;
+      panel.querySelector(".hm-day-list")!.innerHTML = posts
+        .map(
+          (p: { t: string; h: string; s: string; c: string }) =>
+            `<li style="--hue:${esc(p.c)}"><span class="hm-day-sec">${esc(p.s)}</span><a href="${esc(p.h)}">${esc(p.t)}</a></li>`,
+        )
+        .join("");
+      panel.hidden = false;
+      // 같은 칸 재클릭 시 토글
+      if (panel.dataset.day === cell.dataset.day) {
+        panel.hidden = true;
+        panel.dataset.day = "";
+      } else {
+        panel.dataset.day = cell.dataset.day!;
+      }
     });
   }
 </script>
@@ -161,6 +212,65 @@ const { activity } = Astro.props;
   }
   .hm-tip[hidden] {
     display: none;
+  }
+
+  /* ── 잔디 클릭 상세 패널 — 그날 발행한 글 목록 ── */
+  .hm-day {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--c-border);
+  }
+  .hm-day[hidden] {
+    display: none;
+  }
+  .hm-day-date {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+  .hm-day-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .hm-day-list :global(li) {
+    --hue-on: var(--hue, var(--c-accent));
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    min-width: 0;
+  }
+  /* 다크: 섹션색 밝기 보정(About 카테고리 목록과 동일 문법). */
+  :global(:root[data-theme="dark"]) .hm-day-list :global(li) {
+    --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .hm-day-list :global(li) {
+      --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
+    }
+  }
+  .hm-day-list :global(.hm-day-sec) {
+    flex: none;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--hue-on);
+    white-space: nowrap;
+  }
+  .hm-day-list :global(a) {
+    color: var(--c-text);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hm-day-list :global(a:hover) {
+    color: var(--c-accent);
+    text-decoration: underline;
   }
 
   /* 히어로 2단이 1단으로 스택되면(≤900px) 위 블록과의 간격 복원 */
