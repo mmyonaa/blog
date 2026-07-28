@@ -76,7 +76,7 @@ const jsonLd = {
   <div class="article-shell">
     <div class="post-header-area">
       <header class="post-header">
-        <h1 transition:name={`post-${post.id}`}>{post.data.title}</h1>
+        <h1>{post.data.title}</h1>
         <div class="meta" style={`--hue: ${hueOf(section)}`}>
           <a class="category" href={sectionHref(base, section)}>{sectionLabel(section)}</a>
           <span>{fmtDateTime(post.data.pubDate)}</span>
