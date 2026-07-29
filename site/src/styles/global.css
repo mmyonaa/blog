@@ -340,7 +340,8 @@ img {
 .container {
   max-width: var(--page-max, var(--content-width));
   margin: 0 auto;
-  padding: var(--space-6) var(--space-5);
+  /* 하단 패딩이 콘텐츠~푸터 간격의 단일 출처(푸터 쪽 margin 없음). */
+  padding: var(--space-6) var(--space-5) var(--space-8);
 }
 
 /*
@@ -487,7 +488,7 @@ a.pill:hover {
     --fs-lg: 1.125rem;
   }
   .container {
-    padding: var(--space-5) var(--space-4) var(--space-8);
+    padding: var(--space-5) var(--space-4) var(--space-10);
   }
 }
 
