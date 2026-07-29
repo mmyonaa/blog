@@ -408,15 +408,13 @@ const jsonLd = {
     padding-top: var(--space-6);
   }
 
-  /* ── AI 작성 고지 — 본문 끝, 관련 글 앞의 얇은 노트 ── */
+  /* ── AI 작성 고지 — 본문 끝의 조용한 한 줄 ──
+     박스(배경·보더·패딩) 없이 낮은 톤 텍스트로만. 존재는 하되 티나지 않게. */
   .ai-note {
-    margin-top: var(--space-7);
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--c-border);
-    border-radius: var(--radius-md);
-    background: var(--c-surface);
+    display: block;
+    margin-top: var(--space-6);
     color: var(--c-muted);
-    font-size: var(--fs-sm);
+    font-size: var(--fs-xs);
     line-height: 1.7;
     word-break: keep-all;
   }
@@ -811,12 +809,15 @@ const jsonLd = {
     background: var(--c-surface);
   }
 
-  /* 이전/다음 글 — 관련 글(카드)보다 가벼운 페이저. 테두리·배경 없이 텍스트만.
-     라벨을 윗줄, 제목을 아랫줄로 내려 각 제목이 절반 폭을 온전히 쓰게 한다. */
+  /* 이전/다음 글 — 관련 글 카드와 같은 톤의 카드형 페이저. 텍스트만 덜렁 있던
+     것을 테두리·배경 있는 표면으로 올려 '관련 글' 블록과 한 덩어리로 읽히게 한다.
+     라벨을 윗줄, 제목을 아랫줄로 내려 각 제목이 절반 폭을 온전히 쓴다. */
   .postnav {
     display: flex;
-    gap: var(--space-6);
-    margin-top: var(--space-6);
+    gap: var(--space-4);
+    /* 관련 글 카드와 한 덩어리로 두되, 카드 간(1rem)보다 한 단계 벌려
+       '더 읽을 글'과 '이전/다음 이동'의 기능 경계를 살짝 드러낸다. */
+    margin-top: var(--space-5);
     font-size: var(--fs-sm);
   }
   .postnav-item {
@@ -826,10 +827,19 @@ const jsonLd = {
     /* 두 항목이 폭을 반씩 나눠 갖고, 한쪽만 있으면 전체 폭을 쓴다. */
     flex: 1;
     min-width: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg);
+    background: var(--c-surface);
     color: var(--c-muted);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease,
+      transform 0.15s ease;
   }
   .postnav-item:hover {
-    color: var(--c-accent);
+    border-color: var(--c-accent);
+    color: var(--c-text);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
     text-decoration: none;
   }
   .postnav-next {
@@ -844,10 +854,20 @@ const jsonLd = {
   .postnav-title {
     max-width: 100%;
     font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--c-text);
     /* 제목이 길면 한 줄로 자른다 — 말줄임 유지. */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .postnav-item {
+      transition: border-color 0.15s ease;
+    }
+    .postnav-item:hover {
+      transform: none;
+    }
   }
 
   /* ── 반응형 축소 ── */

@@ -32,18 +32,21 @@ import { FEEDBACK_ENABLED } from "../lib/feedback.ts";
 </section>
 
 <style>
+  /* 글 푸터 리듬: 관련 글/페이저 블록과 같은 박자(3rem/2rem)로 열어 꼬리가
+     늘어지지 않게 한다. */
   .comments {
-    margin-top: var(--space-10);
+    margin-top: var(--space-8);
     padding-top: var(--space-6);
     border-top: 1px solid var(--c-border);
   }
-  /* 좁은 화면에선 섹션 간 간격을 한 단계 좁혀 리듬을 정돈한다. */
+  /* 좁은 화면에선 섹션 간 간격을 한 단계 더 좁혀 리듬을 정돈한다. */
   @media (max-width: 560px) {
     .comments {
-      margin-top: var(--space-8);
+      margin-top: var(--space-6);
       padding-top: var(--space-5);
     }
   }
+  /* 푸터 섹션 라벨 — 관련 글과 동일 규격(대문자 아이브로우). */
   .comments-title {
     font-size: var(--fs-xs);
     font-weight: 700;
@@ -55,7 +58,7 @@ import { FEEDBACK_ENABLED } from "../lib/feedback.ts";
   .comments-hint {
     color: var(--c-muted);
     font-size: var(--fs-sm);
-    margin: 0 0 var(--space-5);
+    margin: 0 0 var(--space-4);
   }
   /* 모달을 여는 버튼이지만 인라인 링크처럼 보이게 한다. */
   .hint-link {

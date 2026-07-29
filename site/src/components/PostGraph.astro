@@ -27,6 +27,13 @@ const lanes = (await getSectionCounts()).map((s) => ({
   count: s.count,
   hue: hueOf(s.id),
 }));
+
+// #63: 세로 무한 확장 바운딩 — 전체를 렌더하되 기본은 최근 N편까지만 펼쳐 보인다
+// (모바일 15·데스크톱 40, 나머지는 접고 '전체 보기' 토글).
+// 행마다 빌드 타임에 cap 클래스를 붙인다 — nth-child는 월 마커가 끼면 편수가 어긋난다.
+// ponytail: DOM 무게는 여전히 글수에 비례 — 수백 편 규모가 되면 렌더 자체를 잘라야 한다.
+const CAP_M = 15;
+const CAP_D = 40;
 const secOf = new Map(posts.map((p) => [p.id, sectionOf(p)]));
 
 // ── 그래프 좌표계(px) ─────────────────────────────────────────────────────────
@@ -59,7 +66,8 @@ type PostRow = {
   cy: number;
 };
 type MonthRow = { type: "month"; label: string; h: number };
-type Row = PostRow | MonthRow;
+/* capM/capD: 접힘 상태에서 숨길 행(모바일 15편·데스크톱 40편 초과분). 월 마커도 함께. */
+type Row = (PostRow | MonthRow) & { capM?: boolean; capD?: boolean };
 
 function layout(
   subset: typeof posts,
@@ -113,12 +121,14 @@ function layout(
   let y = 0;
   let prevYM = "";
   let prevYear = "";
+  let nPost = 0; // 지금까지 쌓인 글 행 수 — cap 경계 판정용
   for (const p of subset) {
     const [yr, m, d] = fmtDate(p.data.pubDate).split("-");
     const ym = `${yr}-${m}`;
     if (ym !== prevYM) {
       const label = yr !== prevYear ? `${yr}년 ${Number(m)}월` : `${Number(m)}월`;
-      rows.push({ type: "month", label, h: MONTH_H });
+      // 월 마커는 뒤따르는 글이 접히면 같이 접는다.
+      rows.push({ type: "month", label, h: MONTH_H, capM: nPost >= CAP_M, capD: nPost >= CAP_D });
       y += MONTH_H;
       prevYM = ym;
       prevYear = yr;
@@ -127,6 +137,7 @@ function layout(
     const cx = colX(postCol.get(p.id)!);
     const cy = y + ROW_H / 2;
     cyById.set(p.id, cy);
+    nPost++;
     rows.push({
       type: "post",
       id: p.id,
@@ -139,6 +150,8 @@ function layout(
       h: ROW_H,
       cx,
       cy,
+      capM: nPost > CAP_M,
+      capD: nPost > CAP_D,
     });
     y += ROW_H;
   }
@@ -244,7 +257,8 @@ const variants = [
       <div
         class="graph"
         data-variant={v.key}
-        data-capped={v.d.rows.length > 15 ? "" : undefined}
+        data-capped={v.d.count > CAP_M ? "" : undefined}
+        data-cap-d={v.d.count > CAP_D ? "" : undefined}
         hidden={v.key !== "all"}
         style={`--rail-w: ${v.d.railW}px; --rail-w-m: ${v.m.railW}px`}
       >
@@ -387,12 +401,12 @@ const variants = [
           <div class="rows">
             {v.d.rows.map((r) =>
               r.type === "month" ? (
-                <div class="grow month" style={`height: ${r.h}px`}>
+                <div class:list={["grow", "month", { "cap-m": r.capM, "cap-d": r.capD }]} style={`height: ${r.h}px`}>
                   <span class="mlabel">{r.label}</span>
                 </div>
               ) : (
                 <a
-                  class="grow post"
+                  class:list={["grow", "post", { "cap-m": r.capM, "cap-d": r.capD }]}
                   href={`${base}/blog/${r.id}/`}
                   data-id={r.id}
                   data-sec={r.sec}
@@ -410,8 +424,8 @@ const variants = [
           </div>
         </div>
 
-        {/* 모바일 리스트 모드 전용(CSS로 노출): capped 상태 해제/복원 토글. */}
-        {v.d.rows.length > 15 && (
+        {/* capped 상태 해제/복원 토글 — 모바일(>15편)은 항상, 데스크톱은 >40편일 때 CSS로 노출. */}
+        {v.d.count > CAP_M && (
           <button
             class="graph-more"
             type="button"
@@ -789,10 +803,53 @@ const variants = [
     text-transform: uppercase;
   }
 
-  /* 데스크톱(그래프 모드)에선 cap 개념이 없다 — 전체 보기 버튼 숨김.
-     (미디어 블록보다 앞에 두어야 모바일 규칙이 이긴다.) */
+  /* ── cap(#63): 기본은 최근 N편까지만 펼친다 — 모바일 15 · 데스크톱 40. ──
+     접힘 상태에서 데스크톱 경계(40편) 초과 행 숨김. cap-d ⊂ cap-m이라 전 폭 공통 규칙. */
+  .graph[data-capped] .rows .grow.cap-d {
+    display: none;
+  }
+  /* 접힘 상태에선 SVG(전체 높이)가 접힌 행 아래로 새지 않게 클리핑. */
+  .graph[data-capped] .gbody {
+    overflow: hidden;
+  }
+  /* 전체/접기 토글 — 텍스트+chevron 디스클로저. 기본 숨김,
+     데스크톱은 40편 초과 그래프(data-cap-d)에서만, 모바일은 미디어 블록에서 노출. */
   .graph-more {
     display: none;
+    align-items: center;
+    gap: 0.5em;
+    margin-top: var(--space-3);
+    padding: 0.25em 0;
+    border: 0;
+    background: none;
+    color: var(--c-muted);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .graph[data-cap-d] .graph-more {
+    display: inline-flex;
+  }
+  .graph-more:hover {
+    color: var(--c-text);
+  }
+  .graph-more::after {
+    content: "";
+    width: 0.45em;
+    height: 0.45em;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-0.15em) rotate(45deg);
+    transition: transform 0.15s ease;
+  }
+  .graph-more[aria-expanded="true"]::after {
+    transform: translateY(0.1em) rotate(225deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .graph-more::after {
+      transition: none;
+    }
   }
   @media (max-width: 767px) {
     /*
@@ -819,49 +876,14 @@ const variants = [
     .ptitle {
       font-size: var(--fs-sm);
     }
-    /* cap으로 행을 접었을 때 SVG(전체 높이)가 아래로 새지 않게 클리핑 */
-    .gbody {
-      overflow: hidden;
-    }
-    /* cap: 최근 15행만 기본 노출 — 47행(≈2.6화면)이 페이지를 삼키는 것 방지.
-       (:nth-child(n+16)의 16은 마크업의 rows>15 조건과 짝 — 바꿀 땐 함께.) */
-    .graph[data-capped] .rows .grow:nth-child(n + 16) {
+    /* cap: 최근 15편만 기본 노출 — 수십 행이 페이지를 삼키는 것 방지.
+       경계 클래스는 빌드 타임에 행마다 부여(cap-m, 월 마커 포함). */
+    .graph[data-capped] .rows .grow.cap-m {
       display: none;
     }
-    /* pill 버튼 대신 텍스트+chevron 디스클로저 — 접힘 ⌄ / 펼침 ⌃ */
+    /* 모바일은 15편 초과면 버튼 노출(버튼 자체가 >15일 때만 렌더된다). */
     .graph-more {
       display: inline-flex;
-      align-items: center;
-      gap: 0.5em;
-      margin-top: var(--space-3);
-      padding: 0.25em 0;
-      border: 0;
-      background: none;
-      color: var(--c-muted);
-      font: inherit;
-      font-size: var(--fs-sm);
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .graph-more:hover {
-      color: var(--c-text);
-    }
-    .graph-more::after {
-      content: "";
-      width: 0.45em;
-      height: 0.45em;
-      border-right: 1.5px solid currentColor;
-      border-bottom: 1.5px solid currentColor;
-      transform: translateY(-0.15em) rotate(45deg);
-      transition: transform 0.15s ease;
-    }
-    .graph-more[aria-expanded="true"]::after {
-      transform: translateY(0.1em) rotate(225deg);
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .graph-more::after {
-        transition: none;
-      }
     }
   }
 </style>

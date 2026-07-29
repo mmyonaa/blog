@@ -49,18 +49,21 @@ const TAG_MAX = 3;
 }
 
 <style>
+  /* 글 푸터 리듬: 본문·노트 뒤로 과하게 벌어지지 않게 압축(3rem/2rem).
+     이전/다음 페이저가 바로 아래 붙으므로 이 블록은 별도 하단 여백을 두지 않는다. */
   .related {
-    margin-top: var(--space-10);
+    margin-top: var(--space-8);
     padding-top: var(--space-6);
     border-top: 1px solid var(--c-border);
   }
-  /* 좁은 화면에선 섹션 간 간격이 과하게 벌어지지 않도록 한 단계 좁힌다. */
+  /* 좁은 화면에선 섹션 간 간격을 한 단계 더 좁혀 리듬을 정돈한다. */
   @media (max-width: 560px) {
     .related {
-      margin-top: var(--space-8);
+      margin-top: var(--space-6);
       padding-top: var(--space-5);
     }
   }
+  /* 푸터 섹션 라벨(관련 글·댓글 공통 규격): 대문자 아이브로우. */
   .related-title {
     font-size: var(--fs-xs);
     font-weight: 700;
