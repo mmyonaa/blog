@@ -30,7 +30,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # 빌드 정보(#41): 푸터에 커밋 SHA를 박기 위해 주입. 로컬 빌드엔 없음.
       - run: pnpm --filter @blog-mcp/site build
+        env:
+          BUILD_SHA: ${{ github.sha }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist
