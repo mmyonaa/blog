@@ -6,6 +6,12 @@ import { getTagCounts, tagHref } from "../lib/tags.ts";
 import { AUTHOR as author, REPO_URL as repo } from "../lib/author.ts";
 // 프로젝트 버전의 단일 출처는 루트 package.json — 빌드 타임에 읽어 박는다.
 import { version } from "../../../package.json";
+import { fmtDateTime } from "../lib/date.ts";
+
+// 빌드 정보(#41) — deploy.yml이 BUILD_SHA를 주입한다. 로컬 빌드엔 없어 표기 생략.
+const buildSha = process.env.BUILD_SHA;
+const shortSha = buildSha?.slice(0, 7);
+const builtAt = fmtDateTime(new Date()).slice(0, 16); // 초는 과함 — 분까지
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const year = new Date().getFullYear();
@@ -40,6 +46,21 @@ const explore = [
           <a class="footer-version" href={changelogUrl} title="버전 이력(Changelog)">v{version}</a>
           <span class="footer-badge">매일 자동 발행</span>
         </div>
+        {
+          shortSha && (
+            <p class="footer-build">
+              <a
+                href={`${repo}/commit/${buildSha}`}
+                target="_blank"
+                rel="noopener"
+                title="이 배포를 만든 커밋"
+              >
+                {shortSha}
+              </a>
+              {" · "}{builtAt} 빌드
+            </p>
+          )
+        }
         <div class="brand-stats">
           <span class="footer-stat"><b>{postCount}</b> 편</span>
           <span class="footer-stat"><b>{sectionCount}</b> 카테고리</span>
@@ -398,6 +419,20 @@ const explore = [
     text-decoration: none;
   }
   /* 버전 — 워드마크 옆 작은 mono 라벨, CHANGELOG로 연결 */
+  .footer-build {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+  .footer-build a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .footer-build a:hover {
+    color: var(--c-accent);
+  }
   .footer-version {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
