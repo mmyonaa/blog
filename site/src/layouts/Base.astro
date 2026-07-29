@@ -62,6 +62,18 @@ const ogImage = Astro.site
     </script>
     <title>{title}</title>
     <meta name="description" content={desc} />
+    {/* Cloudflare Web Analytics(#59) — 쿠키리스 방문 통계. dev 잡음 방지로 프로덕션 빌드만.
+        beacon이 History API를 후킹해 View Transitions(SPA 전환) 페이지뷰도 집계한다. */}
+    {
+      import.meta.env.PROD && (
+        <script
+          is:inline
+          type="module"
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "8cd332ae0c714ab6af5476bfb325f388"}'
+        />
+      )
+    }
     <meta
       name="google-site-verification"
       content="ZzTHOda-3IRnq_9Pixa05iTAsexkiSW42I2XB7FM5fQ"
