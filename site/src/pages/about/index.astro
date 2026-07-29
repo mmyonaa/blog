@@ -224,6 +224,52 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
     btn.textContent = full ? btn.dataset.labelFull! : btn.dataset.labelRecent!;
     btn.setAttribute("aria-pressed", String(full));
   });
+
+  // 잔디 칸 선택 시 카테고리 분포(바·범례)를 그날 발행분 기준으로 전환, 해제 시 전체 복원.
+  // 선택 상태의 단일 출처는 컴포넌트가 갱신하는 .hm-day 패널 — 마이크로태스크로
+  // 컴포넌트 클릭 핸들러가 먼저 끝난 뒤 상태를 읽는다(리스너 등록 순서 무관).
+  document.addEventListener("click", (e) => {
+    if (!(e.target as HTMLElement)?.closest?.(".hm-cell[data-day]")) return;
+    queueMicrotask(() => {
+      const panel = document.querySelector<HTMLElement>(".hm-day");
+      const bar = document.querySelector<HTMLElement>(".ab-dist-bar");
+      const legend = document.querySelector<HTMLElement>(".ab-dist-legend");
+      if (!panel || !bar || !legend) return;
+      // 최초 1회 전체 분포 마크업을 백업(해제 시 복원용).
+      if (bar.dataset.overall == null) {
+        bar.dataset.overall = bar.innerHTML;
+        legend.dataset.overall = legend.innerHTML;
+      }
+      const day = panel.hidden ? null : panel.dataset.day;
+      const raw = document.querySelector(".hm-days-data")?.textContent;
+      const posts: { s: string; c: string }[] =
+        (day && raw && JSON.parse(raw)[day]) || [];
+      if (!posts.length) {
+        bar.innerHTML = bar.dataset.overall!;
+        legend.innerHTML = legend.dataset.overall!;
+        return;
+      }
+      const agg = new Map<string, { c: string; n: number }>();
+      for (const p of posts) {
+        const cur = agg.get(p.s) ?? { c: p.c, n: 0 };
+        cur.n++;
+        agg.set(p.s, cur);
+      }
+      const esc = (s: string) =>
+        s.replace(/[&<>"]/g, (ch) =>
+          ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!,
+        );
+      bar.innerHTML = [...agg.values()]
+        .map((v) => `<span class="ab-dist-seg" style="--hue:${esc(v.c)}; flex:${v.n}"></span>`)
+        .join("");
+      legend.innerHTML = [...agg.entries()]
+        .map(
+          ([s, v]) =>
+            `<li style="--hue:${esc(v.c)}"><span class="ab-dist-dot"></span>${esc(s)} <b>${v.n}</b></li>`,
+        )
+        .join("");
+    });
+  });
 </script>
 
 <style>
@@ -431,19 +477,22 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
     overflow: hidden;
     gap: 2px;
   }
-  .ab-dist-seg,
-  .ab-dist-legend li {
+  /* 바 세그먼트·범례 항목은 잔디 선택 시 JS가 그날 기준으로 갈아끼우므로
+     (스코프 해시가 없는 마크업) 부모 스코프 아래 :global로 매칭한다. */
+  .ab-dist-bar :global(.ab-dist-seg),
+  .ab-dist-legend :global(li) {
     --hue-on: var(--hue, var(--c-accent));
   }
-  :global(:root[data-theme="dark"]) :is(.ab-dist-seg, .ab-dist-legend li) {
+  :global(:root[data-theme="dark"]) :is(.ab-dist-bar :global(.ab-dist-seg), .ab-dist-legend :global(li)) {
     --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
   }
   @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) :is(.ab-dist-seg, .ab-dist-legend li) {
+    :global(:root:not([data-theme="light"]))
+      :is(.ab-dist-bar :global(.ab-dist-seg), .ab-dist-legend :global(li)) {
       --hue-on: oklch(from var(--hue, var(--c-accent)) 0.78 calc(c * 0.52) h);
     }
   }
-  .ab-dist-seg {
+  .ab-dist-bar :global(.ab-dist-seg) {
     background: var(--hue-on);
     min-width: 4px;
   }
@@ -457,18 +506,18 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
     font-size: var(--fs-xs);
     color: var(--c-muted);
   }
-  .ab-dist-legend li {
+  .ab-dist-legend :global(li) {
     display: inline-flex;
     align-items: center;
     gap: 0.45em;
   }
-  .ab-dist-legend b {
+  .ab-dist-legend :global(b) {
     font-family: var(--font-mono);
     font-weight: 700;
     color: var(--c-text);
     font-variant-numeric: tabular-nums;
   }
-  .ab-dist-dot {
+  .ab-dist-legend :global(.ab-dist-dot) {
     width: 0.6em;
     height: 0.6em;
     border-radius: 50%;
