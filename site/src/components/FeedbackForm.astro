@@ -14,6 +14,8 @@ import { WEB3FORMS_ACCESS_KEY } from "../lib/feedback.ts";
   <input type="hidden" name="access_key" value={WEB3FORMS_ACCESS_KEY} />
   <input type="hidden" name="subject" value="[blog] 새 의견이 도착했어요" />
   <input type="hidden" name="from_name" value="blog 의견 창구" />
+  {/* 제출 출처: 모달이면 지금 보는 글 URL, /feedback/ 페이지면 유입 referrer */}
+  <input type="hidden" name="page" value="" />
   {/* fetch가 막힐 때(네이티브 폴백)만 값을 채워 제출 후 원래 페이지로 복귀 */}
   <input type="hidden" name="redirect" value="" />
   {/* honeypot: 봇이 채우면 Web3Forms가 스팸으로 버린다. 사람에겐 숨김. */}
@@ -196,6 +198,15 @@ import { WEB3FORMS_ACCESS_KEY } from "../lib/feedback.ts";
         say("의견 내용을 입력해주세요.", "err");
         return;
       }
+
+      // 출처 채우기 — 이메일에 "Page" 항목으로 실린다. 모달(글 상세 등)이면
+      // 현재 페이지가 곧 출처, /feedback/ 페이지면 넘어온 referrer가 출처.
+      // ponytail: ClientRouter 내비게이션에선 referrer가 초기 진입 기준이라
+      // 부정확할 수 있음 — 정확도가 더 필요해지면 진입점에서 ?from= 전달로 승급.
+      const pageField = form.elements.namedItem("page") as HTMLInputElement;
+      pageField.value = form.closest("[data-feedback-modal]")
+        ? location.href
+        : document.referrer || "(직접 방문)";
 
       if (btn) btn.disabled = true;
       say("보내는 중…");
