@@ -3,6 +3,25 @@
 이 프로젝트의 주요 변경 사항을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [1.2.0] - 2026-08-10
+
+Phase 3 완성 릴리스 — 사람 없이 매일 발행되는 무인 파이프라인이 가동을 시작했다.
+
+### Added
+
+- 오케스트레이터 래퍼 `scripts/daily-post.sh`(#10) — 루프·성공 판정·재시도·커밋은 스크립트가 소유하고 글쓰기만 `claude -p` 헤드리스에 위임. 성공 판정은 모델 응답이 아니라 파일시스템(새 .md 실존), 날짜 기반 섹션 로테이션(mcp→jeongcheogi→security)
+- 프롬프트 단일 출처 유지 장치 — MCP 슬래시 프롬프트가 헤드리스에서 발동되지 않아, `write_daily_post` 텍스트 빌더를 export하고 `print-prompt` CLI로 뽑아 주입
+- publish_post PreToolUse 관문 훅(#42) — section·slug(kebab-case)·태그 개수·포괄어-only를 결정론으로 차단, 차단 사유를 모델이 읽고 수정 재호출
+- `daily-post.yml` cron(#11) — 매일 KST 14시 무인 발행 + workflow_dispatch 수동 실행, 결과 JSON 아티팩트 보존
+- 실행 학습 기록(#43) — 실행별 비용·턴·도구거부 관측치를 `docs/orchestrator-learnings.md`에 자동 누적
+- 구독 OAuth 토큰 인증(#13) — API 키·추가 과금 없이 CI에서 발행 (Agent SDK + API 키 계획을 `claude -p` 래핑으로 대체)
+- Cloudflare Web Analytics(#59) — 쿠키리스 방문 통계, View Transitions 페이지뷰 집계 실측 검증
+- 푸터 빌드 정보(#41) — 배포 커밋 SHA(커밋 링크) + KST 빌드 시각
+
+### Changed
+
+- 프로젝트 스코프 `.mcp.json` 신설 — CI 러너에서도 MCP 서버가 상대 경로로 뜨도록
+
 ## [1.1.0] - 2026-07-29
 
 홈 히어로 3D 리디자인과 About 스트릭 확장, SEO 위생(검색 노출) 정비가 중심인 릴리스.
@@ -57,5 +76,6 @@
 - GitHub Actions 배포 워크플로 — main push 시 pnpm 워크스페이스 빌드 → Pages 배포
 - 레포 public 전환, Pages(Actions 소스) 활성화
 
+[1.2.0]: https://github.com/mmyonaa/blog/releases/tag/v1.2.0
 [1.1.0]: https://github.com/mmyonaa/blog/releases/tag/v1.1.0
 [1.0.0]: https://github.com/mmyonaa/blog/releases/tag/v1.0.0

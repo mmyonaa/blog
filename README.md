@@ -54,15 +54,15 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 
 - **Phase 1 — MCP 서버 만들기** ✅ &nbsp;위 3대 primitive를 갖춘 stdio 서버 완성.
 - **Phase 2 — Claude Code에 붙여 대화형 테스트** ✅ &nbsp;`claude mcp add`로 등록해 대화로 도구를 굴렸다. **MCP 학습의 90%가 여기서 끝난다.**
-- **Phase 3 — 오케스트레이터 + cron 자동화** 🚧 &nbsp;사람 없이 매일 발행. Pages 배포·발행 규칙 명문화는 끝났고, 오케스트레이터(Agent SDK)와 cron 트리거가 남았다.
+- **Phase 3 — 오케스트레이터 + cron 자동화** ✅ &nbsp;사람 없이 매일 발행, 가동 중. `claude -p` 래퍼가 매일 KST 14시에 글을 쓰고 커밋한다 — 구독 OAuth라 API 키·추가 과금 없음.
 
 ## 기술 스택
 
 - **MCP 서버**: TypeScript + [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol) (stdio transport, zod 스키마)
-- **오케스트레이터**: `@anthropic-ai/claude-agent-sdk` (Phase 3)
+- **오케스트레이터**: `claude -p` 헤드리스 래퍼(`scripts/daily-post.sh`) + hooks 관문 — 루프·성공 판정은 스크립트가, 글쓰기만 Claude Code에 위임 (Agent SDK 계획을 대체, 구독 OAuth 인증)
 - **블로그 렌더링**: [Astro](https://astro.build) SSG (섹션·태그 페이지 · RSS·sitemap · 클라이언트 검색 · Search Console 등록) → GitHub Pages 자동 배포 (`.github/workflows/deploy.yml`, main push 시)
 - **댓글·의견**: giscus(GitHub Discussions 기반 공개 댓글) + 익명 의견 모달(폼 엔드포인트)
-- **트리거**: GitHub Actions cron (Phase 3)
+- **트리거**: GitHub Actions cron (`daily-post.yml`, 매일 KST 14:00)
 - **패키지 관리**: pnpm workspace (`server` + `site`)
 
 ## 프로젝트 구조
