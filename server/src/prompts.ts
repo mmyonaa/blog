@@ -54,8 +54,39 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
           .describe(`어느 섹션의 글인가. ${SECTION_IDS.join(" | ")} 중 하나. 생략 시 mcp.`),
       },
     },
-    ({ topic, depth, length, section }) => {
-      const sec: SectionId = section && (section in SECTIONS) ? (section as SectionId) : "mcp";
+    ({ topic, depth, length, section }) => ({
+      messages: [
+        {
+          role: "user" as const,
+          content: {
+            type: "text" as const,
+            text: buildWriteDailyPostText({ topic, depth, length, section }),
+          },
+        },
+      ],
+    }),
+  );
+}
+
+/**
+ * write_daily_post 프롬프트의 본문 텍스트를 만든다.
+ *
+ * MCP 프롬프트 등록과 헤드리스 래퍼(scripts/daily-post.sh)가 공유하는 단일 출처.
+ * 헤드리스에서는 MCP 슬래시 프롬프트 발동이 안 되므로(2026-08-10 확인),
+ * 래퍼가 print-prompt.ts로 이 텍스트를 뽑아 `claude -p`에 직접 주입한다.
+ */
+export function buildWriteDailyPostText({
+  topic,
+  depth,
+  length,
+  section,
+}: {
+  topic?: string;
+  depth?: Depth;
+  length?: string;
+  section?: string;
+}): string {
+  const sec: SectionId = section && (section in SECTIONS) ? (section as SectionId) : "mcp";
       const isJeong = sec === "jeongcheogi";
       const chosen: Depth = depth ?? "standard";
       const explicitLen = length && length.trim() !== "" ? length : null;
@@ -116,14 +147,5 @@ export function registerWriteDailyPostPrompt(server: McpServer): void {
         "8. 발행 결과(파일명)를 사람에게 한 줄로 보고한다.",
       ].join("\n");
 
-      return {
-        messages: [
-          {
-            role: "user",
-            content: { type: "text", text },
-          },
-        ],
-      };
-    },
-  );
+  return text;
 }

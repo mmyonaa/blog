@@ -1,0 +1,55 @@
+name: Daily Post
+
+# 매일 자동 발행(#11) — 래퍼(scripts/daily-post.sh)를 cron으로 실행한다.
+# 인증은 구독 OAuth 토큰(#13: claude setup-token → CLAUDE_CODE_OAUTH_TOKEN 시크릿).
+# 주의: schedule 트리거는 기본 브랜치에서만 발화한다 (main 머지 후 활성화).
+
+on:
+  schedule:
+    - cron: "0 5 * * *" # UTC 05:00 = KST 14:00
+  workflow_dispatch: # 수동 테스트용
+    inputs:
+      section:
+        description: "섹션 강제 지정 (생략 시 날짜 로테이션: mcp→jeongcheogi→security)"
+        required: false
+        type: string
+
+permissions:
+  contents: write # 래퍼가 발행 커밋을 push
+
+concurrency:
+  group: daily-post
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @blog-mcp/server build
+      - run: npm install -g @anthropic-ai/claude-code
+
+      - name: git 커밋 주체 설정
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: 오늘의 글 발행
+        run: bash scripts/daily-post.sh ${{ inputs.section }}
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+      # 사용량·턴 관측치 보존 — #43(학습 기록)의 입력
+      - name: 결과 JSON 아티팩트
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-post-result-${{ github.run_id }}
+          path: /tmp/daily-post-result.json
+          if-no-files-found: ignore

@@ -1,5 +1,8 @@
-# 설계/작업용 문서 (전부 로컬 전용, 추적 안 함)
-docs/
+# 설계/작업용 문서 (로컬 전용, 추적 안 함)
+# 주의: `docs/`로 디렉토리째 무시하면 아래 예외(!)가 안 먹는다 — 내용물 패턴(docs/*)이어야 한다.
+docs/*
+# 예외: 오케스트레이터 학습 기록(#43)은 CI 러너에서도 누적돼야 하므로 추적
+!docs/orchestrator-learnings.md
 
 # Node / TypeScript
 node_modules/
