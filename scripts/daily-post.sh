@@ -45,20 +45,38 @@ for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
   echo "실패 — 새 글 파일이 생기지 않음"
 done
 
+# 학습 기록(#43) — 실행 관측치를 한 줄 누적. 몇 주치가 프롬프트·훅 규칙 개선의 근거가 된다.
+LEARN_FILE="docs/orchestrator-learnings.md"
+cost="?"; turns="?"; dur="?"; denials="?"
+if command -v jq >/dev/null 2>&1 && [ -s "$RESULT_JSON" ]; then
+  read -r cost turns dur denials < <(
+    jq -r '[(.total_cost_usd // "?"), (.num_turns // "?"), (.duration_ms // "?"), ((.permission_denials // []) | length)] | @tsv' \
+      "$RESULT_JSON" 2>/dev/null || echo "? ? ? ?"
+  )
+fi
+record_learning() { # $1=결과 $2=파일명
+  [ -f "$LEARN_FILE" ] || return 0 # 기록 파일이 없으면(로컬 특수 상황) 조용히 생략
+  printf '| %s | %s | %s | %s/%s | %s | %s | %s | %s | %s |\n' \
+    "$(date +%Y-%m-%d)" "$1" "$SECTION" "$attempt" "$MAX_ATTEMPTS" \
+    "$cost" "$turns" "$dur" "$denials" "$2" >>"$LEARN_FILE"
+}
+
 if [ -z "$new_post" ]; then
+  record_learning "실패" "-"
+  git add "$LEARN_FILE" 2>/dev/null && git commit -m "chore(learnings): 자동 발행 실패 기록 $(date +%Y-%m-%d)" >/dev/null 2>&1 || true
+  [ "${SKIP_PUSH:-0}" = "1" ] || git push || true
   echo "::error::발행 실패 — ${MAX_ATTEMPTS}회 시도 모두 새 글이 생기지 않음"
   exit 1
 fi
 
-# 관측치(비용·턴 수) 한 줄 — #43(학습 기록)에서 누적 로그로 확장 예정.
-if command -v jq >/dev/null 2>&1 && [ -s "$RESULT_JSON" ]; then
-  jq -r '"관측: 비용 $\(.total_cost_usd // "?") · \(.num_turns // "?")턴 · \(.duration_ms // "?")ms"' "$RESULT_JSON" || true
-fi
+record_learning "성공" "$(basename "$new_post")"
+echo "관측: 비용 \$${cost} · ${turns}턴 · ${dur}ms · 도구거부 ${denials}건"
 
 # 커밋 — 프론트매터에서 섹션·제목을 뽑아 기존 관례(post(section): 제목)를 따른다.
 title=$(sed -n 's/^title: *"\{0,1\}\(.*\)"\{0,1\}$/\1/p' "$new_post" | head -1 | sed 's/"$//')
 sec=$(sed -n 's/^section: *"\{0,1\}\([a-z]*\).*/\1/p' "$new_post" | head -1)
 git add "$new_post"
+[ -f "$LEARN_FILE" ] && git add "$LEARN_FILE"
 git commit -m "post(${sec:-$SECTION}): ${title:-자동 발행} — 자동 발행 $(date +%Y-%m-%d)"
 [ "${SKIP_PUSH:-0}" = "1" ] || git push
 echo "발행 완료: $new_post"
