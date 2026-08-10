@@ -31,6 +31,13 @@ const a = (f: string) => `${base}/hero3d/${f}`;
       <!-- <img class="ob torus" src={a("torus.webp")} alt="" loading="lazy" decoding="async" /> -->
       <!-- <img class="ob cube" src={a("cube.webp")} alt="" loading="lazy" decoding="async" /> -->
       <img class="ob book" src={a("outro/book.webp")} alt="" loading="lazy" decoding="async" />
+      <!-- ── 소품: 대형 3덩어리 사이 빈 구역에 흩뿌리는 작은 액센트(히어로의 크리스털 점 문법) ──
+           · glass  = 중상단 간유리 구슬(뉴트럴)
+           · spark  = 책 위쪽 파란 스파클(별꽃의 청색 호응)
+           · bead   = 별꽃 곁 코랄 구슬(스피어 반향) -->
+      <img class="ob acc-glass" src={a("glass-bead.webp")} alt="" loading="lazy" decoding="async" />
+      <img class="ob acc-spark" src={a("sparkle.webp")} alt="" loading="lazy" decoding="async" />
+      <img class="ob acc-bead" src={a("sphere-coral.webp")} alt="" loading="lazy" decoding="async" />
     </div>
 
     <!-- ── 카피 + CTA — z1으로 오브젝트 위에 얹힌다(헤일로로 가독 확보) ── -->
@@ -144,6 +151,30 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     width: clamp(16rem, 33vw, 30rem);
     animation: outro-float 9s ease-in-out infinite alternate;
     filter: drop-shadow(0 12px 16px rgb(36 37 46 / 0.10));
+  }
+
+  /* ── 소품 액센트 — 대형 사이 빈 구역에 아주 작게. 그림자는 옅게(무게감 없이). ── */
+  .acc-glass {
+    left: 55%;
+    top: 14%;
+    width: clamp(2.6rem, 4.5vw, 3.6rem);
+    opacity: 0.9;
+    animation: outro-float 8s ease-in-out infinite alternate;
+    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.08));
+  }
+  .acc-spark {
+    right: 31.5%;
+    top: 16%;
+    width: clamp(2.8rem, 5vw, 4rem);
+    animation: outro-tumble 11s ease-in-out infinite alternate-reverse;
+    filter: drop-shadow(0 10px 14px rgb(36 37 46 / 0.10));
+  }
+  .acc-bead {
+    left: 33%;
+    bottom: 14%;
+    width: clamp(1.6rem, 3vw, 2.4rem);
+    animation: outro-float 10s ease-in-out infinite alternate-reverse;
+    filter: drop-shadow(0 8px 12px rgb(36 37 46 / 0.12));
   }
 
   /* ── 카피/CTA — z1으로 오브젝트 위에 얹힌다. 헤일로로 가독 확보. ── */
@@ -296,6 +327,10 @@ const a = (f: string) => `${base}/hero3d/${f}`;
       bottom: -4%;
       width: clamp(13rem, 30vw, 17rem);
     }
+    /* 카피가 폭을 더 차지해 CTA와 별꽃 사이 복도가 사라진다 — 코랄 구슬만 접는다. */
+    .acc-bead {
+      display: none;
+    }
   }
 
   /* ── 모바일(≤640): 대형 1~2개가 모서리에서 시원하게 걸치는 구성.
@@ -326,7 +361,10 @@ const a = (f: string) => `${base}/hero3d/${f}`;
     }
     /* 좁은 폭에선 나머지 대형·소품은 접는다(파편 무더기 방지). */
     .asterisk,
-    .cube {
+    .cube,
+    .acc-glass,
+    .acc-spark,
+    .acc-bead {
       display: none;
     }
     .outro-sub {
