@@ -605,6 +605,13 @@ const jsonLd = {
     margin: 0;
   }
   .toc-drawer-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 손가락 탭 타겟 44px — 시각 위치는 음수 마진으로 보정 */
+    min-width: 44px;
+    min-height: 44px;
+    margin: -0.6rem -0.6rem -0.6rem 0;
     border: 0;
     background: none;
     color: var(--c-muted);
@@ -658,7 +665,9 @@ const jsonLd = {
      여기서 scroll-margin을 또 주면 이중으로 밀려 과하게 내려가므로 두지 않는다. */
   /* 헤딩 앵커(#): 호버 시 노출 */
   .prose :global(.heading-anchor) {
-    margin-left: 0.4em;
+    /* 패딩으로 히트 영역 확보(최소 24px 폭), 시각 간격은 margin과 합산 유지 */
+    margin-left: 0.1em;
+    padding: 0.1em 0.3em;
     color: var(--c-muted);
     font-weight: 400;
     text-decoration: none;

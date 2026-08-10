@@ -280,6 +280,8 @@ pre:hover .code-copy,
 @media (hover: none), (max-width: 980px) {
   .code-copy {
     opacity: 1;
+    /* 호버 없는 기기에선 탭 타겟도 키운다 */
+    padding: 0.45em 0.8em;
   }
 }
 /* 코드블록 좌상단 언어 라벨 — Shiki가 붙인 data-language를 그대로 표시.
@@ -377,7 +379,15 @@ body.shell {
 }
 .tag::before {
   content: "#";
+  /* 대체 텍스트 빈 문자열: 스크린리더가 '#'을 낱개로 읽지 않게. 미지원 브라우저는 위 선언 유지. */
+  content: "#" / "";
   opacity: 0.55;
+}
+/* 터치 기기: 인라인 태그 칩의 탭 높이 확보(시각 톤은 유지) */
+@media (pointer: coarse) {
+  .tag {
+    padding-block: 0.3em;
+  }
 }
 a.tag:hover {
   color: var(--c-accent);

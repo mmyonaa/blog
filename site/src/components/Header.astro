@@ -24,7 +24,8 @@ const searchIndexUrl = `${base}/search-index.json`;
       <a href={`${base}/about/`} class:list={["pill", { active: isAbout }]} aria-current={isAbout ? "page" : undefined}>About</a>
     </nav>
     <div class="header-actions">
-      <button type="button" class="pill search-btn" data-search-open aria-haspopup="dialog">
+      <!-- aria-label 필수: 모바일(≤640)에서 .search-label이 display:none이라 이름이 사라진다 -->
+      <button type="button" class="pill search-btn" data-search-open aria-haspopup="dialog" aria-label="검색">
         <svg class="search-icon" viewBox="0 0 20 20" aria-hidden="true" width="15" height="15">
           <path
             d="M9 3.5a5.5 5.5 0 1 0 3.4 9.82l3.64 3.63a1 1 0 0 0 1.42-1.42l-3.63-3.63A5.5 5.5 0 0 0 9 3.5Zm0 2a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z"
