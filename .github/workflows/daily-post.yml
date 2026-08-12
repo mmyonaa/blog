@@ -53,3 +53,15 @@ jobs:
           name: daily-post-result-${{ github.run_id }}
           path: /tmp/daily-post-result.json
           if-no-files-found: ignore
+
+  # 발행 커밋을 사이트에 반영 — GITHUB_TOKEN push는 push 트리거를 못 일으키므로
+  # (재귀 방지) 배포 워크플로를 여기서 직접 호출한다.
+  deploy:
+    needs: publish
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: main

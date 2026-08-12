@@ -7,6 +7,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # daily-post.yml이 발행 후 직접 호출한다 — 봇의 GITHUB_TOKEN push는
+  # 재귀 방지 규칙 때문에 push 트리거를 못 일으키므로(자동 발행이 배포 안 되던 버그).
+  workflow_call:
+    inputs:
+      ref:
+        description: "빌드할 ref (호출 시 발행 커밋이 포함된 main)"
+        type: string
+        default: main
 
 permissions:
   contents: read
@@ -23,6 +31,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # push/dispatch면 트리거 SHA(빈 값 → 기본), workflow_call이면 최신 main
+          # (호출 시 github.sha는 발행 "이전" 커밋이라 그대로 쓰면 새 글이 빠진다)
+          ref: ${{ inputs.ref || '' }}
       # pnpm 버전은 루트 package.json의 packageManager 필드를 따른다
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
@@ -30,10 +42,12 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # 빌드 정보(#41): 푸터에 커밋 SHA를 박기 위해 주입. 로컬 빌드엔 없음.
+      # 빌드 정보(#41): 푸터에 커밋 SHA를 박기 위해 주입. github.sha가 아니라
+      # 실제 체크아웃된 HEAD — workflow_call 경로에서도 발행 커밋을 가리키게.
+      - run: echo "BUILD_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - run: pnpm --filter @blog-mcp/site build
         env:
-          BUILD_SHA: ${{ github.sha }}
+          BUILD_SHA: ${{ env.BUILD_SHA }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist
