@@ -4,7 +4,6 @@ import "../../styles/home-cards.css";
 import { tagHref } from "../../lib/tags.ts";
 import { sectionHref, sectionLabel, sectionOf, hueOf, initialOf } from "../../lib/sections.ts";
 import { fmtRelative } from "../../lib/date.ts";
-import { readMin } from "../../lib/reading.ts";
 
 interface Props {
   post: CollectionEntry<"blog">;
@@ -26,7 +25,7 @@ const sec = sectionOf(post);
         <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
       </h3>
       <span class="card-when">
-        {fmtRelative(post.data.pubDate)} · {readMin(post.body)}분
+        {fmtRelative(post.data.pubDate)}
       </span>
     </div>
   </div>
