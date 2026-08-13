@@ -6,6 +6,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # 날짜 경계 스냅용 리빌드 — 잔디의 '오늘' 칸, 7일 밖 날짜 표기 등
+  # 빌드 타임에 '오늘'을 쓰는 것들이 자정 직후 갱신되도록.
+  schedule:
+    - cron: "5 15 * * *" # UTC 15:05 = KST 00:05
   workflow_dispatch:
   # daily-post.yml이 발행 후 직접 호출한다 — 봇의 GITHUB_TOKEN push는
   # 재귀 방지 규칙 때문에 push 트리거를 못 일으키므로(자동 발행이 배포 안 되던 버그).

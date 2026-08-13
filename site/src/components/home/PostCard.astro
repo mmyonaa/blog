@@ -24,9 +24,11 @@ const sec = sectionOf(post);
       <h3 class="card-title">
         <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
       </h3>
-      <span class="card-when">
+      {/* 빌드 타임 텍스트는 JS 없는 환경의 폴백 — Base.astro의 전역 스크립트가
+          보는 순간 기준으로 다시 계산해 덮는다(빌드 주기와 무관하게 정확). */}
+      <time class="card-when" datetime={post.data.pubDate.toISOString()} data-relative>
         {fmtRelative(post.data.pubDate)}
-      </span>
+      </time>
     </div>
   </div>
   {post.data.description && <p class="card-desc">{post.data.description}</p>}
