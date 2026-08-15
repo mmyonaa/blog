@@ -25,7 +25,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
               <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
             </h3>
             <span class="tr-meta">
-              {fmtRelative(post.data.pubDate)} · {readMin(post.body)}분
+              <time datetime={post.data.pubDate.toISOString()} data-relative>
+                {fmtRelative(post.data.pubDate)}
+              </time> · {readMin(post.body)}분
             </span>
           </div>
         </li>
