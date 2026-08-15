@@ -2,7 +2,10 @@
   "mcpServers": {
     "blog-mcp": {
       "command": "node",
-      "args": ["server/dist/index.js"]
+      "args": ["server/dist/index.js"],
+      "env": {
+        "TAVILY_API_KEY": "${TAVILY_API_KEY}"
+      }
     }
   }
 }
