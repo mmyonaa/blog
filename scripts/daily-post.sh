@@ -30,12 +30,20 @@ for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
   echo "[$attempt/$MAX_ATTEMPTS] section=$SECTION 발행 시도"
   before=$(git status --porcelain "$CONTENT_DIR" | awk '/^\?\?/{print $2}' | sort)
 
-  # 프롬프트는 서버의 buildWriteDailyPostText가 단일 출처 — print-prompt CLI로 뽑아 주입.
+  # 프롬프트는 서버의 빌더가 단일 출처 — print-prompt CLI로 뽑아 주입.
   # (MCP 슬래시 프롬프트는 헤드리스에서 "Unknown command"로 발동 불가 — 2026-08-10 판가름)
-  PROMPT=$(node server/dist/print-prompt.js "$SECTION")
+  # security 차례는 Mode R(#17 리서치 종합) — 시사성 섹션이라 웹 근거로 쓴다.
+  # TAVILY_API_KEY 미설정이면 도구가 안내 에러를 돌려주므로 파이프라인은 안 깨진다.
+  if [ "$SECTION" = "security" ]; then
+    PROMPT=$(node server/dist/print-prompt.js --research "$SECTION")
+    TOOLS="mcp__blog-mcp__search_web,mcp__blog-mcp__read_url,mcp__blog-mcp__publish_post"
+  else
+    PROMPT=$(node server/dist/print-prompt.js "$SECTION")
+    TOOLS="mcp__blog-mcp__suggest_topic,mcp__blog-mcp__publish_post"
+  fi
   claude -p "$PROMPT" \
     --mcp-config .mcp.json \
-    --allowedTools "mcp__blog-mcp__suggest_topic,mcp__blog-mcp__publish_post,ReadMcpResourceTool,ListMcpResourcesTool" \
+    --allowedTools "$TOOLS,ReadMcpResourceTool,ListMcpResourcesTool" \
     --max-turns 30 \
     --output-format json >"$RESULT_JSON" || true
 
