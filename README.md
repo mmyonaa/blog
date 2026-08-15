@@ -27,7 +27,7 @@ MCP 서버는 스스로 글을 쓰지 않는다. 도구를 "노출"할 뿐이다
 | **오케스트레이터** | 글을 실제로 "쓰는" LLM 루프 | ⭕ 여기만 Claude 호출 |
 | **MCP 서버** | 도구·리소스·프롬프트 제공 (주제 선정, 발행 등) | ❌ 그냥 함수 실행 ← 학습의 핵심 |
 
-즉 **MCP 서버는 LLM을 부르지 않는다** — 순수 함수로 도구·리소스·프롬프트만 노출한다. 모델 호출은 마지막 자동화 단계에서 오케스트레이터가 돌 때만 일어난다.
+즉 **MCP 서버는 LLM을 부르지 않는다** — 순수 함수로 도구·리소스·프롬프트만 노출한다. 모델 호출은 마지막 자동화 단계에서 오케스트레이터가 돌 때만 일어난다. (리서치 도구 `search_web`/`read_url`도 Tavily HTTP 호출뿐, LLM은 부르지 않는다.)
 
 ## MCP 서버가 노출하는 것 (3대 primitive 전부)
 
@@ -37,9 +37,11 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 |---|---|---|
 | 🔧 Tool | `publish_post` | 마크다운 글을 프론트매터와 함께 `YYYY-MM-DD-slug.md`로 발행 |
 | 🔧 Tool | `suggest_topic` | 시드 주제 풀에서 아직 안 쓴 후보를 결정론적으로 제안 (LLM 미사용) |
+| 🔧 Tool | `search_web` / `read_url` | Mode R 리서치 도구 — 웹 검색·본문 추출 (Tavily 백엔드를 어댑터 뒤에, LLM 미사용) |
 | 📄 Resource | `blog://posts` | 발행된 글 목록(JSON) — 지난 글 맥락 |
 | 📄 Resource | `blog://posts/{slug}` | 특정 글 본문(마크다운) |
 | 💬 Prompt | `write_daily_post` | "오늘의 글쓰기" 워크플로 전체를 재사용 프롬프트로 패키징 (주제 선정 → 집필 → 자기 검토 → 발행) |
+| 💬 Prompt | `write_research_post` | Mode R — 보안 섹션의 리서치 종합 발행 워크플로 (검색 → 원문 읽기 → 출처와 함께 집필, `sources` 필수) |
 
 ### 글 품질을 지키는 장치 (할루시네이션·검증)
 
@@ -59,6 +61,7 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 ## 기술 스택
 
 - **MCP 서버**: TypeScript + [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol) (stdio transport, zod 스키마)
+- **웹 리서치**: [Tavily](https://tavily.com) (search/extract API) — `SearchBackend` 어댑터 뒤에 두어 교체 가능, 보안 섹션 Mode R에서만 사용
 - **오케스트레이터**: `claude -p` 헤드리스 래퍼(`scripts/daily-post.sh`) + hooks 관문 — 루프·성공 판정은 스크립트가, 글쓰기만 Claude Code에 위임 (Agent SDK 계획을 대체, 구독 OAuth 인증)
 - **블로그 렌더링**: [Astro](https://astro.build) SSG (섹션·태그 페이지 · RSS·sitemap · 클라이언트 검색 · Search Console 등록) → GitHub Pages 자동 배포 (`.github/workflows/deploy.yml`, main push 시)
 - **댓글·의견**: giscus(GitHub Discussions 기반 공개 댓글) + 익명 의견 모달(폼 엔드포인트)
@@ -74,8 +77,10 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 │       ├── index.ts       # stdio 진입점
 │       ├── server.ts      # 서버 팩토리 (primitive 등록)
 │       ├── tools.ts       # publish_post / suggest_topic
+│       ├── search.ts      # search_web / read_url (Tavily 어댑터, Mode R)
 │       ├── resources.ts   # blog://posts, blog://posts/{slug}
-│       ├── prompts.ts     # write_daily_post
+│       ├── prompts.ts     # write_daily_post / write_research_post
+│       ├── print-prompt.ts # 헤드리스 주입용 프롬프트 CLI
 │       ├── posts.ts       # 발행된 글 읽기
 │       ├── topics.ts      # 섹션 레지스트리 + 시드 주제 풀
 │       ├── util.ts        # 슬러그·날짜 유틸

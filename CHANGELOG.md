@@ -3,6 +3,30 @@
 이 프로젝트의 주요 변경 사항을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [1.3.0] - 2026-08-15
+
+Mode R 릴리스 — 보안 섹션이 시드 없이 웹 리서치로 최신 사고를 종합해 발행한다. 서버에 첫 외부 API(Tavily)가 붙었다(여전히 LLM 호출은 없음).
+
+### Added
+
+- Mode R 리서치 도구 `search_web`/`read_url`(#16) — Tavily 백엔드를 `SearchBackend` 어댑터 뒤에 캡슐화, 키 미설정 시 안내 에러, CI 시크릿 배선. `read_url`은 절단 상한을 인자로(기본 20k, 실링 50k자)
+- `write_research_post` 프롬프트(#17) — 검색 → 원문 읽기 → 출처와 함께 종합하는 리서치 발행 워크플로, `write_daily_post`와 공통 블록 단일 출처화
+- 리서치 글 투명성 메타(#18) — `sources`(실제 읽은 URL만)·`generated: research-synthesis` 프론트매터와 글 하단 '참고 자료' 렌더, `generated` 지정 시 sources 2건 이상 강제
+- 오케스트레이터 Mode R 분기 — security 차례에 래퍼가 리서치 프롬프트·도구로 전환
+- About 오비탈에 '웹 리서치' 단계 추가 — 발행 워크플로 시각화를 8단계로 갱신
+
+### Changed
+
+- SEO 검색 노출 정비 — title 브랜드 접미사(`— daily.mcp`) 일원화, JSON-LD 저자 실명(author.ts 단일 출처), 태그 페이지 noindex + 사이트맵 제외(228→90 URL), 글 URL `lastmod` 추가
+- 상대 시각을 클라이언트에서 갱신 + 자정(KST 00:05) 스냅 리빌드 — 빌드 주기에 묶인 시간·잔디 낡음 해소
+- 홈 카드에서 읽기 시간(N분) 제거 — 상대 시각만 표시
+- 홈 OutroBanner에 소형 액센트 오브젝트 3종 — 반응형에서 단계적 접기
+
+### Fixed
+
+- 자동 발행 후 사이트 미배포 — `GITHUB_TOKEN` push는 push 트리거를 못 일으키므로 daily-post가 deploy를 `workflow_call`로 직접 호출
+- 모바일 접근성·탭 타겟 — 검색 버튼 aria-label, 태그 `#` 장식의 스크린리더 낭독 제거, 목차 닫기 등 44px 히트 영역
+
 ## [1.2.0] - 2026-08-10
 
 Phase 3 완성 릴리스 — 사람 없이 매일 발행되는 무인 파이프라인이 가동을 시작했다.

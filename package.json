@@ -1,6 +1,6 @@
 {
   "name": "blog-mcp",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "description": "매일 블로그 글을 자동 발행하는 것을 목표로 MCP 서버를 직접 만들어 배우는 학습 프로젝트",
   "type": "module",
