@@ -36,6 +36,12 @@ const { hasPosts, stats } = Astro.props;
               </dd>
             </div>
           ))}
+          {/* 총 조회(#69) — 빌드 숫자가 아닌 유일한 진짜 런타임 값. 클라이언트가
+              채우고, 키 미설정·요청 실패 시엔 칸째 숨긴 채로 둔다(오류 비노출). */}
+          <div class="stat" data-stat-views hidden>
+            <dt class="stat-value" data-stat-views-value>0</dt>
+            <dd class="stat-label">총 조회</dd>
+          </div>
         </dl>
       )}
     </div>
@@ -73,6 +79,34 @@ const { hasPosts, stats } = Astro.props;
     };
     // View Transitions로 홈에 재진입할 때마다 다시 실행(최초 로드 포함).
     document.addEventListener("astro:page-load", runCountUp);
+
+    // 총 조회(#69): Supabase get_total_views를 채운다. 실패하면 칸이 hidden인 채 남는다.
+    const SUPA_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+    const SUPA_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+    const loadTotalViews = async () => {
+      const box = document.querySelector<HTMLElement>("[data-stat-views]");
+      if (!box || !SUPA_URL || !SUPA_KEY) return;
+      try {
+        const res = await fetch(`${SUPA_URL}/rest/v1/rpc/get_total_views`, {
+          method: "POST",
+          headers: {
+            apikey: SUPA_KEY,
+            Authorization: `Bearer ${SUPA_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: "{}",
+        });
+        if (!res.ok) return;
+        const n = await res.json();
+        if (!Number.isFinite(n)) return;
+        const v = box.querySelector<HTMLElement>("[data-stat-views-value]");
+        if (v) v.textContent = Number(n).toLocaleString("ko-KR");
+        box.hidden = false;
+      } catch {
+        /* 실패 시 칸 숨김 유지 */
+      }
+    };
+    document.addEventListener("astro:page-load", loadTotalViews);
   }
 </script>
 

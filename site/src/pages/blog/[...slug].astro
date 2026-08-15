@@ -8,6 +8,7 @@ import { relatedPosts, type Related } from "../../lib/related.ts";
 import { AUTHOR } from "../../lib/author.ts";
 import Comments from "../../components/Comments.astro";
 import RelatedPosts from "../../components/RelatedPosts.astro";
+import ViewCount from "../../components/ViewCount.astro";
 
 export async function getStaticPaths() {
   const posts = (await getCollection("blog")).sort(
@@ -81,6 +82,7 @@ const jsonLd = {
         <div class="meta" style={`--hue: ${hueOf(section)}`}>
           <a class="category" href={sectionHref(base, section)}>{sectionLabel(section)}</a>
           <span>{fmtDateTime(post.data.pubDate)}</span>
+          <ViewCount slug={post.id} />
           {post.data.tags.length > 0 && (
             <span class="tags">
               {post.data.tags.map((t) => <a class="tag" href={tagHref(base, t)}>{t}</a>)}
