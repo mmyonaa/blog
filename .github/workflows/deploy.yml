@@ -52,6 +52,9 @@ jobs:
       - run: pnpm --filter @blog-mcp/site build
         env:
           BUILD_SHA: ${{ env.BUILD_SHA }}
+          # 조회수(#66) — PUBLIC_ 값은 빌드 시 클라이언트 번들에 인라인된다(공개 무해 설계)
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist
