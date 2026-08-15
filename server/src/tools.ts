@@ -75,6 +75,10 @@ interface Frontmatter {
   /** 관련 글 slug 목록(정규화). RelatedPosts·그래프가 참조. */
   related?: string[] | undefined;
   description?: string | undefined;
+  /** 리서치 글의 근거 출처(#18). 실제로 읽고 본문에 반영한 URL만. */
+  sources?: { url: string; title?: string | undefined }[] | undefined;
+  /** 생성 모드 표시(#18). 웹 리서치 종합이면 "research-synthesis". */
+  generated?: string | undefined;
 }
 
 /** Astro content collection 친화적 YAML 프론트매터 문자열을 만든다. */
@@ -93,6 +97,14 @@ function buildFrontmatter(fm: Frontmatter): string {
     lines.push(`related: [${fm.related.map(yamlString).join(", ")}]`);
   }
   if (fm.description) lines.push(`description: ${yamlString(fm.description)}`);
+  if (fm.generated) lines.push(`generated: ${yamlString(fm.generated)}`);
+  if (fm.sources && fm.sources.length > 0) {
+    lines.push("sources:");
+    for (const s of fm.sources) {
+      lines.push(`  - url: ${yamlString(s.url)}`);
+      if (s.title) lines.push(`    title: ${yamlString(s.title)}`);
+    }
+  }
   lines.push("---");
   return lines.join("\n");
 }
@@ -158,9 +170,34 @@ export function registerPublishPost(server: McpServer): void {
             "본문 최소 글자 수(공백 포함). 본문이 이보다 짧으면 발행이 거부된다. write_daily_post가 심화도 밴드 하한을 넘겨 짧은 글을 막는다.",
           ),
         description: z.string().optional().describe("요약(메타 설명)"),
+        sources: z
+          .array(z.object({ url: z.string().url(), title: z.string().optional() }))
+          .optional()
+          .describe(
+            "리서치 글의 근거 출처(#18). read_url로 실제 읽고 본문에 반영한 URL만 넣는다 — 검색 결과에만 보였거나 안 읽은 URL은 금지. 글 하단 '참고 자료'로 렌더된다.",
+          ),
+        generated: z
+          .enum(["research-synthesis"])
+          .optional()
+          .describe(
+            "생성 모드 표시. 웹 리서치를 종합해 쓴 글이면 'research-synthesis'를 넘긴다. 이 값을 넘기면 sources 2건 이상이 필수다(투명성).",
+          ),
       },
     },
-    async ({ title, body, tags, date, slug, topicId, area, follows, related, minChars, section, description }) => {
+    async ({ title, body, tags, date, slug, topicId, area, follows, related, minChars, section, description, sources, generated }) => {
+      // 리서치 글 투명성 관문(#18): 생성 모드를 밝혔으면 근거 출처가 실려야 한다.
+      if (generated === "research-synthesis" && (!sources || sources.length < 2)) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text" as const,
+              text: "리서치 종합 글(generated: research-synthesis)은 sources를 2건 이상 넘겨야 합니다. read_url로 실제 읽은 출처 URL을 sources에 담아 다시 발행하세요.",
+            },
+          ],
+        };
+      }
+
       // section이 레지스트리에 있는지 검증(하드코딩 대신 SECTIONS 파생).
       if (!isSectionId(section)) {
         return {
@@ -292,6 +329,8 @@ export function registerPublishPost(server: McpServer): void {
         follows: resolvedFollows,
         related: resolvedRelated,
         description,
+        sources,
+        generated,
       });
       await writeFile(filePath, `${frontmatter}\n\n${body.trimEnd()}\n`, "utf8");
 

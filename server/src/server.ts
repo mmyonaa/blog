@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerPublishPost, registerSuggestTopic } from "./tools.js";
 import { registerPostsResource } from "./resources.js";
-import { registerWriteDailyPostPrompt } from "./prompts.js";
+import { registerWriteDailyPostPrompt, registerWriteResearchPostPrompt } from "./prompts.js";
 import { registerSearchTools } from "./search.js";
 
 export const SERVER_NAME = "blog-mcp";
@@ -25,6 +25,7 @@ export function createServer(): McpServer {
   registerSuggestTopic(server);
   registerPostsResource(server);
   registerWriteDailyPostPrompt(server);
+  registerWriteResearchPostPrompt(server); // #17 Mode R: 리서치 종합 글쓰기
   registerSearchTools(server); // #16 Mode R: search_web / read_url (키 없으면 안내 에러)
 
   return server;

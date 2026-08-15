@@ -19,6 +19,9 @@ const blog = defineCollection({
     follows: z.string().optional(),
     related: z.array(z.string()).default([]),
     description: z.string().optional(),
+    // 리서치 글 메타(#18): 근거 출처(하단 '참고 자료'로 렌더)와 생성 모드 표시.
+    sources: z.array(z.object({ url: z.string(), title: z.string().optional() })).default([]),
+    generated: z.string().optional(),
   }),
 });
 
