@@ -5,6 +5,7 @@ import { tagHref } from "../../lib/tags.ts";
 import { fmtDateTime } from "../../lib/date.ts";
 import { sectionLabel, sectionHref, hueOf, sectionOf } from "../../lib/sections.ts";
 import { relatedPosts, type Related } from "../../lib/related.ts";
+import { AUTHOR } from "../../lib/author.ts";
 import Comments from "../../components/Comments.astro";
 import RelatedPosts from "../../components/RelatedPosts.astro";
 
@@ -67,8 +68,8 @@ const jsonLd = {
   url: pageUrl,
   image: ogImg,
   mainEntityOfPage: pageUrl,
-  author: { "@type": "Person", name: "blog" },
-  publisher: { "@type": "Organization", name: "blog", logo: { "@type": "ImageObject", url: ogImg } },
+  author: { "@type": "Person", name: AUTHOR.name, url: AUTHOR.portfolio },
+  publisher: { "@type": "Organization", name: "daily.mcp", logo: { "@type": "ImageObject", url: ogImg } },
 };
 ---
 

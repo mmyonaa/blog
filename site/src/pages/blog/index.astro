@@ -16,7 +16,7 @@ const pageItems = posts.slice(0, PAGE_SIZE);
 const pageHref = (n: number) => (n <= 1 ? `${base}/blog/` : `${base}/blog/page/${n}/`);
 ---
 
-<Base title="Posts — blog" description="블로그의 전체 글. 카테고리·태그로도 볼 수 있습니다.">
+<Base title="Posts" description="블로그의 전체 글. 카테고리·태그로도 볼 수 있습니다.">
   <h1>Posts</h1>
   <p class="muted">{posts.length}개의 글 · 최신순</p>
 

@@ -9,7 +9,19 @@ const base = "/blog";
 export default defineConfig({
   site: "https://mmyonaa.github.io",
   base,
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      // 태그 목록은 얇은 페이지라 noindex(페이지 쪽 meta)와 짝 맞춰 사이트맵에서도 뺀다.
+      filter: (page) => !page.includes(`${base}/tags/`),
+      // 글 URL은 파일명 날짜 프리픽스(YYYY-MM-DD-slug)가 발행일 — lastmod로 실어
+      // 크롤러가 새 글을 우선 가져가게 한다. 날짜 없는 페이지는 lastmod 생략.
+      serialize(item) {
+        const m = item.url.match(/\/blog\/(\d{4}-\d{2}-\d{2})-[^/]+\/$/);
+        if (m) item.lastmod = m[1];
+        return item;
+      },
+    }),
+  ],
   // Archive는 Topics로 흡수됨(그래프가 /topics/#graph에 임베드). 기존 링크 보존용 리다이렉트.
   // 목적지엔 base가 자동으로 안 붙으므로 직접 붙인다(소스는 base가 자동 적용됨).
   redirects: { "/archive": `${base}/topics` },
