@@ -25,7 +25,8 @@ const pageHref = (n: number) =>
   n <= 1 ? `${base}/tags/${seg}/` : `${base}/tags/${seg}/${n}/`;
 ---
 
-<Base title={`#${tag} — blog`} description={`${tag} 태그가 달린 글 목록`}>
+{/* noindex: 태그 목록은 글 1~2개짜리 얇은 페이지가 대부분 — 색인 대신 링크 추적만 허용 */}
+<Base title={`#${tag}`} description={`${tag} 태그가 달린 글 목록`} noindex>
   <p class="muted"><a href={`${base}/topics/#tags`}>← 전체 태그</a></p>
   <h1>#{tag}</h1>
   <p class="muted">

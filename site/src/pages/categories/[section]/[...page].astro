@@ -22,7 +22,7 @@ const pageHref = (n: number) =>
   n <= 1 ? `${base}/categories/${section}/` : `${base}/categories/${section}/${n}/`;
 ---
 
-<Base title={`${label} — blog`} description={`${label} 카테고리의 글 목록`}>
+<Base title={label} description={`${label} 카테고리의 글 목록`}>
   <h1>{label}</h1>
   <p class="muted">
     {page.total}개의 글{page.lastPage > 1 && ` · ${page.currentPage} / ${page.lastPage} 페이지`}
