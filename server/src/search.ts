@@ -82,8 +82,10 @@ const NO_KEY_MSG =
   "검색 백엔드 미설정: 환경변수 TAVILY_API_KEY가 없다. " +
   "리서치 없이 진행하거나, 사람에게 키 설정(로컬: 셸 환경변수, CI: 레포 시크릿)을 요청하라.";
 
-/** read_url 결과가 컨텍스트를 폭파하지 않도록 자르는 상한(문자 수). */
-const READ_MAX_CHARS = 20_000;
+/** read_url 절단 기본값(문자 수) — 뉴스·권고문은 대부분 이 안에 들어온다(실측 ~4k). */
+const READ_DEFAULT_CHARS = 20_000;
+/** read_url 절단 하드 실링 — 호출자가 올려도 이 이상은 못 받는다(컨텍스트·비용 폭주 방지). */
+const READ_CEILING_CHARS = 50_000;
 
 export function registerSearchTools(server: McpServer): void {
   server.registerTool(
@@ -138,19 +140,27 @@ export function registerSearchTools(server: McpServer): void {
       title: "URL 본문 읽기",
       description:
         "URL의 본문을 마크다운으로 추출해 돌려준다. search_web 결과 중 근거로 쓸 페이지의 전문이 필요할 때 호출하라. " +
-        `긴 문서는 앞 ${READ_MAX_CHARS.toLocaleString()}자에서 잘린다.`,
+        `긴 문서는 앞 maxChars(기본 ${READ_DEFAULT_CHARS.toLocaleString()}자)에서 잘린다 — 잘린 뒷부분이 필요하면 maxChars를 올려 재호출하라(최대 ${READ_CEILING_CHARS.toLocaleString()}자).`,
       inputSchema: {
         url: z.string().url().describe("본문을 읽을 페이지 URL"),
+        maxChars: z
+          .number()
+          .int()
+          .positive()
+          .max(READ_CEILING_CHARS)
+          .default(READ_DEFAULT_CHARS)
+          .describe(`절단 상한(문자). 긴 문서를 더 읽어야 할 때만 올린다. 최대 ${READ_CEILING_CHARS}`),
       },
     },
-    async ({ url }) => {
+    async ({ url, maxChars }) => {
       const backend = getBackend();
       if (!backend) return { isError: true, content: [{ type: "text", text: NO_KEY_MSG }] };
       try {
         const body = await backend.read(url);
-        const truncated = body.length > READ_MAX_CHARS;
+        const cap = Math.min(maxChars, READ_CEILING_CHARS);
+        const truncated = body.length > cap;
         const text = truncated
-          ? `${body.slice(0, READ_MAX_CHARS)}\n\n…(이하 ${body.length - READ_MAX_CHARS}자 생략)`
+          ? `${body.slice(0, cap)}\n\n…(이하 ${body.length - cap}자 생략 — 더 필요하면 maxChars를 올려 재호출, 최대 ${READ_CEILING_CHARS})`
           : body;
         return { content: [{ type: "text", text: `[${url}]\n\n${text}` }] };
       } catch (e) {
