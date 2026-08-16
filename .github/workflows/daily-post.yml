@@ -67,3 +67,6 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       ref: main
+    # 호출된 워크플로는 호출자의 secrets를 자동 상속하지 않는다 — 이게 없으면
+    # PUBLIC_SUPABASE_*가 빈 값으로 빌드돼 조회수(#66)가 통째로 사라진다.
+    secrets: inherit
