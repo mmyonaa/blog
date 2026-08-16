@@ -3,6 +3,25 @@
 이 프로젝트의 주요 변경 사항을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [1.4.0] - 2026-08-16
+
+첫 방문자 데이터 릴리스 — 정적 사이트에 방문자가 남기는 첫 동적 데이터(조회수)가 붙었다. 저장소는 Supabase, 권한 원칙은 "잠긴 표 + 좁게 열린 함수"(RLS 전면 잠금 + security definer RPC만 anon에 개방).
+
+### Added
+
+- 글 조회수(#66) — 브라우저가 Supabase RPC(`increment_view`/`get_view`)를 직접 호출해 글 상세에 표시. 표는 정책 없는 RLS로 전면 잠금이라 공개 anon 키로 가능한 일은 "1 올리기"뿐. 같은 탭 세션 내 재방문은 sessionStorage로 중복 집계 방지, 실패 시 자리를 비워 방문자에게 오류 미노출
+- 조회수 일일 스냅샷(#67) — `post_views_daily`에 누적값을 날짜별로 적재하는 cron(KST 23:50, 기존 keep-alive 워크플로를 승격·흡수). 누적값 차분으로 일별 조회수를 계산할 수 있어 추이 그래프·최근 7일 인기글·성과 되먹임의 원재료가 된다
+- 히어로 총 조회 라이브 스탯(#69) — `get_total_views` RPC로 전체 누적 조회수를 홈 히어로에 표시
+
+### Fixed
+
+- 자동 발행 배포에서 조회수 전면 소실 — `workflow_call`로 호출된 deploy는 호출자의 secrets를 상속하지 않아 `PUBLIC_SUPABASE_*`가 빈 값으로 빌드되고, 번들러가 fetch 로직을 죽은 코드로 제거했다. daily-post의 deploy 호출에 `secrets: inherit` 추가
+- TopReads(많이 읽은 글)의 상대 시각이 클라이언트 갱신 패턴(`time[data-relative]`)에서 빠져 빌드 시점 값으로 고착되던 문제
+
+### Security
+
+- `increment_view`에 slug 형식 검증(`^[a-z0-9-]{1,80}$`) — 공개 anon 키로 임의 문자열 slug를 던져 쓰레기 행을 무한 생성하는 저장 공격을 입구에서 차단(스냅샷 증식도 함께 차단)
+
 ## [1.3.0] - 2026-08-15
 
 Mode R 릴리스 — 보안 섹션이 시드 없이 웹 리서치로 최신 사고를 종합해 발행한다. 서버에 첫 외부 API(Tavily)가 붙었다(여전히 LLM 호출은 없음).
@@ -100,6 +119,8 @@ Phase 3 완성 릴리스 — 사람 없이 매일 발행되는 무인 파이프�
 - GitHub Actions 배포 워크플로 — main push 시 pnpm 워크스페이스 빌드 → Pages 배포
 - 레포 public 전환, Pages(Actions 소스) 활성화
 
+[1.4.0]: https://github.com/mmyonaa/blog/releases/tag/v1.4.0
+[1.3.0]: https://github.com/mmyonaa/blog/releases/tag/v1.3.0
 [1.2.0]: https://github.com/mmyonaa/blog/releases/tag/v1.2.0
 [1.1.0]: https://github.com/mmyonaa/blog/releases/tag/v1.1.0
 [1.0.0]: https://github.com/mmyonaa/blog/releases/tag/v1.0.0
