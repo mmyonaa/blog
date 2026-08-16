@@ -3,6 +3,12 @@
 이 프로젝트의 주요 변경 사항을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [Unreleased]
+
+### Added
+
+- mcp 생태계 동향 글 유형(#71) — mcp 섹션에 area `T`(생태계 동향) 추가, `write_research_post`의 소재 발굴이 섹션 레지스트리의 `researchHint`로 방향을 잡고(`researchArea`로 area 자동 지정), 래퍼 로테이션을 4슬롯(mcp→jeongcheogi→security→mcp-trend)으로 확장. 새 도구·프롬프트 없이 Mode R 재사용
+
 ## [1.4.0] - 2026-08-16
 
 첫 방문자 데이터 릴리스 — 정적 사이트에 방문자가 남기는 첫 동적 데이터(조회수)가 붙었다. 저장소는 Supabase, 권한 원칙은 "잠긴 표 + 좁게 열린 함수"(RLS 전면 잠금 + security definer RPC만 anon에 개방).

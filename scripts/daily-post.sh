@@ -8,7 +8,8 @@
 #
 # 사용법:
 #   bash scripts/daily-post.sh [section]
-#     section 생략 시 날짜(연중일) 기반 로테이션: mcp → jeongcheogi → security
+#     section 생략 시 날짜(연중일) 기반 로테이션: mcp → jeongcheogi → security → mcp-trend
+#     mcp-trend는 mcp 섹션의 Mode R(생태계 동향 리서치) — 발행되는 글의 section은 mcp다.
 #   SKIP_PUSH=1 bash scripts/daily-post.sh   # 커밋까지만, push 생략(로컬 테스트)
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -17,8 +18,9 @@ CONTENT_DIR="site/src/content/blog"
 RESULT_JSON="${TMPDIR:-/tmp}/daily-post-result.json"
 MAX_ATTEMPTS=3
 
-# 섹션 로테이션 — 연중일 % 3. 결정론이라 같은 날 재실행해도 같은 섹션(재시도 안전).
-SECTIONS=(mcp jeongcheogi security)
+# 섹션 로테이션 — 연중일 % 4. 결정론이라 같은 날 재실행해도 같은 섹션(재시도 안전).
+# mcp-trend는 별도 섹션이 아니라 "mcp 섹션 + Mode R" 실행 모드다(아래 분기 참조).
+SECTIONS=(mcp jeongcheogi security mcp-trend)
 idx=$(( 10#$(date +%j) % ${#SECTIONS[@]} ))
 SECTION="${1:-${SECTIONS[$idx]}}"
 
@@ -32,10 +34,13 @@ for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
 
   # 프롬프트는 서버의 빌더가 단일 출처 — print-prompt CLI로 뽑아 주입.
   # (MCP 슬래시 프롬프트는 헤드리스에서 "Unknown command"로 발동 불가 — 2026-08-10 판가름)
-  # security 차례는 Mode R(#17 리서치 종합) — 시사성 섹션이라 웹 근거로 쓴다.
+  # security·mcp-trend 차례는 Mode R(#17 리서치 종합) — 시사성 소재라 웹 근거로 쓴다.
+  # mcp-trend는 mcp 섹션의 리서치 실행(#71) — 프롬프트에는 실제 section(mcp)을 넘긴다.
   # TAVILY_API_KEY 미설정이면 도구가 안내 에러를 돌려주므로 파이프라인은 안 깨진다.
-  if [ "$SECTION" = "security" ]; then
-    PROMPT=$(node server/dist/print-prompt.js --research "$SECTION")
+  if [ "$SECTION" = "security" ] || [ "$SECTION" = "mcp-trend" ]; then
+    RESEARCH_SECTION="$SECTION"
+    [ "$SECTION" = "mcp-trend" ] && RESEARCH_SECTION="mcp"
+    PROMPT=$(node server/dist/print-prompt.js --research "$RESEARCH_SECTION")
     TOOLS="mcp__blog-mcp__search_web,mcp__blog-mcp__read_url,mcp__blog-mcp__publish_post"
   else
     PROMPT=$(node server/dist/print-prompt.js "$SECTION")

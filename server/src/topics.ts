@@ -14,16 +14,32 @@
  * ⚠️ 확장 원칙: 이 레지스트리가 섹션의 단일 출처다. 새 섹션은 여기에 한 줄 추가하고,
  * 그 섹션의 area(아래)와 시드만 얹으면 된다. section 값을 enum으로 하드코딩하지 말 것.
  */
+export interface SectionDef {
+  label: string;
+  desc: string;
+  /** Mode R(write_research_post) 소재 발굴 방향. 있으면 리서치 프롬프트가 검색을 이쪽으로 조준한다. */
+  researchHint?: string;
+  /** Mode R 글이 달 area. 시사 글은 시드 밖(topicId 없음)이라 분류를 area로 잇는다. */
+  researchArea?: AreaId;
+}
+
 export const SECTIONS = {
-  mcp: { label: "MCP·에이전트 만들기", desc: "MCP 서버·에이전트를 만들며 배운 개념과 자동화 여정을 기록하는 메타 블로그" },
+  mcp: {
+    label: "MCP·에이전트 만들기",
+    desc: "MCP 서버·에이전트를 만들며 배운 개념과 자동화 여정을 기록하는 메타 블로그",
+    researchHint:
+      "요즘 뜨는 MCP 서버·에이전트 프레임워크·Claude Code 스킬 등 생태계 화제작과 새 릴리스. GitHub 릴리스 노트·공식 블로그 같은 1차 출처가 뉴스 기사보다 신호가 강하다",
+    researchArea: "T",
+  },
   web: { label: "블로그·웹 만들기", desc: "Astro·TypeScript 등 블로그 사이트를 만들며 배운 웹 기술" },
   jeongcheogi: { label: "정처기", desc: "정보처리기사 시험 개념 정리" },
   algo: { label: "알고리즘", desc: "코딩테스트를 위한 알고리즘·자료구조를 구현 중심으로 정리" },
   security: {
     label: "보안",
     desc: "최근 보안 사고·취약점을 웹 리서치로 종합(Mode R). 시드 없이 자유 주제로 쓴다",
+    researchHint: "최근 보안 사고·신규 취약점·패치 공지 중 개발자에게 실제 영향이 있는 사건",
   },
-} as const;
+} as const satisfies Record<string, SectionDef>;
 
 export type SectionId = keyof typeof SECTIONS;
 
@@ -36,6 +52,7 @@ export const AREAS = {
   // ── mcp 섹션 ──
   A: { section: "mcp", label: "프로젝트 개발기", desc: "MCP 자동화 여정 — 에이전트·CI·비용 등 프로젝트 기록" },
   C: { section: "mcp", label: "MCP·LLM 해설", desc: "MCP·LLM 생태계 개념 설명" },
+  T: { section: "mcp", label: "생태계 동향", desc: "요즘 뜨는 MCP 서버·에이전트·스킬 등 생태계 이슈 리서치 (Mode R, 시드 없음)" },
   // ── web 섹션 ──
   B: { section: "web", label: "TS·구현 기법", desc: "TypeScript/Node 기술 팁 (풀이 무한)" },
   W: { section: "web", label: "사이트 구축", desc: "Astro·배포 등 블로그 사이트 만들기" },

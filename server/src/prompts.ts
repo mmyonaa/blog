@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { SECTIONS, type SectionId } from "./topics.js";
+import { SECTIONS, type SectionDef, type SectionId } from "./topics.js";
 
 const SECTION_IDS = Object.keys(SECTIONS) as SectionId[];
 
@@ -222,11 +222,14 @@ export function buildWriteResearchPostText({
   depth?: Depth;
 }): string {
   const sec: SectionId = section && (section in SECTIONS) ? (section as SectionId) : "security";
+  const secDef: SectionDef = SECTIONS[sec];
   const chosen: Depth = depth ?? "standard";
   const minChars = DEPTH_BANDS[chosen].min;
+  // 섹션별 발굴 방향(레지스트리 단일 출처). 없으면 일반 문구만.
+  const hintPart = secDef.researchHint ? ` 발굴 방향: ${secDef.researchHint}.` : "";
   const topicLine = topic && topic.trim() !== ""
     ? `2. 리서치 주제는 "${topic}"이다. \`search_web\`으로 이 주제의 최근 소식·배경을 찾는다(뉴스성이면 \`topic: "news"\`). 쿼리는 영문이 결과 폭이 넓다.`
-    : `2. 소재 발굴: \`search_web\`(\`topic: "news"\`)으로 최근 소식을 훑고, 독자(개발자)에게 의미 있는 사건 하나를 주제로 확정한다. 쿼리는 영문이 결과 폭이 넓다. 1단계에서 본 기존 글과 겹치는 소재는 피한다.`;
+    : `2. 소재 발굴: \`search_web\`(\`topic: "news"\`)으로 최근 소식을 훑고, 독자(개발자)에게 의미 있는 사건 하나를 주제로 확정한다.${hintPart} 쿼리는 영문이 결과 폭이 넓다. 1단계에서 본 기존 글과 겹치는 소재는 피한다.`;
 
   return [
     `당신은 이 블로그의 리서치 필자다. 웹 리서치를 종합해 "${SECTIONS[sec].label}"(section="${sec}") 섹션 글 한 편을 작성하고 발행하라. 출처를 요약해 나열하는 글이 아니라, 교차검증을 거쳐 재구성한 종합이어야 한다.`,
@@ -251,6 +254,9 @@ export function buildWriteResearchPostText({
     "   - `sources`에 **read_url로 실제 읽은** 출처를 `{url, title}`로 넘긴다(2건 미만이면 발행이 거부된다).",
     '   - `generated: "research-synthesis"`를 반드시 넘긴다(리서치 글 투명성 표시 — 글 하단에 참고 자료로 렌더된다).',
     "   - 시드 주제가 아니므로 `topicId`는 생략한다.",
+    ...(secDef.researchArea
+      ? [`   - \`area: "${secDef.researchArea}"\`를 넘긴다 — 시사 글은 topicId가 없어 세부 분류를 area로 잇는다.`]
+      : []),
     "9. 발행 결과(파일명)와 사용한 출처 수를 사람에게 한 줄로 보고한다.",
   ].join("\n");
 }
