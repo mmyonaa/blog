@@ -3,11 +3,17 @@
 이 프로젝트의 주요 변경 사항을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
-## [Unreleased]
+## [1.5.0] - 2026-08-18
+
+mcp 섹션이 시사성을 얻었다 — 보안 섹션만 쓰던 Mode R(웹 리서치 종합)을 mcp 생태계 동향에도 돌린다. 첫 자동 발행으로 MCP 2026-07-28 스펙 개정 글이 나왔다.
 
 ### Added
 
 - mcp 생태계 동향 글 유형(#71) — mcp 섹션에 area `T`(생태계 동향) 추가, `write_research_post`의 소재 발굴이 섹션 레지스트리의 `researchHint`로 방향을 잡고(`researchArea`로 area 자동 지정), 래퍼 로테이션을 4슬롯(mcp→jeongcheogi→security→mcp-trend)으로 확장. 새 도구·프롬프트 없이 Mode R 재사용
+
+### Changed
+
+- GitHub Actions 액션 메이저 업그레이드(#72) — checkout v7·pnpm/action-setup v6·upload-artifact v7·upload-pages-artifact v5·deploy-pages v5로 Node 20 deprecated 경고 해소. setup-node는 v5 고정(v6부터 자동 캐시가 npm 전용이라 `cache: pnpm`이 깨짐)
 
 ## [1.4.0] - 2026-08-16
 
