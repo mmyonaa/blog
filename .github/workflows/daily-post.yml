@@ -25,9 +25,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      # setup-node는 v5에 고정 — v6부터 자동 캐시가 npm 전용이라 cache: pnpm이 깨진다(#72)
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
@@ -50,7 +51,7 @@ jobs:
       # 사용량·턴 관측치 보존 — #43(학습 기록)의 입력
       - name: 결과 JSON 아티팩트
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: daily-post-result-${{ github.run_id }}
           path: /tmp/daily-post-result.json

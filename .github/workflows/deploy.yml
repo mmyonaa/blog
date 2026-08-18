@@ -34,14 +34,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # push/dispatch면 트리거 SHA(빈 값 → 기본), workflow_call이면 최신 main
           # (호출 시 github.sha는 발행 "이전" 커밋이라 그대로 쓰면 새 글이 빠진다)
           ref: ${{ inputs.ref || '' }}
       # pnpm 버전은 루트 package.json의 packageManager 필드를 따른다
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v6
+      # setup-node는 v5에 고정 — v6부터 자동 캐시가 npm 전용이라 cache: pnpm이 깨진다(#72)
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
@@ -55,7 +56,8 @@ jobs:
           # 조회수(#66) — PUBLIC_ 값은 빌드 시 클라이언트 번들에 인라인된다(공개 무해 설계)
           PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
-      - uses: actions/upload-pages-artifact@v3
+      # v4부터 dotfile은 아티팩트에서 제외가 기본 — site/dist엔 dotfile이 없어 무해(#72)
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site/dist
 
@@ -67,4 +69,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
