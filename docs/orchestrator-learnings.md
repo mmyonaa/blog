@@ -18,3 +18,4 @@
 | 2026-08-16 | 성공 | mcp-trend | 1/3 | 1.3253842 | 17 | 231296 | 6 | 2026-08-16-mcp-2026-07-28-stateless-spec.md |
 | 2026-08-17 | 성공 | jeongcheogi | 1/3 | 0.8619245999999999 | 13 | 149223 | 1 | 2026-08-17-http-status-codes.md |
 | 2026-08-18 | 성공 | security | 1/3 | 1.0312062000000002 | 12 | 127767 | 0 | 2026-08-18-ghostapproval-symlink-ai-coding-agents.md |
+| 2026-08-19 | 성공 | mcp-trend | 1/3 | 1.3557382 | 20 | 219491 | 2 | 2026-08-19-mcp-apps-interactive-ui.md |
