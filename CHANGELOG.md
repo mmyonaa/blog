@@ -3,6 +3,14 @@
 이 프로젝트의 주요 변경 사항을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [1.6.0] - 2026-08-21
+
+콘텐츠 루프가 닫혔다 — 발행 결과(조회수)가 다음 주제 선택에 되먹임된다. 서버는 여전히 LLM을 호출하지 않는다(결정론적 산술만).
+
+### Added
+
+- 성과 신호 되먹임(#73) — suggest_topic이 Supabase 조회수(`get_views_bulk`)를 읽어 area별 "조회수÷경과일" 평균으로 정렬에 가중. 1차 키는 현행 다각화(덜 다룬 영역) 유지, 동률일 때만 성과순. 총 조회 30 미만이면 가중을 끄는 cold-start 관문, 키 미설정·실패 시 현행과 동일 동작(graceful degradation)
+
 ## [1.5.0] - 2026-08-18
 
 mcp 섹션이 시사성을 얻었다 — 보안 섹션만 쓰던 Mode R(웹 리서치 종합)을 mcp 생태계 동향에도 돌린다. 첫 자동 발행으로 MCP 2026-07-28 스펙 개정 글이 나왔다.
