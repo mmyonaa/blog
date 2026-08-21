@@ -20,3 +20,4 @@
 | 2026-08-18 | 성공 | security | 1/3 | 1.0312062000000002 | 12 | 127767 | 0 | 2026-08-18-ghostapproval-symlink-ai-coding-agents.md |
 | 2026-08-19 | 성공 | mcp-trend | 1/3 | 1.3557382 | 20 | 219491 | 2 | 2026-08-19-mcp-apps-interactive-ui.md |
 | 2026-08-20 | 성공 | mcp | 1/3 | 1.0297361999999999 | 16 | 201999 | 8 | 2026-08-20-mcp-elicitation-server-user-input.md |
+| 2026-08-21 | 성공 | jeongcheogi | 1/3 | 0.6087494 | 8 | 103538 | 1 | 2026-08-21-relational-algebra.md |
