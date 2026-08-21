@@ -10,6 +10,8 @@ export interface PostSummary {
   topicSlug: string;
   /** 시드 주제 식별자(SEED_TOPICS[].id). 중복 판정의 안정적 키. 없을 수 있음. */
   topicId?: string | undefined;
+  /** 세부 영역(AreaId). 시드 밖 글(리서치 등)은 topicId가 없어 이 필드가 유일한 영역 근거다. */
+  area?: string | undefined;
   /** 섹션(대분류). 없으면 "mcp"로 본다(구버전 글 호환). */
   section: string;
   title: string;
@@ -42,6 +44,7 @@ function toSummary(fileName: string, raw: string): Post {
     slug,
     topicSlug: slug.replace(DATE_PREFIX, ""),
     topicId: typeof data.topicId === "string" ? data.topicId : undefined,
+    area: typeof data.area === "string" ? data.area : undefined,
     section: typeof data.section === "string" && data.section.trim() !== "" ? data.section : "mcp",
     title: typeof data.title === "string" ? data.title : slug,
     pubDate: normalizeDate(data.pubDate, slug.slice(0, 10)),

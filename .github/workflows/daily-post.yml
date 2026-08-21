@@ -47,6 +47,9 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Mode R(#16~): 리서치 도구용. 미설정이어도 도구가 안내 에러를 돌려줄 뿐 발행은 안 깨진다.
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          # 성과 되먹임(#73): suggest_topic이 조회수를 읽어 area 가중. 미설정이면 가중 없이 현행 동작.
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
 
       # 사용량·턴 관측치 보존 — #43(학습 기록)의 입력
       - name: 결과 JSON 아티팩트

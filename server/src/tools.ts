@@ -24,6 +24,7 @@ function isSectionId(value: string): value is SectionId {
   return (SECTION_IDS as string[]).includes(value);
 }
 import { nowIso, slugify, yamlString } from "./util.js";
+import { areaViewScores, fetchViewsBulk } from "./views.js";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -432,8 +433,17 @@ export function registerSuggestTopic(server: McpServer): void {
         list.push(t);
         byArea.set(t.area, list);
       }
-      // 최근 사용이 적은 영역부터
-      const areaOrder = [...byArea.keys()].sort((a, b) => recentCount(a) - recentCount(b));
+      // 성과 되먹임(#73): 조회수 신호가 있으면 area 정렬의 2차 키로 쓴다.
+      // 1차 키는 여전히 "최근 덜 다룬 영역"(다각화·탐색) — 성과는 동률일 때만 순서를 바꾼다.
+      // 신호가 없으면(키 미설정·실패·희박) scores가 비어 현행과 완전히 동일하게 동작한다.
+      const sectionPosts = posts.filter((p) => (p.section ?? "mcp") === section);
+      const views = await fetchViewsBulk();
+      const scores = views ? areaViewScores(sectionPosts, views, new Date()) : new Map<AreaId, number>();
+      const scoreOf = (area: AreaId): number => scores.get(area) ?? 0;
+      // 최근 사용이 적은 영역부터, 동률이면 조회 성과(조회수/일 평균)가 좋은 영역부터
+      const areaOrder = [...byArea.keys()].sort(
+        (a, b) => recentCount(a) - recentCount(b) || scoreOf(b) - scoreOf(a),
+      );
 
       const picked: Topic[] = [];
       for (let i = 0; picked.length < count && [...byArea.values()].some((l) => l.length); i++) {
@@ -473,7 +483,7 @@ export function registerSuggestTopic(server: McpServer): void {
         content: [
           {
             type: "text" as const,
-            text: `[${sectionLabel}] 안 겹치는 후보 주제 (영역 섞음, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로, section은 "${section}"로 넘긴다.\n위 '추천 follows'가 이 글의 직계 선행 글이라면 publish_post의 follows로, 더 엮인 글들은 related로 넘기면 관계 그래프가 이어진다(참조는 실존 검증됨). area는 topicId에서 자동 도출되니 대개 생략.\n이 후보가 마음에 안 들면 시드 밖 자유 주제로 써도 됩니다(topicId 생략, section 유지).\n\n최근 발행 글(참고):\n${recentText}`,
+            text: `[${sectionLabel}] 안 겹치는 후보 주제 (영역 섞음${scores.size > 0 ? " · 조회 성과 가중 적용" : ""}, 남은 ${available.length}개 중 ${picked.length}개):\n${suggestions}\n\n발행할 때 고른 주제의 id를 publish_post의 topicId로, section은 "${section}"로 넘긴다.\n위 '추천 follows'가 이 글의 직계 선행 글이라면 publish_post의 follows로, 더 엮인 글들은 related로 넘기면 관계 그래프가 이어진다(참조는 실존 검증됨). area는 topicId에서 자동 도출되니 대개 생략.\n이 후보가 마음에 안 들면 시드 밖 자유 주제로 써도 됩니다(topicId 생략, section 유지).\n\n최근 발행 글(참고):\n${recentText}`,
           },
         ],
       };

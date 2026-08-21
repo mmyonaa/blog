@@ -4,7 +4,9 @@
       "command": "node",
       "args": ["server/dist/index.js"],
       "env": {
-        "TAVILY_API_KEY": "${TAVILY_API_KEY}"
+        "TAVILY_API_KEY": "${TAVILY_API_KEY}",
+        "PUBLIC_SUPABASE_URL": "${PUBLIC_SUPABASE_URL}",
+        "PUBLIC_SUPABASE_ANON_KEY": "${PUBLIC_SUPABASE_ANON_KEY}"
       }
     }
   }
