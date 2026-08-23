@@ -22,3 +22,4 @@
 | 2026-08-20 | 성공 | mcp | 1/3 | 1.0297361999999999 | 16 | 201999 | 8 | 2026-08-20-mcp-elicitation-server-user-input.md |
 | 2026-08-21 | 성공 | jeongcheogi | 1/3 | 0.6087494 | 8 | 103538 | 1 | 2026-08-21-relational-algebra.md |
 | 2026-08-22 | 성공 | security | 1/3 | 1.0412578 | 19 | 273772 | 4 | 2026-08-22-libssh2-cve-2026-55200.md |
+| 2026-08-23 | 성공 | mcp-trend | 1/3 | 0.649709 | 11 | 151063 | 1 | 2026-08-23-dns-aid-mcp-agent-discovery.md |
