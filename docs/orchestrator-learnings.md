@@ -24,3 +24,4 @@
 | 2026-08-22 | 성공 | security | 1/3 | 1.0412578 | 19 | 273772 | 4 | 2026-08-22-libssh2-cve-2026-55200.md |
 | 2026-08-23 | 성공 | mcp-trend | 1/3 | 0.649709 | 11 | 151063 | 1 | 2026-08-23-dns-aid-mcp-agent-discovery.md |
 | 2026-08-24 | 성공 | mcp | 1/3 | 0.7999538 | 25 | 171395 | 4 | 2026-08-24-mcp-logging-capability.md |
+| 2026-08-25 | 성공 | jeongcheogi | 1/3 | 0.45742140000000003 | 8 | 118076 | 2 | 2026-08-25-sorting-algorithms-comparison.md |
