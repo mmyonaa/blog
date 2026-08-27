@@ -2,6 +2,8 @@ import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
 import type { APIContext } from "astro";
 
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 export async function GET(context: APIContext) {
   const posts = (await getCollection("blog")).sort(
     (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -16,7 +18,7 @@ export async function GET(context: APIContext) {
       description: post.data.description ?? "",
       pubDate: post.data.pubDate,
       categories: post.data.tags,
-      link: `/mcp/blog/${post.id}/`,
+      link: `${base}/blog/${post.id}/`,
     })),
     customData: "<language>ko-kr</language>",
   });
