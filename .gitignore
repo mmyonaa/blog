@@ -4,6 +4,9 @@ docs/*
 # 예외: 오케스트레이터 학습 기록(#43)은 CI 러너에서도 누적돼야 하므로 추적
 !docs/orchestrator-learnings.md
 
+# 세션 인계 기록 (로컬 전용 — 레포가 public이라 추적하지 않는다)
+handoff/
+
 # Node / TypeScript
 node_modules/
 dist/
