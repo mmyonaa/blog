@@ -807,6 +807,12 @@ const jsonLd = {
     margin-top: var(--space-8);
     padding-top: var(--space-2);
   }
+  /* 본문 첫 요소(대개 h2)의 위 여백은 .reading의 padding-top과 겹쳐 상단이 비어 보인다.
+     상단 여백은 .reading이 담당하므로 첫 요소의 것만 걷어낸다. */
+  .prose > :global(:first-child) {
+    margin-top: 0;
+    padding-top: 0;
+  }
   .prose :global(h3) {
     margin-top: var(--space-6);
   }
