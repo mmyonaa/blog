@@ -8,7 +8,7 @@
 #
 # 사용법:
 #   bash scripts/daily-post.sh [section]
-#     section 생략 시 날짜(연중일) 기반 로테이션: mcp → jeongcheogi → security → mcp-trend
+#     section 생략 시 날짜(연중일) 기반 로테이션: mcp → jeongcheogi → security → mcp-trend → boangisa
 #     mcp-trend는 mcp 섹션의 Mode R(생태계 동향 리서치) — 발행되는 글의 section은 mcp다.
 #   SKIP_PUSH=1 bash scripts/daily-post.sh   # 커밋까지만, push 생략(로컬 테스트)
 set -euo pipefail
@@ -18,9 +18,9 @@ CONTENT_DIR="site/src/content/blog"
 RESULT_JSON="${TMPDIR:-/tmp}/daily-post-result.json"
 MAX_ATTEMPTS=3
 
-# 섹션 로테이션 — 연중일 % 4. 결정론이라 같은 날 재실행해도 같은 섹션(재시도 안전).
+# 섹션 로테이션 — 연중일 % 슬롯 수. 결정론이라 같은 날 재실행해도 같은 섹션(재시도 안전).
 # mcp-trend는 별도 섹션이 아니라 "mcp 섹션 + Mode R" 실행 모드다(아래 분기 참조).
-SECTIONS=(mcp jeongcheogi security mcp-trend)
+SECTIONS=(mcp jeongcheogi security mcp-trend boangisa)
 idx=$(( 10#$(date +%j) % ${#SECTIONS[@]} ))
 SECTION="${1:-${SECTIONS[$idx]}}"
 

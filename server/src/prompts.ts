@@ -116,7 +116,8 @@ export function buildWriteDailyPostText({
   section?: string;
 }): string {
   const sec: SectionId = section && (section in SECTIONS) ? (section as SectionId) : "mcp";
-      const isJeong = sec === "jeongcheogi";
+      // 자격증 시험 섹션이면 레지스트리가 시험 이름을 준다(하드코딩 대신 SECTIONS 파생).
+      const exam = (SECTIONS[sec] as SectionDef).exam;
       const chosen: Depth = depth ?? "standard";
       const explicitLen = length && length.trim() !== "" ? length : null;
       const explicitNum = explicitLen ? Number(explicitLen) : NaN;
@@ -132,12 +133,12 @@ export function buildWriteDailyPostText({
         ? `4. 주제는 "${topic}"으로 한다. (시드 밖 주제이므로 topicId는 없다)`
         : `4. \`suggest_topic\`을 \`section: "${sec}"\`로 호출해 안 겹치는 후보를 받고, 그중 하나를 고른다. 후보는 영역이 섞여 나오니 최근 글과 다른 영역을 우선 고려한다. 각 후보의 \`[id: ...]\`를 기억해 둔다.`;
 
-      // 섹션별 본문 형식 지침(정처기는 개념 정리형, 그 외는 개발 튜토리얼형).
-      const formatLine = isJeong
+      // 섹션별 본문 형식 지침(자격증 섹션은 개념 정리형, 그 외는 개발 튜토리얼형).
+      const formatLine = exam
         ? "   - 형식: 개념 정리형 — 정의 → 핵심 원리 → 예시 → 시험에 자주 나오는 포인트. 표나 코드는 도움이 될 때만."
         : "   - 형식: 마크다운. 적절한 소제목과, 가능하면 코드 예제 1개 이상 포함";
-      const audienceLine = isJeong
-        ? "   - 대상: 정보처리기사를 준비하는 사람 (개념을 처음 정리하는 수준)"
+      const audienceLine = exam
+        ? `   - 대상: ${exam}를 준비하는 사람 (개념을 처음 정리하는 수준)`
         : "   - 대상: 개발을 배우는 독자";
 
       const text = [

@@ -21,6 +21,11 @@ export interface SectionDef {
   researchHint?: string;
   /** Mode R 글이 달 area. 시사 글은 시드 밖(topicId 없음)이라 분류를 area로 잇는다. */
   researchArea?: AreaId;
+  /**
+   * 자격증 시험 섹션이면 그 시험의 정식 명칭. 있으면 write_daily_post가 튜토리얼형 대신
+   * 개념 정리형(정의→원리→예시→시험 포인트)으로 쓰고 대상 독자를 수험생으로 잡는다.
+   */
+  exam?: string;
 }
 
 export const SECTIONS = {
@@ -32,7 +37,8 @@ export const SECTIONS = {
     researchArea: "T",
   },
   web: { label: "블로그·웹 만들기", desc: "Astro·TypeScript 등 블로그 사이트를 만들며 배운 웹 기술" },
-  jeongcheogi: { label: "정처기", desc: "정보처리기사 시험 개념 정리" },
+  jeongcheogi: { label: "정처기", desc: "정보처리기사 시험 개념 정리", exam: "정보처리기사" },
+  boangisa: { label: "정보보안기사", desc: "정보보안기사 필기 5과목 개념 정리", exam: "정보보안기사" },
   algo: { label: "알고리즘", desc: "코딩테스트를 위한 알고리즘·자료구조를 구현 중심으로 정리" },
   security: {
     label: "보안",
@@ -64,6 +70,12 @@ export const AREAS = {
   SE: { section: "jeongcheogi", label: "소프트웨어공학", desc: "설계·테스트·방법론 등" },
   SEC: { section: "jeongcheogi", label: "정보보안", desc: "암호화·접근통제·보안 3요소 등" },
   PRAC: { section: "jeongcheogi", label: "실기 문제", desc: "C·Java·Python 실기 코딩 문제 풀이" },
+  // ── boangisa 섹션 (정보보안기사 필기 5과목) ──
+  SYS: { section: "boangisa", label: "시스템 보안", desc: "리눅스·윈도우 권한, 악성코드, 로그 등" },
+  NSEC: { section: "boangisa", label: "네트워크 보안", desc: "스푸핑·DDoS·방화벽·VPN 등" },
+  APPSEC: { section: "boangisa", label: "애플리케이션 보안", desc: "웹 취약점·세션·전자우편 보안 등" },
+  ISEC: { section: "boangisa", label: "정보보안 일반", desc: "암호 알고리즘·인증·PKI 등" },
+  LAW: { section: "boangisa", label: "관리·법규", desc: "위험관리·ISMS-P·개인정보보호법 등" },
   // ── algo 섹션 ──
   DS: { section: "algo", label: "자료구조", desc: "배열·스택·큐·해시·트리·힙" },
   SRT: { section: "algo", label: "정렬·탐색", desc: "이진탐색·정렬 비교·투 포인터" },
@@ -146,6 +158,38 @@ export const SEED_TOPICS: Topic[] = [
   { id: "symmetric-asymmetric", area: "SEC", title: "대칭키 vs 비대칭키 암호화", tags: ["정처기", "정보보안", "암호화"] },
   { id: "hash-digital-signature", area: "SEC", title: "해시 함수와 전자서명", tags: ["정처기", "정보보안", "해시"] },
   { id: "access-control", area: "SEC", title: "접근통제 모델 — DAC·MAC·RBAC", tags: ["정처기", "정보보안", "접근통제"] },
+
+  // ── 정보보안기사 섹션 (boangisa) ──
+  // SYS — 시스템 보안
+  { id: "linux-permission-setuid", area: "SYS", title: "리눅스 파일 권한과 SetUID·SetGID·스티키 비트", tags: ["정보보안기사", "시스템보안", "리눅스", "권한"] },
+  { id: "windows-auth-sam-lsa", area: "SYS", title: "윈도우 인증 구조 — SAM·LSA·NTLM", tags: ["정보보안기사", "시스템보안", "윈도우", "인증"] },
+  { id: "buffer-overflow", area: "SYS", title: "버퍼 오버플로우 — 스택이 무너지는 원리와 방어", tags: ["정보보안기사", "시스템보안", "버퍼오버플로우"] },
+  { id: "malware-types", area: "SYS", title: "악성코드 분류 — 바이러스·웜·트로이목마·루트킷", tags: ["정보보안기사", "시스템보안", "악성코드"] },
+  { id: "system-log-audit", area: "SYS", title: "시스템 로그와 감사 — syslog·utmp·wtmp", tags: ["정보보안기사", "시스템보안", "로그"] },
+  // NSEC — 네트워크 보안
+  { id: "arp-spoofing", area: "NSEC", title: "ARP 스푸핑 — 스위치 환경에서 어떻게 스니핑하나", tags: ["정보보안기사", "네트워크보안", "스푸핑"] },
+  { id: "ddos-attack-types", area: "NSEC", title: "DoS·DDoS 공격 유형 — SYN 플러딩·스머프·슬로로리스", tags: ["정보보안기사", "네트워크보안", "ddos"] },
+  { id: "firewall-ids-ips-waf", area: "NSEC", title: "방화벽·IDS·IPS·WAF는 무엇이 다른가", tags: ["정보보안기사", "네트워크보안", "방화벽", "ids"] },
+  { id: "vpn-ipsec-ssl", area: "NSEC", title: "VPN — IPSec VPN과 SSL VPN", tags: ["정보보안기사", "네트워크보안", "vpn", "ipsec"] },
+  { id: "port-scan-techniques", area: "NSEC", title: "포트 스캔 기법 — TCP 연결·SYN·스텔스 스캔", tags: ["정보보안기사", "네트워크보안", "포트스캔"] },
+  // APPSEC — 애플리케이션 보안
+  { id: "sql-injection", area: "APPSEC", title: "SQL 인젝션 — 원리와 근본 방어", tags: ["정보보안기사", "애플리케이션보안", "sql인젝션"] },
+  { id: "xss-vs-csrf", area: "APPSEC", title: "XSS와 CSRF — 헷갈리는 두 공격 구분하기", tags: ["정보보안기사", "애플리케이션보안", "xss", "csrf"] },
+  { id: "file-upload-vuln", area: "APPSEC", title: "파일 업로드·다운로드 취약점", tags: ["정보보안기사", "애플리케이션보안", "파일업로드"] },
+  { id: "session-hijacking", area: "APPSEC", title: "세션·쿠키 보안과 세션 하이재킹", tags: ["정보보안기사", "애플리케이션보안", "세션"] },
+  { id: "email-security-pgp-smime", area: "APPSEC", title: "전자우편 보안 — PGP와 S/MIME", tags: ["정보보안기사", "애플리케이션보안", "pgp", "이메일"] },
+  // ISEC — 정보보안 일반
+  { id: "block-cipher-modes", area: "ISEC", title: "블록 암호 운영 모드 — ECB·CBC·CTR", tags: ["정보보안기사", "암호화", "블록암호"] },
+  { id: "rsa-diffie-hellman", area: "ISEC", title: "공개키 암호의 뼈대 — RSA와 디피-헬만", tags: ["정보보안기사", "암호화", "rsa"] },
+  { id: "pki-certificate", area: "ISEC", title: "PKI와 인증서 — CA·CRL·OCSP", tags: ["정보보안기사", "암호화", "pki", "인증서"] },
+  { id: "user-auth-otp", area: "ISEC", title: "사용자 인증 3요소와 OTP·생체인증", tags: ["정보보안기사", "인증", "otp"] },
+  { id: "hmac-message-auth", area: "ISEC", title: "메시지 인증 코드 — MAC과 HMAC", tags: ["정보보안기사", "암호화", "hmac"] },
+  // LAW — 관리·법규
+  { id: "risk-management", area: "LAW", title: "위험 관리 — 자산·위협·취약점과 위험 분석 기법", tags: ["정보보안기사", "보안관리", "위험분석"] },
+  { id: "isms-p", area: "LAW", title: "ISMS-P 인증 — 무엇을 어떻게 심사하나", tags: ["정보보안기사", "보안관리", "isms-p"] },
+  { id: "iso-27001", area: "LAW", title: "ISO/IEC 27001과 정보보호 관리체계", tags: ["정보보안기사", "보안관리", "iso27001"] },
+  { id: "personal-info-act", area: "LAW", title: "개인정보보호법 핵심 — 수집·이용·제공·파기", tags: ["정보보안기사", "법규", "개인정보보호법"] },
+  { id: "bcp-drp", area: "LAW", title: "업무연속성 — BCP·DRP와 RTO·RPO", tags: ["정보보안기사", "보안관리", "bcp"] },
 
   // ── 알고리즘 섹션 (algo) ──
   // DS — 자료구조
