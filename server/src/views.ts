@@ -19,10 +19,18 @@ const SUPA_KEY = process.env.PUBLIC_SUPABASE_ANON_KEY;
 const FETCH_TIMEOUT_MS = 3000;
 
 /**
- * 신호 하한 — 매핑된 글들의 조회수 총합이 이보다 작으면 가중을 적용하지 않는다(탐색 우선).
- * cold-start 구간에서 노이즈 몇 건이 순서를 흔드는 것을 막는 결정론적 관문.
+ * 신호 하한 — 아래 둘을 **모두** 넘겨야 가중을 적용한다(못 넘기면 탐색 우선 = 라운드로빈 유지).
+ * cold-start 구간에서 노이즈 몇 건이 순서를 흔드는 것을 막는 결정론적 관문이다.
+ *
+ *  - 절대 하한: 표본 자체가 없는 구간을 막는다. 글이 한두 편뿐인 신설 섹션용.
+ *  - 밀도 하한(글당 평균 조회): 총합만 보면 글이 많은 섹션에서 글당 1~2회짜리 노이즈가
+ *    합산돼 문턱을 넘어버린다. area 순위는 글당 몇 회는 쌓여야 클릭 한 번에 뒤집히지 않는다.
+ *    (2026-08-30 실측: 수집 15일차에 최다 섹션 jeongcheogi가 28편에 총 9회, 1위 글 5회.)
+ *
+ * 가중은 섹션별로 계산되므로(suggest_topic이 그 섹션 글만 넘긴다) 두 값 다 섹션 기준이다.
  */
 const MIN_TOTAL_VIEWS = 30;
+const MIN_VIEWS_PER_POST = 5;
 
 /**
  * get_views_bulk RPC(#67)로 slug별 누적 조회수를 일괄 조회한다.
@@ -81,6 +89,7 @@ export function areaViewScores(
 ): Map<AreaId, number> {
   const sums = new Map<AreaId, { perDaySum: number; posts: number; views: number }>();
   let totalViews = 0;
+  let counted = 0;
 
   for (const post of posts) {
     const area = areaOfPost(post);
@@ -94,9 +103,11 @@ export function areaViewScores(
     acc.views += count;
     sums.set(area, acc);
     totalViews += count;
+    counted += 1;
   }
 
   if (totalViews < MIN_TOTAL_VIEWS) return new Map();
+  if (totalViews < counted * MIN_VIEWS_PER_POST) return new Map();
 
   const scores = new Map<AreaId, number>();
   for (const [area, acc] of sums) {
