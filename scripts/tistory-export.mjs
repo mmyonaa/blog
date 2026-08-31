@@ -1,15 +1,16 @@
 // 티스토리 붙여넣기용 산출물 생성기 — site 빌드의 postbuild 훅으로 자동 실행된다.
 //
 // 티스토리 Open API가 2024-02 종료되어 자동 업로드 경로가 없다. 그래서 사람이
-// 에디터(HTML 모드)에 붙여넣을 수 있는 형태까지만 만들어 docs/tistory/에 쌓아둔다.
-// 마크다운을 다시 파싱하지 않고 빌드 산출물(site/dist)의 <article class="prose">
-// 안쪽을 그대로 가져온다 — 사이트 본문과 100% 같아진다.
+// 에디터에 붙여넣을 수 있는 형태까지만 만들어 docs/tistory/에 쌓아둔다.
+// 티스토리 [마크다운] 모드가 한글에 붙은 **강조**도, 표도 그대로 렌더한다는 걸
+// 실측(2myona.tistory.com/301·302)으로 확인해서, 원문 마크다운을 그대로 넘긴다.
+// HTML 변환은 더 이상 하지 않는다 — 빌드 산출물(site/dist)에 기대지 않으므로
+// 발행 직후 빌드 없이도 뽑을 수 있다.
 //
-//   pnpm --filter @blog-mcp/site build            # postbuild로 자동 실행
-//   node scripts/tistory-export.mjs               # boangisa 섹션 전체 다시 뽑기
+//   pnpm tistory                                     # boangisa 섹션 전체
 //   node scripts/tistory-export.mjs 2026-08-30-arp-spoofing   # 특정 글만
 //
-// 산출물(gitignore): docs/tistory/<slug>.meta.txt(폼 입력값) + <slug>.html(본문)
+// 산출물(gitignore): docs/tistory/<slug>.meta.txt(폼 입력값) + <slug>.md(본문)
 // 규격과 업로드 절차는 docs/tistory-crosspost.md.
 
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
@@ -20,7 +21,6 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS = join(root, "docs");
 const OUT = join(DOCS, "tistory");
 const CONTENT = join(root, "site/src/content/blog");
-const DIST = join(root, "site/dist/blog");
 const SITE = "https://mmyonaa.github.io/blog";
 const SECTION = "boangisa";
 const SECTION_LABEL = "정보보안기사";
@@ -36,43 +36,30 @@ const fm = (md, key) => md.match(new RegExp(`^${key}:\\s*(.*)$`, "m"))?.[1]?.tri
 const unquote = (s) => s.replace(/^["']|["']$/g, "");
 const list = (s) => [...s.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
 
-function body(slug) {
-  const file = join(DIST, slug, "index.html");
-  if (!existsSync(file)) throw new Error(`빌드 산출물 없음: ${file}`);
-  const m = readFileSync(file, "utf8").match(
-    /<article class="prose[^"]*"[^>]*>([\s\S]*?)<\/article>/,
-  );
-  if (!m) throw new Error(`본문(article.prose)을 찾지 못함: ${slug}`);
-  return m[1]
-    .replace(/\n{3,}/g, "\n") // 빈 줄 뭉치 정리
-    .replace(/href="\/blog\//g, `href="${SITE}/`) // 내부 링크 → 절대 URL
-    .replace(/<table>/g, '<table style="border-collapse:collapse;width:100%">')
-    .replace(/<(th|td)>/g, '<$1 style="border:1px solid #ddd;padding:6px 10px">')
-    .trim();
-}
-
 function build(slug) {
-  const head = readFileSync(join(CONTENT, `${slug}.md`), "utf8").split("---")[1] ?? "";
-  const title = unquote(fm(head, "title"));
+  const md = readFileSync(join(CONTENT, `${slug}.md`), "utf8");
+  const head = md.split("---")[1] ?? "";
   const url = `${SITE}/${slug}/`;
 
+  // 프론트매터는 도구가 만든 메타라 본문이 아니다. 티스토리 폼으로 옮겨간다.
+  const body = md.replace(/^---\n[\s\S]*?\n---\n/, "").trim();
   // canonical을 넣을 수 없는 플랫폼이라, 원문 링크 한 줄이 출처 신호를 대신한다.
-  const notice =
-    `<p style="color:#666;font-size:0.9em">` +
-    `이 글은 <a href="${url}">daily.mcp</a>에 먼저 공개한 글을 옮긴 것입니다. 최신 내용은 원문에 있습니다.` +
-    `</p>\n<hr />\n`;
+  const notice = `> 이 글은 [daily.mcp](${url})에 먼저 공개한 글을 옮긴 것입니다. 최신 내용은 원문에 있습니다.`;
+  // 사이트 안에서만 통하는 상대 링크는 옮겨가면 깨진다.
+  const abs = body.replace(/\]\(\/blog\//g, `](${SITE}/`);
 
-  writeFileSync(join(OUT, `${slug}.html`), notice + body(slug) + "\n");
+  writeFileSync(join(OUT, `${slug}.md`), `${notice}\n\n${abs}\n`);
   writeFileSync(
     join(OUT, `${slug}.meta.txt`),
     [
-      `제목: ${title}`,
+      `제목: ${unquote(fm(head, "title"))}`,
       `카테고리: ${SECTION_LABEL}`,
       `태그: ${list(fm(head, "tags")).join(", ")}`,
       `요약(선택): ${unquote(fm(head, "description"))}`,
       `원문 URL: ${url}`,
       ``,
-      `본문: ${slug}.html 전체를 티스토리 에디터 [HTML 모드]에 붙여넣는다.`,
+      `본문: ${slug}.md 전체를 티스토리 에디터 [마크다운] 모드에 붙여넣는다.`,
+      `      (모드는 우측 상단 드롭다운. 한 글에서 마크다운을 고르면 되돌릴 수 없다)`,
     ].join("\n") + "\n",
   );
 }
