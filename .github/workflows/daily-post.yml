@@ -6,7 +6,9 @@ name: Daily Post
 
 on:
   schedule:
-    - cron: "0 5 * * *" # UTC 05:00 = KST 14:00
+    # 정각(0분)은 전 세계 cron이 몰려 스케줄 디스패치가 몇 시간씩 밀린다.
+    # (실측: 0 5로 두니 run 생성 자체가 +5~12시간 — 러너 대기가 아니라 큐 지연)
+    - cron: "23 5 * * *" # UTC 05:23 = KST 14:23
   workflow_dispatch: # 수동 테스트용
     inputs:
       section:

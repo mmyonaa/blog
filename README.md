@@ -64,7 +64,7 @@ Phase 1에서 MCP의 세 가지 primitive를 모두 구현했다. 이 하나의 
 - **블로그 렌더링**: [Astro](https://astro.build) SSG (섹션·태그 페이지 · RSS·sitemap · 클라이언트 검색 · Search Console 등록) → GitHub Pages 자동 배포 (`.github/workflows/deploy.yml`, main push 시)
 - **댓글·의견**: giscus(GitHub Discussions 기반 공개 댓글) + 익명 의견 모달(폼 엔드포인트)
 - **조회수**: [Supabase](https://supabase.com) — 브라우저가 RPC를 직접 호출, 표는 RLS로 잠그고 `security definer` 함수만 개방(anon 키 공개 무해 설계), 일일 스냅샷 cron으로 시계열 적재
-- **트리거**: GitHub Actions cron (`daily-post.yml`, 매일 KST 14:00)
+- **트리거**: GitHub Actions cron (`daily-post.yml`, 매일 KST 14:23)
 - **패키지 관리**: pnpm workspace (`server` + `site`)
 
 ## 프로젝트 구조
