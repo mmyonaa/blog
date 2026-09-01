@@ -31,3 +31,4 @@
 | 2026-08-29 | 성공 | jeongcheogi | 1/3 | 0.4685164 | 8 | 121426 | 2 | 2026-08-29-binary-tree-traversal.md |
 | 2026-08-30 | 성공 | security | 1/3 | 0.655626 | 15 | 161995 | 3 | 2026-08-30-chaindrop-npm-supply-chain-worm.md |
 | 2026-08-31 | 성공 | mcp-trend | 1/3 | 0.7236319999999999 | 21 | 201925 | 6 | 2026-08-31-model-hardware-standard.md |
+| 2026-09-01 | 성공 | boangisa | 1/3 | 0.35455760000000003 | 13 | 130485 | 4 | 2026-09-01-sql-injection.md |
