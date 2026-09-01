@@ -6,7 +6,7 @@ import ViewToggle from "./ViewToggle.astro";
 
 interface Props {
   posts: CollectionEntry<"blog">[];
-  /** /blog/는 BlogFilterLinks 줄에 토글이 있으므로 여기선 끈다(중복 방지). */
+  /** /posts/는 BlogFilterLinks 줄에 토글이 있으므로 여기선 끈다(중복 방지). */
   toggle?: boolean;
 }
 const { posts, toggle = true } = Astro.props as Props;

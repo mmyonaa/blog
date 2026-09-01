@@ -3,10 +3,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const pathname = Astro.url.pathname.replace(/\/$/, "");
 const isHome = pathname === base || pathname === "";
 // 카테고리·태그 상세(/categories/[section]/, /tags/[tag]/)는 '필터된 글 목록'이므로
-// Posts 활성 — /blog/의 필터 바에서 진입해도 활성 메뉴가 튀지 않는다.
+// Posts 활성 — /posts/의 필터 바에서 진입해도 활성 메뉴가 튀지 않는다.
 // Topics는 분류 허브(/topics/) 자체일 때만 활성.
+// 글 상세는 base 바로 밑(/blog/<slug>/)이라 경로 접두사로는 홈과 구별되지 않는다.
+// slug의 날짜 프리픽스로 판별한다 — publish_post가 YYYY-MM-DD-slug로만 파일을 만들고,
+// 사이트맵 lastmod(astro.config.mjs)도 같은 규칙에 기대고 있다.
+const isPost = new RegExp(`^${base}/\\d{4}-\\d{2}-\\d{2}-`).test(pathname);
 const isBlog =
-  pathname.startsWith(`${base}/blog`) ||
+  isPost ||
+  pathname.startsWith(`${base}/posts`) ||
   pathname.startsWith(`${base}/categories`) ||
   pathname.startsWith(`${base}/tags`);
 const isTopics = pathname.startsWith(`${base}/topics`);
@@ -20,7 +25,7 @@ const searchIndexUrl = `${base}/search-index.json`;
     <nav class="nav" aria-label="주요 메뉴">
       <a href={`${base}/`} class:list={["pill", { active: isHome }]} aria-current={isHome ? "page" : undefined}>Home</a>
       <a href={`${base}/topics/`} class:list={["pill", { active: isTopics }]} aria-current={isTopics ? "page" : undefined}>Topics</a>
-      <a href={`${base}/blog/`} class:list={["pill", { active: isBlog }]} aria-current={isBlog ? "page" : undefined}>Posts</a>
+      <a href={`${base}/posts/`} class:list={["pill", { active: isBlog }]} aria-current={isBlog ? "page" : undefined}>Posts</a>
       <a href={`${base}/about/`} class:list={["pill", { active: isAbout }]} aria-current={isAbout ? "page" : undefined}>About</a>
     </nav>
     <div class="header-actions">

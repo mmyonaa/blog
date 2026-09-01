@@ -26,7 +26,7 @@ const isNew =
     </a>
     {isNew && <span class="badge-new">NEW</span>}
     <h2 class="featured-title">
-      <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+      <a href={`${base}/${post.id}/`}>{post.data.title}</a>
     </h2>
     <span class="featured-when">
       <time datetime={post.data.pubDate.toISOString()}>{fmtDate(post.data.pubDate)}</time> · {readMin(post.body)}분

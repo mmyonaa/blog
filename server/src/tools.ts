@@ -41,12 +41,14 @@ const MIN_BODY_LEN = 200;
  *  - (선택) minChars가 주어지면 목표 분량 하한(공백 포함)을 강제 — 심화도 밴드 undershoot 방지.
  */
 /** 글이 아닌 사이트 페이지(site/src/pages/ 라우트) — 본문 링크 검증 대상이 아니다. */
-const SITE_ROUTES = new Set(["about", "topics", "tags", "categories", "changelog", "feedback"]);
+const SITE_ROUTES = new Set([
+  "about", "topics", "tags", "categories", "changelog", "feedback", "posts",
+]);
 
 /**
  * 본문 마크다운의 사이트 내부 링크(`](/blog/…)`)를 검증한다.
- * 글 주소는 Astro base(`/blog`)와 글 라우트(`src/pages/blog/`)가 겹쳐 `/blog/blog/<slug>/` 형태다.
- * `/blog/<slug>`처럼 한 번만 쓰거나 날짜 프리픽스를 빠뜨리면 404로 새므로 발행을 거부한다.
+ * 글 주소는 `/blog/<slug>/`(base + slug)다. 날짜 프리픽스를 빠뜨리거나(topicId를 slug로
+ * 착각) 옛 주소(`/blog/blog/<slug>/`)를 쓰면 404로 새므로 발행을 거부하고 정타를 돌려준다.
  */
 function validateBodyLinks(
   body: string,
@@ -57,14 +59,15 @@ function validateBodyLinks(
     const href = m[1]!;
     const seg = href.split("/").filter(Boolean).slice(1); // base(/blog) 제거
     if (seg.length === 0 || SITE_ROUTES.has(seg[0]!)) continue;
-    const isPostRoute = seg[0] === "blog";
-    if (isPostRoute && (seg.length < 2 || seg[1] === "page")) continue; // 목록·페이지네이션
-    const real = resolveRef(isPostRoute ? seg[1]! : seg[0]!);
+    // 옛 주소(/blog/blog/<slug>/)로 써도 받아서 새 형태로 고쳐준다.
+    const ref = seg[0] === "blog" ? seg[1] : seg[0];
+    if (ref === undefined) continue; // /blog/blog/ 자체는 목록 리다이렉트라 통과
+    const real = resolveRef(ref);
     if (real === null) {
       problems.push(`${href} — 존재하지 않는 글`);
       continue;
     }
-    const correct = `/blog/blog/${real}/`;
+    const correct = `/blog/${real}/`;
     if (href !== correct) problems.push(`${href} → ${correct}`);
   }
   return problems;
@@ -358,7 +361,7 @@ export function registerPublishPost(server: McpServer): void {
               {
                 type: "text" as const,
                 text:
-                  `본문의 내부 링크가 깨졌습니다. 글 주소는 \`/blog/blog/<slug>/\` 형태입니다:\n` +
+                  `본문의 내부 링크가 깨졌습니다. 글 주소는 \`/blog/<slug>/\` 형태입니다:\n` +
                   `${linkProblems.map((l) => `- ${l}`).join("\n")}`,
               },
             ],

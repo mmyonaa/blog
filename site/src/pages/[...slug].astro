@@ -1,14 +1,14 @@
 ---
 import { getCollection, render, type CollectionEntry } from "astro:content";
-import Base from "../../layouts/Base.astro";
-import { tagHref } from "../../lib/tags.ts";
-import { fmtDateTime } from "../../lib/date.ts";
-import { sectionLabel, sectionHref, hueOf, sectionOf } from "../../lib/sections.ts";
-import { relatedPosts, type Related } from "../../lib/related.ts";
-import { AUTHOR } from "../../lib/author.ts";
-import Comments from "../../components/Comments.astro";
-import RelatedPosts from "../../components/RelatedPosts.astro";
-import ViewCount from "../../components/ViewCount.astro";
+import Base from "../layouts/Base.astro";
+import { tagHref } from "../lib/tags.ts";
+import { fmtDateTime } from "../lib/date.ts";
+import { sectionLabel, sectionHref, hueOf, sectionOf } from "../lib/sections.ts";
+import { relatedPosts, type Related } from "../lib/related.ts";
+import { AUTHOR } from "../lib/author.ts";
+import Comments from "../components/Comments.astro";
+import RelatedPosts from "../components/RelatedPosts.astro";
+import ViewCount from "../components/ViewCount.astro";
 
 export async function getStaticPaths() {
   const posts = (await getCollection("blog")).sort(
@@ -51,12 +51,12 @@ const allPosts = (await getCollection("blog"))
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const href = (id: string) => `${base}/blog/${id}/`;
+const href = (id: string) => `${base}/${id}/`;
 
 // 검색엔진용 구조화 데이터(BlogPosting)
 const pageUrl = Astro.site
-  ? new URL(`${base}/blog/${post.id}/`, Astro.site).href
-  : `${base}/blog/${post.id}/`;
+  ? new URL(`${base}/${post.id}/`, Astro.site).href
+  : `${base}/${post.id}/`;
 const ogImg = Astro.site ? new URL(`${base}/og.png`, Astro.site).href : `${base}/og.png`;
 const jsonLd = {
   "@context": "https://schema.org",
@@ -101,7 +101,7 @@ const jsonLd = {
       <hr />
     </div>
 
-    <a class="side-left-head side-title side-title-link" href={`${base}/blog/`}>글 목록 →</a>
+    <a class="side-left-head side-title side-title-link" href={`${base}/posts/`}>글 목록 →</a>
     <aside class="side side-left" aria-label="글 목록">
       <ul class="postlist">
         {

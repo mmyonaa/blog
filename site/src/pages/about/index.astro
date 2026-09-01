@@ -36,7 +36,7 @@ for (const p of posts) {
   const sec = sectionOf(p);
   (dayPosts[dayKey(p.data.pubDate)] ??= []).push({
     t: p.data.title,
-    h: `${base}/blog/${p.id}/`,
+    h: `${base}/${p.id}/`,
     s: sectionLabel(sec),
     c: hueOf(sec),
   });

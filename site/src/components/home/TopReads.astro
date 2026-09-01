@@ -22,7 +22,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
           </a>
           <div class="tr-body">
             <h3 class="tr-title">
-              <a href={`${base}/blog/${post.id}/`}>{post.data.title}</a>
+              <a href={`${base}/${post.id}/`}>{post.data.title}</a>
             </h3>
             <span class="tr-meta">
               <time datetime={post.data.pubDate.toISOString()} data-relative>

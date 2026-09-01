@@ -9,7 +9,7 @@ interface Props {
 }
 const { posts } = Astro.props as Props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const href = (id: string) => `${base}/blog/${id}/`;
+const href = (id: string) => `${base}/${id}/`;
 
 /** 카드는 높이를 맞추므로 태그가 많아도 앞 3개만 노출(넘치면 +N). */
 const TAG_MAX = 3;

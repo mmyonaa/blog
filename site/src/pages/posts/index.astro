@@ -12,8 +12,8 @@ const posts = (await getCollection("blog")).sort(
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const lastPage = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
 const pageItems = posts.slice(0, PAGE_SIZE);
-// 페이지 1 = /blog/, 이후 = /blog/page/N/
-const pageHref = (n: number) => (n <= 1 ? `${base}/blog/` : `${base}/blog/page/${n}/`);
+// 페이지 1 = /posts/, 이후 = /posts/page/N/
+const pageHref = (n: number) => (n <= 1 ? `${base}/posts/` : `${base}/posts/page/${n}/`);
 ---
 
 <Base title="Posts" description="블로그의 전체 글. 카테고리·태그로도 볼 수 있습니다.">

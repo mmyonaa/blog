@@ -18,7 +18,7 @@ description: "pm2 restart는 프로세스를 한꺼번에 죽였다 살려 그 �
 
 ## reload — 하나씩 갈아끼운다
 
-[클러스터 모드](/blog/blog/2026-07-23-what-is-pm2/)로 앱을 여러 프로세스 띄웠다면, `pm2 reload`가 답이다. reload는 **프로세스를 전부 죽이지 않고, 한 개씩 순서대로 교체**한다.
+[클러스터 모드](/blog/2026-07-23-what-is-pm2/)로 앱을 여러 프로세스 띄웠다면, `pm2 reload`가 답이다. reload는 **프로세스를 전부 죽이지 않고, 한 개씩 순서대로 교체**한다.
 
 ```bash
 pm2 reload blog-api   # 또는 pm2 reload ecosystem.config.js
@@ -86,7 +86,7 @@ npm install --production    # 의존성 갱신
 pm2 reload ecosystem.config.js   # 끊김 없이 교체
 ```
 
-앞단의 [nginx](/blog/blog/2026-07-23-what-is-nginx/)는 그대로 두고, 뒤쪽 Node 프로세스만 reload로 갈아끼우면 된다. nginx는 살아 있는 프로세스로 계속 요청을 넘기므로, 사용자는 배포가 일어난 줄도 모른다.
+앞단의 [nginx](/blog/2026-07-23-what-is-nginx/)는 그대로 두고, 뒤쪽 Node 프로세스만 reload로 갈아끼우면 된다. nginx는 살아 있는 프로세스로 계속 요청을 넘기므로, 사용자는 배포가 일어난 줄도 모른다.
 
 ## 정리
 

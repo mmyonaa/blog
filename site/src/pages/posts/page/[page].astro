@@ -6,8 +6,8 @@ import Pagination from "../../../components/Pagination.astro";
 import BlogFilterLinks from "../../../components/BlogFilterLinks.astro";
 import { PAGE_SIZE } from "../../../lib/pagination.ts";
 
-// 2페이지 이후만 여기서 생성한다(1페이지는 /blog/index.astro). /blog/[...slug]와
-// 경로가 겹치지 않도록 'page/' 하위에 둔다.
+// 2페이지 이후만 여기서 생성한다(1페이지는 /posts/index.astro).
+// 글 상세는 base 바로 밑(/<slug>/)이라 이 경로와 겹치지 않는다.
 export async function getStaticPaths() {
   const posts = (await getCollection("blog")).sort(
     (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -36,7 +36,7 @@ interface Props {
 }
 const { pageNum, items, lastPage, total } = Astro.props as Props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const pageHref = (n: number) => (n <= 1 ? `${base}/blog/` : `${base}/blog/page/${n}/`);
+const pageHref = (n: number) => (n <= 1 ? `${base}/posts/` : `${base}/posts/page/${n}/`);
 ---
 
 <Base title={`Posts (${pageNum}페이지)`} description="블로그의 전체 글. 카테고리·태그로도 볼 수 있습니다.">

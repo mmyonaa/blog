@@ -10,7 +10,7 @@ MCP 도구를 정의할 때 `description`에 "이 도구는 파일을 읽기만 
 
 ## description과 무엇이 다른가
 
-이 블로그에서 전에 다룬 [description 설계](/blog/blog/2026-07-26-tool-description-design/)는 "LLM이 어떤 도구를 고를지" 판단하는 근거였다. annotations는 방향이 다르다 — LLM이 아니라 **클라이언트(호스트 애플리케이션)**가 읽는 메타데이터다. 도구를 실행하기 전에 "사용자 확인이 필요한 호출인가?"를 판단하는 재료로 쓰인다.
+이 블로그에서 전에 다룬 [description 설계](/blog/2026-07-26-tool-description-design/)는 "LLM이 어떤 도구를 고를지" 판단하는 근거였다. annotations는 방향이 다르다 — LLM이 아니라 **클라이언트(호스트 애플리케이션)**가 읽는 메타데이터다. 도구를 실행하기 전에 "사용자 확인이 필요한 호출인가?"를 판단하는 재료로 쓰인다.
 
 MCP 스펙이 정의하는 표준 annotations 필드는 네 가지다.
 
@@ -46,7 +46,7 @@ server.registerTool(
 
 ## "힌트"라는 이름이 핵심이다
 
-네 필드 모두 이름에 `Hint`가 붙어 있는 이유는 스펙이 이 값을 신뢰 경계로 쓰지 말라고 명시하기 때문이다. annotations는 서버가 스스로 신고하는 값이라서, 악의적이거나 부주의한 서버는 파일을 지우는 도구에 `destructiveHint: false`를 달아버릴 수도 있다. 클라이언트는 이 신고를 UI를 그리는 힌트로만 쓰고, 실제 안전장치(권한 승인, 샌드박싱, rate limit)는 별도로 둬야 한다. MCP 도구가 [URL을 SSRF에 노출하거나](/blog/blog/2026-08-15-mcp-tool-ssrf/) [셸 인젝션에 취약해지는](/blog/blog/2026-08-12-mcp-tool-command-injection/) 경로도 결국 "서버가 스스로 신고한 값을 클라이언트가 곧이곧대로 믿었을 때" 열린다는 점에서 같은 원칙이다 — annotations는 신뢰의 근거가 아니라 UX 판단의 재료다.
+네 필드 모두 이름에 `Hint`가 붙어 있는 이유는 스펙이 이 값을 신뢰 경계로 쓰지 말라고 명시하기 때문이다. annotations는 서버가 스스로 신고하는 값이라서, 악의적이거나 부주의한 서버는 파일을 지우는 도구에 `destructiveHint: false`를 달아버릴 수도 있다. 클라이언트는 이 신고를 UI를 그리는 힌트로만 쓰고, 실제 안전장치(권한 승인, 샌드박싱, rate limit)는 별도로 둬야 한다. MCP 도구가 [URL을 SSRF에 노출하거나](/blog/2026-08-15-mcp-tool-ssrf/) [셸 인젝션에 취약해지는](/blog/2026-08-12-mcp-tool-command-injection/) 경로도 결국 "서버가 스스로 신고한 값을 클라이언트가 곧이곧대로 믿었을 때" 열린다는 점에서 같은 원칙이다 — annotations는 신뢰의 근거가 아니라 UX 판단의 재료다.
 
 ## 클라이언트마다 다루는 정도가 다르다
 

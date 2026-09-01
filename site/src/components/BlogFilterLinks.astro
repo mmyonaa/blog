@@ -1,5 +1,5 @@
 ---
-// 카테고리 필터 바. /blog/와 /categories/[section]/에 공통으로 놓는다.
+// 카테고리 필터 바. /posts/와 /categories/[section]/에 공통으로 놓는다.
 // 클릭하면 해당 카테고리 페이지로 '이동'한다(경로 기반 페이지네이션과 맞물려
 // 스케일에 안전). 현재 위치를 pill에 aria-current로 표시하고, '전체'로 초기화.
 import { getSectionCounts, sectionHref, hueOf } from "../lib/sections.ts";
@@ -19,7 +19,7 @@ const current = /\/categories\/([^/]+)/.exec(Astro.url.pathname)?.[1] ?? "";
       <div class="fl-bar">
         <a
           class="fl-pill fl-all"
-          href={`${base}/blog/`}
+          href={`${base}/posts/`}
           aria-current={current === "" ? "true" : undefined}
         >
           전체 <span class="fl-count">{total}</span>

@@ -3,6 +3,25 @@
 이 프로젝트의 주요 변경 사항을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [1.7.0] - 2026-09-01
+
+글 주소에서 `/blog/` 중복이 사라졌다. 레포명을 `mcp`→`blog`로 바꾸면서(1.0.0) base와 글 라우트가 겹쳐 모든 글이 `/blog/blog/<slug>/`에 있었다. 이미 색인된 옛 주소는 리다이렉트로 넘긴다.
+
+### Changed
+
+- **글 URL 이전 — `/blog/blog/<slug>/` → `/blog/<slug>/`**. `pages/blog/[...slug].astro`를 라우트 루트로 올리고, 글 목록·페이지네이션은 `pages/posts/`로 옮겼다(`/blog/posts/`, `/blog/posts/page/N/`). URL을 조립하던 19개 파일(컴포넌트·RSS·검색 인덱스·about)을 일괄 갱신
+- Header의 Posts 활성 판정 — 글 상세가 base 바로 밑이라 경로 접두사로는 홈과 구별되지 않는다. slug의 날짜 프리픽스로 판별한다(사이트맵 `lastmod`와 같은 규칙에 기댄다)
+
+### Added
+
+- 옛 주소 리다이렉트 109건 — 콘텐츠 디렉터리를 읽어 `astro.config.mjs`에서 자동 생성. GitHub Pages는 서버 301을 못 주므로 Astro가 meta refresh + canonical + noindex 페이지를 만든다. 사이트맵에선 제외
+- `publish_post` 본문 내부 링크 검증 — `follows`/`related`와 같은 자리에서 실존과 형태(`/blog/<slug>/`)를 함께 본다. 옛 주소나 날짜 프리픽스 누락도 잡아 정타를 거부 사유에 실어 보낸다
+
+### Fixed
+
+- 발행된 글 본문의 내부 링크 11건이 라이브 404였던 문제 — `/blog/`를 한 번만 쓰거나(전부), topicId를 slug로 착각해 날짜 프리픽스까지 빠져 있었다(5건)
+- 티스토리 산출물 생성기가 만들던 원문 URL·본문 절대 링크가 404이던 문제
+
 ## [1.6.0] - 2026-08-21
 
 콘텐츠 루프가 닫혔다 — 발행 결과(조회수)가 다음 주제 선택에 되먹임된다. 서버는 여전히 LLM을 호출하지 않는다(결정론적 산술만).
@@ -139,6 +158,9 @@ Phase 3 완성 릴리스 — 사람 없이 매일 발행되는 무인 파이프�
 - GitHub Actions 배포 워크플로 — main push 시 pnpm 워크스페이스 빌드 → Pages 배포
 - 레포 public 전환, Pages(Actions 소스) 활성화
 
+[1.7.0]: https://github.com/mmyonaa/blog/releases/tag/v1.7.0
+[1.6.0]: https://github.com/mmyonaa/blog/releases/tag/v1.6.0
+[1.5.0]: https://github.com/mmyonaa/blog/releases/tag/v1.5.0
 [1.4.0]: https://github.com/mmyonaa/blog/releases/tag/v1.4.0
 [1.3.0]: https://github.com/mmyonaa/blog/releases/tag/v1.3.0
 [1.2.0]: https://github.com/mmyonaa/blog/releases/tag/v1.2.0
