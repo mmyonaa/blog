@@ -22,6 +22,9 @@ const DOCS = join(root, "docs");
 const OUT = join(DOCS, "tistory");
 const CONTENT = join(root, "site/src/content/blog");
 const SITE = "https://mmyonaa.github.io/blog";
+// 글 주소엔 /blog/가 두 번 들어간다 — Astro base(/blog)에 글 라우트(src/pages/blog/)가
+// 겹쳐서다. SITE 뒤에 그대로 slug를 붙이면 404가 되므로 글 URL은 이 상수로 만든다.
+const POSTS = `${SITE}/blog`;
 const SECTION = "boangisa";
 const SECTION_LABEL = "정보보안기사";
 
@@ -39,14 +42,14 @@ const list = (s) => [...s.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
 function build(slug) {
   const md = readFileSync(join(CONTENT, `${slug}.md`), "utf8");
   const head = md.split("---")[1] ?? "";
-  const url = `${SITE}/${slug}/`;
+  const url = `${POSTS}/${slug}/`;
 
   // 프론트매터는 도구가 만든 메타라 본문이 아니다. 티스토리 폼으로 옮겨간다.
   const body = md.replace(/^---\n[\s\S]*?\n---\n/, "").trim();
   // canonical을 넣을 수 없는 플랫폼이라, 원문 링크 한 줄이 출처 신호를 대신한다.
   const notice = `> 이 글은 [daily.mcp](${url})에 먼저 공개한 글을 옮긴 것입니다. 최신 내용은 원문에 있습니다.`;
   // 사이트 안에서만 통하는 상대 링크는 옮겨가면 깨진다.
-  const abs = body.replace(/\]\(\/blog\//g, `](${SITE}/`);
+  const abs = body.replace(/\]\(\/blog\//g, `](${POSTS}/`);
 
   writeFileSync(join(OUT, `${slug}.md`), `${notice}\n\n${abs}\n`);
   writeFileSync(

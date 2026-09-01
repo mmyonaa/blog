@@ -40,6 +40,36 @@ const MIN_BODY_LEN = 200;
  *  - 껍데기 글 방지용 최소 분량.
  *  - (선택) minChars가 주어지면 목표 분량 하한(공백 포함)을 강제 — 심화도 밴드 undershoot 방지.
  */
+/** 글이 아닌 사이트 페이지(site/src/pages/ 라우트) — 본문 링크 검증 대상이 아니다. */
+const SITE_ROUTES = new Set(["about", "topics", "tags", "categories", "changelog", "feedback"]);
+
+/**
+ * 본문 마크다운의 사이트 내부 링크(`](/blog/…)`)를 검증한다.
+ * 글 주소는 Astro base(`/blog`)와 글 라우트(`src/pages/blog/`)가 겹쳐 `/blog/blog/<slug>/` 형태다.
+ * `/blog/<slug>`처럼 한 번만 쓰거나 날짜 프리픽스를 빠뜨리면 404로 새므로 발행을 거부한다.
+ */
+function validateBodyLinks(
+  body: string,
+  resolveRef: (ref: string) => string | null,
+): string[] {
+  const problems: string[] = [];
+  for (const m of body.matchAll(/\]\((\/blog\/[^)\s]*)\)/g)) {
+    const href = m[1]!;
+    const seg = href.split("/").filter(Boolean).slice(1); // base(/blog) 제거
+    if (seg.length === 0 || SITE_ROUTES.has(seg[0]!)) continue;
+    const isPostRoute = seg[0] === "blog";
+    if (isPostRoute && (seg.length < 2 || seg[1] === "page")) continue; // 목록·페이지네이션
+    const real = resolveRef(isPostRoute ? seg[1]! : seg[0]!);
+    if (real === null) {
+      problems.push(`${href} — 존재하지 않는 글`);
+      continue;
+    }
+    const correct = `/blog/blog/${real}/`;
+    if (href !== correct) problems.push(`${href} → ${correct}`);
+  }
+  return problems;
+}
+
 function validateBody(body: string, minChars?: number): string[] {
   const problems: string[] = [];
   const trimmed = body.trim();
@@ -278,7 +308,8 @@ export function registerPublishPost(server: McpServer): void {
       const newSlug = fileName.replace(/\.md$/, "");
       let resolvedFollows: string | undefined;
       let resolvedRelated: string[] | undefined;
-      if (follows !== undefined || (related && related.length > 0)) {
+      const hasBodyLinks = body.includes("](/blog/");
+      if (follows !== undefined || (related && related.length > 0) || hasBodyLinks) {
         const existingPosts = await listPosts();
         const resolveRef = (ref: string): string | null => {
           const r = ref.trim();
@@ -314,6 +345,21 @@ export function registerPublishPost(server: McpServer): void {
                 text:
                   `존재하지 않는 글을 참조합니다:\n${bad.map((b) => `- ${b}`).join("\n")}\n` +
                   `blog://posts 리소스로 실제 slug/topicId를 확인해 다시 넘겨주세요.`,
+              },
+            ],
+          };
+        }
+
+        const linkProblems = hasBodyLinks ? validateBodyLinks(body, resolveRef) : [];
+        if (linkProblems.length > 0) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text" as const,
+                text:
+                  `본문의 내부 링크가 깨졌습니다. 글 주소는 \`/blog/blog/<slug>/\` 형태입니다:\n` +
+                  `${linkProblems.map((l) => `- ${l}`).join("\n")}`,
               },
             ],
           };
