@@ -660,8 +660,9 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
     font-size: var(--fs-lg);
     margin: var(--space-6) 0 var(--space-2);
   }
+  /* 폭은 주변 본문(.muted, .src-note)과 같이 컨테이너 전체를 쓴다.
+     여기만 68ch로 죄면 같은 좌측 기준선에서 폭만 절반이라 어긋나 보인다. */
   .mcp-lead {
-    max-width: 68ch;
     line-height: 1.7;
   }
   .mcp-lead em {
