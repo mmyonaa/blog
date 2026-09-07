@@ -2,22 +2,157 @@
 // 버전 이력 페이지 — 단일 출처는 레포 루트 CHANGELOG.md.
 // 빌드 타임에 그 마크다운을 그대로 가져와 사이트 디자인으로 렌더한다(내용 이중화 없음).
 import Base from "../layouts/Base.astro";
-import { Content as Changelog } from "../../../CHANGELOG.md";
+import { Content as Changelog, getHeadings } from "../../../CHANGELOG.md";
+
+// 좌측 사이드바용 버전 목록 — 본문 h2("[1.7.0] - 2026-09-01")를 그대로 쓴다.
+// 목록을 따로 두면 CHANGELOG.md와 어긋나므로, 헤딩이 단일 출처.
+const versions = getHeadings()
+  .filter((h) => h.depth === 2)
+  .map((h) => {
+    const m = h.text.match(/^\[?([\d.]+)\]?\s*-\s*(.+)$/);
+    return { slug: h.slug, version: m?.[1] ?? h.text, date: m?.[2] ?? "" };
+  });
 ---
 
 <Base
   title="Changelog"
   description="이 블로그와 MCP 서버의 버전별 변경 이력"
 >
-  <article class="cl-body">
-    <Changelog />
-  </article>
+  <div class="cl-shell">
+    <article class="cl-body">
+      <Changelog />
+    </article>
+
+    {
+      versions.length > 0 && (
+        <aside class="cl-side" aria-label="버전 목록">
+          <p class="cl-side-title">버전</p>
+          <nav class="cl-versions">
+            <ul>
+              {versions.map((v) => (
+                <li>
+                  <a href={`#${v.slug}`} data-slug={v.slug}>
+                    <span class="cl-v">{v.version}</span>
+                    <span class="cl-d">{v.date}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
+      )
+    }
+  </div>
 </Base>
 
+<script>
+  // 스크롤 스파이 — 글 상세의 목차와 같은 규칙(화면 상단 섹션을 강조).
+  function initChangelogSpy() {
+    const links = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>(".cl-versions a[data-slug]"),
+    );
+    if (!links.length) return;
+    const bySlug = new Map(links.map((a) => [a.dataset.slug!, a]));
+    let current: HTMLAnchorElement | null = null;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const next = bySlug.get(e.target.id);
+          if (!next || next === current) continue;
+          current?.classList.remove("active");
+          next.classList.add("active");
+          current = next;
+        }
+      },
+      { rootMargin: "0px 0px -75% 0px", threshold: 0 },
+    );
+    document
+      .querySelectorAll<HTMLElement>(".cl-body h2[id]")
+      .forEach((h) => obs.observe(h));
+  }
+  document.addEventListener("astro:page-load", initChangelogSpy);
+</script>
+
 <style>
+  /*
+   * 글 상세와 같은 셸: [여백] [본문 720] [버전 목록].
+   * 좌측을 빈 열로 남겨 본문이 다른 페이지와 같은 중앙선·같은 읽기 폭에 놓이고,
+   * 버전 목록은 글 상세의 우측 목차와 같은 자리에 온다.
+   */
+  .cl-shell {
+    display: grid;
+    grid-template-columns:
+      minmax(180px, 1fr)
+      minmax(0, var(--content-width))
+      minmax(180px, 1fr);
+    grid-template-areas: ". body versions";
+    column-gap: var(--space-6);
+    align-items: start;
+  }
   .cl-body {
-    max-width: 44rem;
-    margin: 0 auto;
+    grid-area: body;
+  }
+  .cl-side {
+    grid-area: versions;
+  }
+
+  /* ── 우: 버전 목록 (글 상세의 목차와 같은 sticky·강조 규칙) ── */
+  .cl-side {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-4));
+    align-self: start;
+    max-height: calc(100vh - var(--header-h) - var(--space-6));
+    overflow-y: auto;
+    padding-top: var(--space-6);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-snug);
+  }
+  .cl-side-title {
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    margin: 0 0 var(--space-3);
+  }
+  .cl-versions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .cl-versions a {
+    display: block;
+    padding: 0.25em var(--space-3);
+    color: var(--c-muted);
+    border-left: 2px solid var(--c-border);
+    text-decoration: none;
+  }
+  .cl-versions a:hover {
+    color: var(--c-text);
+  }
+  .cl-versions a.active {
+    color: var(--c-accent);
+    border-left-color: var(--c-accent);
+  }
+  .cl-v {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .cl-d {
+    margin-left: 0.5em;
+    font-size: var(--fs-xs);
+    color: var(--c-muted);
+  }
+  .cl-versions a.active .cl-d {
+    color: inherit;
+  }
+
+  /* ── 본문 ── */
+  .cl-body {
+    min-width: 0;
+    max-width: var(--content-width);
+    width: 100%;
     padding-top: var(--space-6);
   }
   .cl-body :global(h1) {
@@ -32,6 +167,8 @@ import { Content as Changelog } from "../../../CHANGELOG.md";
     border-top: 1px solid var(--c-border);
     font-family: var(--font-mono);
     letter-spacing: -0.01em;
+    /* sticky 헤더에 가리지 않게 앵커 점프 지점을 내린다. */
+    scroll-margin-top: calc(var(--header-h) + var(--space-4));
   }
   .cl-body :global(h3) {
     margin-top: var(--space-5);
@@ -60,5 +197,24 @@ import { Content as Changelog } from "../../../CHANGELOG.md";
     color: var(--c-accent);
     text-decoration: underline;
     text-underline-offset: 0.15em;
+  }
+
+  /* 태블릿: 왼쪽 빈 열을 버려 본문이 읽기 폭(720)을 유지한다(글 상세와 같은 구간). */
+  @media (max-width: 1199px) {
+    .cl-shell {
+      grid-template-columns: minmax(0, var(--content-width)) minmax(180px, 1fr);
+      grid-template-areas: "body versions";
+    }
+  }
+  /* 좁은 화면: 사이드바를 접고 본문 단독(720 중앙) — 프레임도 720으로 통일됨. */
+  @media (max-width: 980px) {
+    .cl-shell {
+      grid-template-columns: minmax(0, var(--content-width));
+      grid-template-areas: "body";
+      justify-content: center;
+    }
+    .cl-side {
+      display: none;
+    }
   }
 </style>
