@@ -39,3 +39,4 @@
 | 2026-09-06 | 성공 | boangisa | 1/3 | 0.3213344 | 11 | 119250 | 3 | 2026-09-06-block-cipher-modes.md |
 | 2026-09-07 | 성공 | mcp | 3/3 | 0.505789 | 14 | 157619 | 5 | 2026-09-07-mcp-prompts.md |
 | 2026-09-08 | 성공 | jeongcheogi | 1/3 | 0.625788 | 19 | 175329 | 6 | 2026-09-08-process-synchronization.md |
+| 2026-09-09 | 성공 | security | 1/3 | 0.6461198000000001 | 15 | 164761 | 1 | 2026-09-09-vscode-github-dev-oauth-token-theft.md |
