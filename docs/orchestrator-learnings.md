@@ -41,3 +41,4 @@
 | 2026-09-08 | 성공 | jeongcheogi | 1/3 | 0.625788 | 19 | 175329 | 6 | 2026-09-08-process-synchronization.md |
 | 2026-09-09 | 성공 | security | 1/3 | 0.6461198000000001 | 15 | 164761 | 1 | 2026-09-09-vscode-github-dev-oauth-token-theft.md |
 | 2026-09-10 | 성공 | mcp-trend | 1/3 | 1.0181772000000002 | 24 | 263046 | 6 | 2026-09-10-superpowers-claude-code-skill-growth.md |
+| 2026-09-11 | 성공 | boangisa | 1/3 | 0.5098474000000001 | 15 | 114129 | 2 | 2026-09-11-risk-management.md |
