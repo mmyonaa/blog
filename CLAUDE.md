@@ -37,6 +37,15 @@
 일감은 GitHub Project([mcp blog](https://github.com/users/mmyonaa/projects/5)) 단위로 진행한다.
 착수 시 Todo → In Progress, 완료 시 Done + 완료일 갱신, 진행 기록은 이슈 코멘트나 커밋 메시지로 남긴다.
 
+## 검증 게이트
+
+검증은 루트의 `pnpm run typecheck` 하나로 돌린다. 실체는 `pnpm -r typecheck`라
+**해당 스크립트가 없는 워크스페이스 패키지를 조용히 건너뛴다** — 통과해도 검사한 게 0일 수 있다.
+워크스페이스에 패키지를 추가할 땐 `typecheck` 스크립트도 반드시 같이 넣는다.
+
+`site`의 typescript만 `^6`에 묶여 있다(server는 `^7`). `astro check`가 TS 7 네이티브 컴파일러에선
+동작하지 않아서다 — 올리면 site 검사가 통째로 죽는다.
+
 ## 로컬 전용 문서
 
 `docs/`는 gitignore라 **CI 러너에는 존재하지 않는다**. 설계 문서(plan.md, content-strategy.md,
