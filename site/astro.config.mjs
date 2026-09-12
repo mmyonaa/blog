@@ -2,6 +2,7 @@ import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import remarkCjkFriendly from "remark-cjk-friendly";
 import rehypeExternalLinks from "rehype-external-links";
+import rehypeAsciiHeadingIds from "./src/lib/rehype-ascii-heading-ids.mjs";
 import { readdirSync } from "node:fs";
 import { PAGE_SIZE } from "./src/lib/pagination.ts";
 
@@ -58,6 +59,8 @@ export default defineConfig({
     // 글 본문의 "외부" 링크만 새 탭으로. 내부 링크는 그대로 둔다
     // (같은 탭 유지 + View Transitions 동작). target=_blank엔 noopener 필수.
     rehypePlugins: [
+      // 소제목 앵커를 ASCII로(#ecb). Astro의 기본 heading id 부여보다 먼저 돌아야 한다.
+      rehypeAsciiHeadingIds,
       [
         rehypeExternalLinks,
         { target: "_blank", rel: ["noopener", "noreferrer"] },
