@@ -15,13 +15,23 @@ const items = pageWindow(currentPage, lastPage);
   lastPage > 1 && (
     <nav class="pagination" aria-label="페이지 매김">
       {currentPage > 1 ? (
-        <a class="pg-arrow" href={hrefFor(currentPage - 1)} rel="prev" aria-label="이전 페이지">
-          ←
-        </a>
+        <>
+          <a class="pg-arrow pg-edge" href={hrefFor(1)} aria-label="첫 페이지">
+            ⇤
+          </a>
+          <a class="pg-arrow" href={hrefFor(currentPage - 1)} rel="prev" aria-label="이전 페이지">
+            ←
+          </a>
+        </>
       ) : (
-        <span class="pg-arrow disabled" aria-hidden="true">
-          ←
-        </span>
+        <>
+          <span class="pg-arrow pg-edge disabled" aria-hidden="true">
+            ⇤
+          </span>
+          <span class="pg-arrow disabled" aria-hidden="true">
+            ←
+          </span>
+        </>
       )}
 
       <ul class="pg-nums">
@@ -47,13 +57,23 @@ const items = pageWindow(currentPage, lastPage);
       </ul>
 
       {currentPage < lastPage ? (
-        <a class="pg-arrow" href={hrefFor(currentPage + 1)} rel="next" aria-label="다음 페이지">
-          →
-        </a>
+        <>
+          <a class="pg-arrow" href={hrefFor(currentPage + 1)} rel="next" aria-label="다음 페이지">
+            →
+          </a>
+          <a class="pg-arrow pg-edge" href={hrefFor(lastPage)} aria-label="마지막 페이지">
+            ⇥
+          </a>
+        </>
       ) : (
-        <span class="pg-arrow disabled" aria-hidden="true">
-          →
-        </span>
+        <>
+          <span class="pg-arrow disabled" aria-hidden="true">
+            →
+          </span>
+          <span class="pg-arrow pg-edge disabled" aria-hidden="true">
+            ⇥
+          </span>
+        </>
       )}
     </nav>
   )
@@ -108,8 +128,35 @@ const items = pageWindow(currentPage, lastPage);
     opacity: 0.4;
     cursor: default;
   }
+  /* ⇤/⇥는 ←/→보다 글리프가 작게 그려져, 한 단계 키워야 시각 무게가 맞는다. */
+  .pg-edge {
+    font-size: 1.15em;
+  }
   .pg-gap {
     padding: 0 0.25em;
     color: var(--c-muted);
+  }
+
+  /*
+   * 좁은 화면에선 처음/마지막 버튼을 숨긴다.
+   * 번호 창(pageWindow)이 1과 마지막 페이지를 항상 포함하므로 기능이 사라지진 않고,
+   * 최대 11칸이 되는 가로폭만 덜어낸다.
+   */
+  @media (max-width: 640px) {
+    .pagination {
+      gap: var(--space-1);
+    }
+    .pg-edge {
+      display: none;
+    }
+  }
+
+  /* 320px급 화면에선 그래도 넘쳐 페이지에 가로 스크롤이 생긴다. 칸을 좁혀 담는다. */
+  @media (max-width: 380px) {
+    .pg-num,
+    .pg-arrow {
+      min-width: 1.9rem;
+      padding: 0 0.2em;
+    }
   }
 </style>
