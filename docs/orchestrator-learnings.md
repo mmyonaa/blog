@@ -43,3 +43,4 @@
 | 2026-09-10 | 성공 | mcp-trend | 1/3 | 1.0181772000000002 | 24 | 263046 | 6 | 2026-09-10-superpowers-claude-code-skill-growth.md |
 | 2026-09-11 | 성공 | boangisa | 1/3 | 0.5098474000000001 | 15 | 114129 | 2 | 2026-09-11-risk-management.md |
 | 2026-09-12 | 성공 | mcp | 1/3 | 0.6681846000000001 | 23 | 170655 | 3 | 2026-09-12-mcp-completions-capability.md |
+| 2026-09-13 | 성공 | jeongcheogi | 1/3 | 0.6280926 | 21 | 194522 | 9 | 2026-09-13-uml-diagrams.md |
