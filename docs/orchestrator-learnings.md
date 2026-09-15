@@ -45,3 +45,4 @@
 | 2026-09-12 | 성공 | mcp | 1/3 | 0.6681846000000001 | 23 | 170655 | 3 | 2026-09-12-mcp-completions-capability.md |
 | 2026-09-13 | 성공 | jeongcheogi | 1/3 | 0.6280926 | 21 | 194522 | 9 | 2026-09-13-uml-diagrams.md |
 | 2026-09-14 | 성공 | security | 2/3 | 0.7812552000000001 | 17 | 206246 | 3 | 2026-09-14-patch-tuesday-september-2026-zero-days.md |
+| 2026-09-15 | 성공 | mcp-trend | 1/3 | 0.8491746 | 25 | 204093 | 7 | 2026-09-15-compose-hot-reload-mcp-agent.md |
