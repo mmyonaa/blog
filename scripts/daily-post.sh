@@ -28,6 +28,7 @@ SECTION="${1:-${SECTIONS[$idx]}}"
 [ -f server/dist/index.js ] || pnpm --filter @blog-mcp/server build
 
 new_post=""
+auth_failed=0
 for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
   echo "[$attempt/$MAX_ATTEMPTS] section=$SECTION 발행 시도"
   before=$(git status --porcelain "$CONTENT_DIR" | awk '/^\?\?/{print $2}' | sort)
@@ -55,7 +56,23 @@ for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
   after=$(git status --porcelain "$CONTENT_DIR" | awk '/^\?\?/{print $2}' | sort)
   new_post=$(comm -13 <(echo "$before") <(echo "$after") | head -1)
   [ -n "$new_post" ] && break
-  echo "실패 — 새 글 파일이 생기지 않음"
+
+  # 실패 사유를 로그에 남긴다 — claude -p의 출력은 RESULT_JSON으로만 가서
+  # 콘솔엔 "파일이 안 생겼다"만 남았고, 원인 판별에 매번 아티팩트 다운로드가 필요했다
+  # (2026-09-17: OAuth 토큰 revoke → 401인데 로그만 봐선 알 수 없었다).
+  api_status=""
+  if command -v jq >/dev/null 2>&1 && [ -s "$RESULT_JSON" ]; then
+    echo "실패 — 새 글 파일이 생기지 않음: $(jq -r '.result // "result 필드 없음"' "$RESULT_JSON")"
+    api_status=$(jq -r '.api_error_status // empty' "$RESULT_JSON" 2>/dev/null || echo "")
+  else
+    echo "실패 — 새 글 파일이 생기지 않음 (결과 JSON 없음)"
+  fi
+
+  # 인증 실패는 재시도해도 같은 결과다 — 남은 시도를 태우지 말고 즉시 중단.
+  if [ "$api_status" = "401" ]; then
+    auth_failed=1
+    break
+  fi
 done
 
 # 학습 기록(#43) — 실행 관측치를 한 줄 누적. 몇 주치가 프롬프트·훅 규칙 개선의 근거가 된다.
@@ -78,7 +95,11 @@ if [ -z "$new_post" ]; then
   record_learning "실패" "-"
   git add "$LEARN_FILE" 2>/dev/null && git commit -m "chore(learnings): 자동 발행 실패 기록 $(date +%Y-%m-%d)" >/dev/null 2>&1 || true
   [ "${SKIP_PUSH:-0}" = "1" ] || git push || true
-  echo "::error::발행 실패 — ${MAX_ATTEMPTS}회 시도 모두 새 글이 생기지 않음"
+  if [ "$auth_failed" = "1" ]; then
+    echo "::error::인증 실패(401) — CLAUDE_CODE_OAUTH_TOKEN이 만료/폐기됐다. claude setup-token으로 재발급 후 시크릿 갱신 필요."
+  else
+    echo "::error::발행 실패 — ${MAX_ATTEMPTS}회 시도 모두 새 글이 생기지 않음"
+  fi
   exit 1
 fi
 
