@@ -63,3 +63,4 @@
 | 2026-09-18 | 성공 | jeongcheogi | 1/3 | 0.4048608 | 13 | 98445 | 4 | 2026-09-18-db-normalization.md |
 | 2026-09-19 | 성공 | security | 1/3 | 1.5327969999999997 | 34 | 445302 | 3 | 2026-09-19-chrome-v8-zero-day-cve-2026-87491.md |
 | 2026-09-20 | 성공 | mcp-trend | 1/3 | 0.7892608000000001 | 15 | 282567 | 3 | 2026-09-20-paper2agent-research-paper-mcp-server.md |
+| 2026-09-21 | 성공 | boangisa | 1/3 | 0.3370248 | 8 | 76992 | 2 | 2026-09-21-windows-auth-sam-lsa.md |
