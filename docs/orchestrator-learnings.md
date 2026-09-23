@@ -65,3 +65,4 @@
 | 2026-09-20 | 성공 | mcp-trend | 1/3 | 0.7892608000000001 | 15 | 282567 | 3 | 2026-09-20-paper2agent-research-paper-mcp-server.md |
 | 2026-09-21 | 성공 | boangisa | 1/3 | 0.3370248 | 8 | 76992 | 2 | 2026-09-21-windows-auth-sam-lsa.md |
 | 2026-09-22 | 성공 | mcp | 1/3 | 0.9486340000000001 | 31 | 228673 | 9 | 2026-09-22-mcp-roots-workspace-boundary.md |
+| 2026-09-23 | 성공 | jeongcheogi | 1/3 | 0.39740960000000003 | 12 | 84241 | 3 | 2026-09-23-virtual-memory-page-replacement.md |
