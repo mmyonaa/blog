@@ -3,9 +3,10 @@ title: "윈도우 인증 구조 — SAM과 LSA, NTLM은 어떻게 얽히는가"
 pubDate: 2026-09-21T10:53:03Z
 section: "boangisa"
 tags: ["정보보안기사", "시스템보안", "Windows", "NTLM", "Pass-the-Hash"]
+area: "SYS"
+topicId: "windows-auth-sam-lsa"
 follows: "2026-08-30-linux-permission-setuid"
-description: "윈도우 로컬 인증을 구성하는 SAM, LSA, NTLM 세 요소가 각각 어떤 역할을 맡는지 정리한다. SAM과 LM/NTLM 해시의 차이, lsass.exe가 인증을 처리하는 방식, NTLM의 challenge-response 구조와 Pass-the-Hash 공격의 원리, 그리고 Kerberos와의 관계까지 정보보안기사 필기 관점에서 짚는다.</description>
-<parameter name=\"topicId\">windows-auth-sam-lsa"
+description: "윈도우 로컬 인증을 구성하는 SAM, LSA, NTLM 세 요소가 각각 어떤 역할을 맡는지 정리한다. SAM과 LM/NTLM 해시의 차이, lsass.exe가 인증을 처리하는 방식, NTLM의 challenge-response 구조와 Pass-the-Hash 공격의 원리, 그리고 Kerberos와의 관계까지 정보보안기사 필기 관점에서 짚는다."
 ---
 
 윈도우 로그인 창에 비밀번호를 입력하는 순간, 화면 뒤에서는 세 개의 구성 요소가 순서대로 관여한다. SAM(Security Account Manager), LSA(Local Security Authority), 그리고 인증 프로토콜인 NTLM이다. 정보보안기사 시스템 보안 영역에서 자주 나오는 이 세 이름이 실제로 어떻게 얽히는지 정리한다.
