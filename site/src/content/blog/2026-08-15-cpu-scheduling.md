@@ -2,12 +2,12 @@
 title: "CPU 스케줄링 — 선점 vs 비선점"
 pubDate: 2026-08-15T07:26:38Z
 section: "jeongcheogi"
-tags: ["정처기", "운영체제", "스케줄링", "라운드로빈", "HRN"]
+tags: ["정보처리기사", "운영체제", "스케줄링", "라운드로빈", "HRN"]
 area: "OS"
 topicId: "cpu-scheduling"
 follows: "2026-08-10-page-replacement"
 related: ["2026-07-17-process-vs-thread", "2026-07-22-deadlock-conditions"]
-description: "CPU 스케줄링은 준비 큐의 프로세스 중 다음 CPU 사용자를 고르는 일이고, 실행 중인 프로세스에게서 CPU를 빼앗을 수 있느냐로 선점·비선점이 갈린다. FCFS·SJF·HRN·RR·SRT의 동작과 분류, HRN 우선순위 공식, 평균 대기 시간 계산까지 정처기 필기 단골 포인트를 정리한다."
+description: "CPU 스케줄링은 준비 큐의 프로세스 중 다음 CPU 사용자를 고르는 일이고, 실행 중인 프로세스에게서 CPU를 빼앗을 수 있느냐로 선점·비선점이 갈린다. FCFS·SJF·HRN·RR·SRT의 동작과 분류, HRN 우선순위 공식, 평균 대기 시간 계산까지 정보처리기사 필기 단골 포인트를 정리한다."
 ---
 
 ## 정의 — CPU를 누구에게 줄 것인가

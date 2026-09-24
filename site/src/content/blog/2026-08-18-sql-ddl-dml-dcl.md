@@ -2,12 +2,12 @@
 title: "SQL 명령어 분류 — DDL·DML·DCL"
 pubDate: 2026-08-18T05:21:35Z
 section: "jeongcheogi"
-tags: ["정처기", "데이터베이스", "sql", "ddl", "dml"]
+tags: ["정보처리기사", "데이터베이스", "sql", "ddl", "dml"]
 related: ["2026-08-14-db-keys", "2026-07-18-transaction-acid"]
-description: "SQL 문장은 구조를 만지면 DDL, 데이터를 만지면 DML, 권한을 만지면 DCL로 나뉜다. CREATE·ALTER·DROP·TRUNCATE와 SELECT·INSERT·UPDATE·DELETE, GRANT·REVOKE의 소속을 예제로 구분하고, DELETE vs TRUNCATE vs DROP, TCL 분류 문제 등 정처기 필기 단골 함정을 정리한다."
+description: "SQL 문장은 구조를 만지면 DDL, 데이터를 만지면 DML, 권한을 만지면 DCL로 나뉜다. CREATE·ALTER·DROP·TRUNCATE와 SELECT·INSERT·UPDATE·DELETE, GRANT·REVOKE의 소속을 예제로 구분하고, DELETE vs TRUNCATE vs DROP, TCL 분류 문제 등 정보처리기사 필기 단골 함정을 정리한다."
 ---
 
-SQL 문장은 무엇을 조작하느냐에 따라 DDL·DML·DCL 세 갈래로 나뉜다. 정처기 필기에서는 "다음 중 DDL이 아닌 것은?" 같은 분류 문제와, TRUNCATE·GRANT처럼 소속이 헷갈리는 명령을 묻는 문제가 단골이다. 기준은 하나다 — 구조(스키마)를 만지면 DDL, 데이터(행)를 만지면 DML, 권한을 만지면 DCL.
+SQL 문장은 무엇을 조작하느냐에 따라 DDL·DML·DCL 세 갈래로 나뉜다. 정보처리기사 필기에서는 "다음 중 DDL이 아닌 것은?" 같은 분류 문제와, TRUNCATE·GRANT처럼 소속이 헷갈리는 명령을 묻는 문제가 단골이다. 기준은 하나다 — 구조(스키마)를 만지면 DDL, 데이터(행)를 만지면 DML, 권한을 만지면 DCL.
 
 ## DDL (Data Definition Language) — 구조 정의
 

@@ -2,12 +2,12 @@
 title: "접근통제 모델 — DAC·MAC·RBAC"
 pubDate: 2026-08-15T07:27:15Z
 section: "jeongcheogi"
-tags: ["정처기", "정보보안", "접근통제", "RBAC", "BLP"]
+tags: ["정보처리기사", "정보보안", "접근통제", "RBAC", "BLP"]
 area: "SEC"
 topicId: "access-control"
 follows: "2026-08-11-hash-digital-signature"
 related: ["2026-07-18-security-cia"]
-description: "접근통제는 인증을 통과한 주체가 어떤 객체에 무엇을 할 수 있는지 제한하는 일이다. 소유자 재량의 DAC, 보안 등급 라벨로 강제하는 MAC, 역할에 권한을 묶는 RBAC를 비교하고, BLP·Biba 모델의 읽기·쓰기 방향까지 정처기 필기 단골 포인트를 정리한다."
+description: "접근통제는 인증을 통과한 주체가 어떤 객체에 무엇을 할 수 있는지 제한하는 일이다. 소유자 재량의 DAC, 보안 등급 라벨로 강제하는 MAC, 역할에 권한을 묶는 RBAC를 비교하고, BLP·Biba 모델의 읽기·쓰기 방향까지 정보처리기사 필기 단골 포인트를 정리한다."
 ---
 
 ## 정의 — 인증 다음에 오는 질문

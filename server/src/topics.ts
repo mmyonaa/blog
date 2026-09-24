@@ -9,7 +9,7 @@
  */
 /**
  * 섹션(section) — "무슨 주제의 블로그인가"의 최상위 축(subject).
- * 서로 다른 주제 영역(예: MCP 만들기 vs 정처기)을 나눈다. area보다 한 단계 위.
+ * 서로 다른 주제 영역(예: MCP 만들기 vs 정보처리기사)을 나눈다. area보다 한 단계 위.
  *
  * ⚠️ 확장 원칙: 이 레지스트리가 섹션의 단일 출처다. 새 섹션은 여기에 한 줄 추가하고,
  * 그 섹션의 area(아래)와 시드만 얹으면 된다. section 값을 enum으로 하드코딩하지 말 것.
@@ -37,7 +37,7 @@ export const SECTIONS = {
     researchArea: "T",
   },
   web: { label: "블로그·웹 만들기", desc: "Astro·TypeScript 등 블로그 사이트를 만들며 배운 웹 기술" },
-  jeongcheogi: { label: "정처기", desc: "정보처리기사 시험 개념 정리", exam: "정보처리기사" },
+  jeongcheogi: { label: "정보처리기사", desc: "정보처리기사 시험 개념 정리", exam: "정보처리기사" },
   boangisa: { label: "정보보안기사", desc: "정보보안기사 필기 5과목 개념 정리", exam: "정보보안기사" },
   algo: { label: "알고리즘", desc: "코딩테스트를 위한 알고리즘·자료구조를 구현 중심으로 정리" },
   security: {
@@ -132,32 +132,32 @@ export const SEED_TOPICS: Topic[] = [
   { id: "claude-code-testing", area: "A", title: "Claude Code에 내 MCP 서버 붙여 테스트하기", tags: ["mcp", "claude-code"] },
   { id: "github-pages-deploy", area: "W", title: "GitHub Pages로 정적 블로그 무료 배포하기", tags: ["pages", "배포"] },
 
-  // ── 정처기 섹션 (jeongcheogi) ──
+  // ── 정보처리기사 섹션 (jeongcheogi) ──
   // DB
-  { id: "db-normalization", area: "DB", title: "데이터베이스 정규화 — 1NF부터 BCNF까지", tags: ["정처기", "데이터베이스", "정규화"] },
-  { id: "transaction-acid", area: "DB", title: "트랜잭션과 ACID 원칙", tags: ["정처기", "데이터베이스", "트랜잭션"] },
-  { id: "db-index", area: "DB", title: "인덱스는 어떻게 조회를 빠르게 하나", tags: ["정처기", "데이터베이스", "인덱스"] },
-  { id: "db-keys", area: "DB", title: "키의 종류 — 기본키·외래키·후보키·슈퍼키", tags: ["정처기", "데이터베이스", "키"] },
+  { id: "db-normalization", area: "DB", title: "데이터베이스 정규화 — 1NF부터 BCNF까지", tags: ["정보처리기사", "데이터베이스", "정규화"] },
+  { id: "transaction-acid", area: "DB", title: "트랜잭션과 ACID 원칙", tags: ["정보처리기사", "데이터베이스", "트랜잭션"] },
+  { id: "db-index", area: "DB", title: "인덱스는 어떻게 조회를 빠르게 하나", tags: ["정보처리기사", "데이터베이스", "인덱스"] },
+  { id: "db-keys", area: "DB", title: "키의 종류 — 기본키·외래키·후보키·슈퍼키", tags: ["정보처리기사", "데이터베이스", "키"] },
   // NET
-  { id: "osi-7-layers", area: "NET", title: "OSI 7계층 한눈에 정리", tags: ["정처기", "네트워크", "osi"] },
-  { id: "tcp-vs-udp", area: "NET", title: "TCP vs UDP — 무엇이 다른가", tags: ["정처기", "네트워크", "전송계층"] },
-  { id: "ip-subnetting", area: "NET", title: "IP 주소와 서브넷팅 기초", tags: ["정처기", "네트워크", "ip"] },
-  { id: "http-status-codes", area: "NET", title: "HTTP 상태 코드 정리 (2xx~5xx)", tags: ["정처기", "네트워크", "http"] },
+  { id: "osi-7-layers", area: "NET", title: "OSI 7계층 한눈에 정리", tags: ["정보처리기사", "네트워크", "osi"] },
+  { id: "tcp-vs-udp", area: "NET", title: "TCP vs UDP — 무엇이 다른가", tags: ["정보처리기사", "네트워크", "전송계층"] },
+  { id: "ip-subnetting", area: "NET", title: "IP 주소와 서브넷팅 기초", tags: ["정보처리기사", "네트워크", "ip"] },
+  { id: "http-status-codes", area: "NET", title: "HTTP 상태 코드 정리 (2xx~5xx)", tags: ["정보처리기사", "네트워크", "http"] },
   // OS
-  { id: "process-vs-thread", area: "OS", title: "프로세스 vs 스레드", tags: ["정처기", "운영체제", "프로세스"] },
-  { id: "deadlock-conditions", area: "OS", title: "교착상태(데드락)의 4가지 조건", tags: ["정처기", "운영체제", "데드락"] },
-  { id: "page-replacement", area: "OS", title: "페이지 교체 알고리즘 — FIFO와 LRU", tags: ["정처기", "운영체제", "메모리"] },
-  { id: "cpu-scheduling", area: "OS", title: "CPU 스케줄링 — 선점 vs 비선점", tags: ["정처기", "운영체제", "스케줄링"] },
+  { id: "process-vs-thread", area: "OS", title: "프로세스 vs 스레드", tags: ["정보처리기사", "운영체제", "프로세스"] },
+  { id: "deadlock-conditions", area: "OS", title: "교착상태(데드락)의 4가지 조건", tags: ["정보처리기사", "운영체제", "데드락"] },
+  { id: "page-replacement", area: "OS", title: "페이지 교체 알고리즘 — FIFO와 LRU", tags: ["정보처리기사", "운영체제", "메모리"] },
+  { id: "cpu-scheduling", area: "OS", title: "CPU 스케줄링 — 선점 vs 비선점", tags: ["정보처리기사", "운영체제", "스케줄링"] },
   // SE
-  { id: "coupling-cohesion", area: "SE", title: "결합도와 응집도", tags: ["정처기", "소프트웨어공학", "설계"] },
-  { id: "blackbox-whitebox", area: "SE", title: "블랙박스 테스트 vs 화이트박스 테스트", tags: ["정처기", "소프트웨어공학", "테스트"] },
-  { id: "dev-methodology", area: "SE", title: "개발 방법론 — 폭포수와 애자일", tags: ["정처기", "소프트웨어공학", "방법론"] },
-  { id: "design-patterns-overview", area: "SE", title: "디자인 패턴 개요 — 생성·구조·행위", tags: ["정처기", "소프트웨어공학", "디자인패턴"] },
+  { id: "coupling-cohesion", area: "SE", title: "결합도와 응집도", tags: ["정보처리기사", "소프트웨어공학", "설계"] },
+  { id: "blackbox-whitebox", area: "SE", title: "블랙박스 테스트 vs 화이트박스 테스트", tags: ["정보처리기사", "소프트웨어공학", "테스트"] },
+  { id: "dev-methodology", area: "SE", title: "개발 방법론 — 폭포수와 애자일", tags: ["정보처리기사", "소프트웨어공학", "방법론"] },
+  { id: "design-patterns-overview", area: "SE", title: "디자인 패턴 개요 — 생성·구조·행위", tags: ["정보처리기사", "소프트웨어공학", "디자인패턴"] },
   // SEC
-  { id: "security-cia", area: "SEC", title: "정보보안 3요소 — 기밀성·무결성·가용성", tags: ["정처기", "정보보안", "cia"] },
-  { id: "symmetric-asymmetric", area: "SEC", title: "대칭키 vs 비대칭키 암호화", tags: ["정처기", "정보보안", "암호화"] },
-  { id: "hash-digital-signature", area: "SEC", title: "해시 함수와 전자서명", tags: ["정처기", "정보보안", "해시"] },
-  { id: "access-control", area: "SEC", title: "접근통제 모델 — DAC·MAC·RBAC", tags: ["정처기", "정보보안", "접근통제"] },
+  { id: "security-cia", area: "SEC", title: "정보보안 3요소 — 기밀성·무결성·가용성", tags: ["정보처리기사", "정보보안", "cia"] },
+  { id: "symmetric-asymmetric", area: "SEC", title: "대칭키 vs 비대칭키 암호화", tags: ["정보처리기사", "정보보안", "암호화"] },
+  { id: "hash-digital-signature", area: "SEC", title: "해시 함수와 전자서명", tags: ["정보처리기사", "정보보안", "해시"] },
+  { id: "access-control", area: "SEC", title: "접근통제 모델 — DAC·MAC·RBAC", tags: ["정보처리기사", "정보보안", "접근통제"] },
 
   // ── 정보보안기사 섹션 (boangisa) ──
   // SYS — 시스템 보안

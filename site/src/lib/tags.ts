@@ -28,7 +28,7 @@ export async function getTagCounts(): Promise<{ tag: string; count: number }[]> 
 }
 
 // 국어의 로마자 표기(개정 로마자, 음절 단위). 슬러그용이라 음운 동화 규칙은 생략한다.
-// 예: 정처기 → jeongcheogi, 자료구조 → jaryogujo. 하드코딩한 태그별 맵이 아니라
+// 예: 정보처리기사 → jeongbocheorigisa, 자료구조 → jaryogujo. 하드코딩한 태그별 맵이 아니라
 // 한글 음절을 규칙으로 풀어, 앞으로 생길 어떤 한글 태그든 자동으로 처리된다.
 const CHO = ["g","kk","n","d","tt","r","m","b","pp","s","ss","","j","jj","ch","k","t","p","h"];
 const JUNG = ["a","ae","ya","yae","eo","e","yeo","ye","o","wa","wae","oe","yo","u","wo","we","wi","yu","eu","ui","i"];

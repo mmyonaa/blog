@@ -10,7 +10,7 @@ export type Post = CollectionEntry<"blog">;
 export const SECTION_LABELS: Record<string, string> = {
   mcp: "MCP·에이전트 만들기",
   web: "블로그·웹 만들기",
-  jeongcheogi: "정처기",
+  jeongcheogi: "정보처리기사",
   boangisa: "정보보안기사",
   algo: "알고리즘",
   security: "보안",

@@ -2,11 +2,11 @@
 title: "페이지 교체 알고리즘 — FIFO와 LRU"
 pubDate: 2026-08-10T05:29:44Z
 section: "jeongcheogi"
-tags: ["정처기", "운영체제", "페이지교체", "FIFO", "LRU"]
+tags: ["정보처리기사", "운영체제", "페이지교체", "FIFO", "LRU"]
 area: "OS"
 topicId: "page-replacement"
 follows: "2026-07-22-deadlock-conditions"
-description: "페이지 폴트가 나면 어떤 페이지를 내보낼지 정하는 것이 페이지 교체 알고리즘이다. FIFO와 LRU의 교체 기준을 참조열 예제로 직접 비교하고, 프레임을 늘렸는데 폴트가 되레 느는 Belady's Anomaly가 왜 FIFO에서만 나타나는지 정처기 시험 관점에서 정리한다."
+description: "페이지 폴트가 나면 어떤 페이지를 내보낼지 정하는 것이 페이지 교체 알고리즘이다. FIFO와 LRU의 교체 기준을 참조열 예제로 직접 비교하고, 프레임을 늘렸는데 폴트가 되레 느는 Belady's Anomaly가 왜 FIFO에서만 나타나는지 정보처리기사 시험 관점에서 정리한다."
 ---
 
 ## 정의

@@ -50,7 +50,13 @@ export default defineConfig({
   ],
   // Archive는 Topics로 흡수됨(그래프가 /topics/#graph에 임베드). 기존 링크 보존용 리다이렉트.
   // 목적지엔 base가 자동으로 안 붙으므로 직접 붙인다(소스는 base가 자동 적용됨).
-  redirects: { "/archive": `${base}/topics`, ...legacyRedirects },
+  // 2026-09-24 태그 표기 통일(정처기 → 정보처리기사) — 태그 슬러그가 로마자 표기라
+  // 함께 바뀐다. 공유된 옛 태그 주소가 죽지 않도록 리다이렉트를 남긴다.
+  redirects: {
+    "/archive": `${base}/topics`,
+    "/tags/jeongcheogi": `${base}/tags/jeongbocheorigisa/`,
+    ...legacyRedirects,
+  },
   // 개발 중 하단에 뜨는 Astro 개발 툴바 비활성화(배포본엔 원래 없음)
   devToolbar: { enabled: false },
   markdown: {
