@@ -41,6 +41,7 @@ export const AREA_LABELS: Record<string, string> = {
   APPSEC: "애플리케이션 보안",
   ISEC: "정보보안 일반",
   LAW: "관리·법규",
+  SPRAC: "실기 문제",
   DS: "자료구조",
   SRT: "정렬·탐색",
   GRP: "그래프",
@@ -76,8 +77,8 @@ export const hueOf = (id: string): string => SECTION_HUE[id] ?? "var(--c-accent)
 export const SECTION_BLURB: Record<string, string> = {
   mcp: "MCP 서버와 에이전트를 직접 만들며 배운 것",
   web: "이 블로그를 포함한 웹·프론트엔드 만들기",
-  jeongcheogi: "정보처리기사 준비 정리",
-  boangisa: "정보보안기사 필기 5과목 정리",
+  jeongcheogi: "정보처리기사 필기 개념과 실기 문제 정리",
+  boangisa: "정보보안기사 필기 개념과 실기 문제 정리",
   algo: "코딩테스트를 위한 알고리즘·자료구조 정리",
   security: "웹·시스템 보안과 취약점 파고들기",
 };

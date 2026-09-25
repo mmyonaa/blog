@@ -37,8 +37,8 @@ export const SECTIONS = {
     researchArea: "T",
   },
   web: { label: "블로그·웹 만들기", desc: "Astro·TypeScript 등 블로그 사이트를 만들며 배운 웹 기술" },
-  jeongcheogi: { label: "정보처리기사", desc: "정보처리기사 시험 개념 정리", exam: "정보처리기사" },
-  boangisa: { label: "정보보안기사", desc: "정보보안기사 필기 5과목 개념 정리", exam: "정보보안기사" },
+  jeongcheogi: { label: "정보처리기사", desc: "정보처리기사 필기 개념과 실기 문제 정리", exam: "정보처리기사" },
+  boangisa: { label: "정보보안기사", desc: "정보보안기사 필기 개념과 실기 문제 정리", exam: "정보보안기사" },
   algo: { label: "알고리즘", desc: "코딩테스트를 위한 알고리즘·자료구조를 구현 중심으로 정리" },
   security: {
     label: "보안",
@@ -70,12 +70,13 @@ export const AREAS = {
   SE: { section: "jeongcheogi", label: "소프트웨어공학", desc: "설계·테스트·방법론 등" },
   SEC: { section: "jeongcheogi", label: "정보보안", desc: "암호화·접근통제·보안 3요소 등" },
   PRAC: { section: "jeongcheogi", label: "실기 문제", desc: "C·Java·Python 실기 코딩 문제 풀이" },
-  // ── boangisa 섹션 (정보보안기사 필기 5과목) ──
+  // ── boangisa 섹션 (정보보안기사 필기 5과목 + 실기) ──
   SYS: { section: "boangisa", label: "시스템 보안", desc: "리눅스·윈도우 권한, 악성코드, 로그 등" },
   NSEC: { section: "boangisa", label: "네트워크 보안", desc: "스푸핑·DDoS·방화벽·VPN 등" },
   APPSEC: { section: "boangisa", label: "애플리케이션 보안", desc: "웹 취약점·세션·전자우편 보안 등" },
   ISEC: { section: "boangisa", label: "정보보안 일반", desc: "암호 알고리즘·인증·PKI 등" },
   LAW: { section: "boangisa", label: "관리·법규", desc: "위험관리·ISMS-P·개인정보보호법 등" },
+  SPRAC: { section: "boangisa", label: "실기 문제", desc: "로그 분석·설정 점검 등 서술형 실기 문제 풀이" },
   // ── algo 섹션 ──
   DS: { section: "algo", label: "자료구조", desc: "배열·스택·큐·해시·트리·힙" },
   SRT: { section: "algo", label: "정렬·탐색", desc: "이진탐색·정렬 비교·투 포인터" },
