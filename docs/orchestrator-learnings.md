@@ -67,3 +67,4 @@
 | 2026-09-22 | 성공 | mcp | 1/3 | 0.9486340000000001 | 31 | 228673 | 9 | 2026-09-22-mcp-roots-workspace-boundary.md |
 | 2026-09-23 | 성공 | jeongcheogi | 1/3 | 0.39740960000000003 | 12 | 84241 | 3 | 2026-09-23-virtual-memory-page-replacement.md |
 | 2026-09-24 | 성공 | security | 1/3 | 0.8457290000000002 | 24 | 222619 | 8 | 2026-09-24-gitlab-cve-2026-85706-path-traversal.md |
+| 2026-09-25 | 성공 | mcp-trend | 1/3 | 0.8361595999999999 | 23 | 160949 | 3 | 2026-09-25-claude-code-agents-md.md |
