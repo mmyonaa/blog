@@ -70,3 +70,4 @@
 | 2026-09-25 | 성공 | mcp-trend | 1/3 | 0.8361595999999999 | 23 | 160949 | 3 | 2026-09-25-claude-code-agents-md.md |
 | 2026-09-26 | 성공 | boangisa | 1/3 | 0.169091 | 5 | 57496 | 0 | 2026-09-26-ddos-attack-types.md |
 | 2026-09-27 | 성공 | mcp | 1/3 | 0.6643092 | 23 | 161736 | 3 | 2026-09-27-mcp-sampling-capability.md |
+| 2026-09-28 | 성공 | jeongcheogi | 1/3 | 0.9618321999999998 | 30 | 251419 | 13 | 2026-09-28-software-cost-estimation-cocomo.md |
