@@ -18,7 +18,10 @@ jobs:
           SUPA_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
           SUPA_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
         run: |
-          curl -sf -X POST "$SUPA_URL/rest/v1/rpc/snapshot_views" \
+          # 단발 curl은 네트워크 blip(exit 56 등) 한 번에 그날 시계열 한 점을 잃는다 —
+          # 멱등 RPC라 재시도가 안전하므로 전부 재시도한다.
+          curl -sf --retry 5 --retry-all-errors --retry-delay 10 --max-time 30 \
+            -X POST "$SUPA_URL/rest/v1/rpc/snapshot_views" \
             -H "apikey: $SUPA_KEY" \
             -H "Authorization: Bearer $SUPA_KEY" \
             -H "Content-Type: application/json" \
