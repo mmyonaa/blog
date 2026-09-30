@@ -72,3 +72,4 @@
 | 2026-09-27 | 성공 | mcp | 1/3 | 0.6643092 | 23 | 161736 | 3 | 2026-09-27-mcp-sampling-capability.md |
 | 2026-09-28 | 성공 | jeongcheogi | 1/3 | 0.9618321999999998 | 30 | 251419 | 13 | 2026-09-28-software-cost-estimation-cocomo.md |
 | 2026-09-29 | 성공 | security | 1/3 | 0.26269400000000004 | 13 | 45874 | 0 | 2026-09-29-protobufjs-schema-code-execution.md |
+| 2026-09-30 | 성공 | mcp-trend | 1/3 | 0.44024399999999997 | 17 | 61463 | 0 | 2026-09-30-block-buzz-agent-identity-workspace.md |
