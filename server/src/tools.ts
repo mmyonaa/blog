@@ -23,7 +23,7 @@ const SECTION_IDS = Object.keys(SECTIONS) as SectionId[];
 function isSectionId(value: string): value is SectionId {
   return (SECTION_IDS as string[]).includes(value);
 }
-import { nowIso, slugify, yamlString } from "./util.js";
+import { nowIso, slugify, slugsOverlap, yamlString } from "./util.js";
 import { areaViewScores, fetchViewsBulk } from "./views.js";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -302,6 +302,27 @@ export function registerPublishPost(server: McpServer): void {
           isError: true,
           content: [
             { type: "text" as const, text: `이미 존재하는 파일입니다: ${fileName}` },
+          ],
+        };
+      }
+
+      // 같은 주제를 다시 쓰는 것을 막는다(#75). 자동 발행이 시드 주제를 자유 주제로 재발행한
+      // 사례가 4건(db-normalization → 2026-09-18-db-normalization, bfs-dfs →
+      // graph-traversal-bfs-dfs 등). 새 slug와 기존 글의 주제슬러그가 같거나 한쪽이
+      // 다른 쪽을 토큰 단위로 포함하면 거부한다. 심화 후속이면 다른 slug + follows로 잇는다.
+      const newTopicSlug = slugify(slug ?? title);
+      const collision = (await listPosts()).find((p) => slugsOverlap(newTopicSlug, p.topicSlug));
+      if (collision) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text" as const,
+              text:
+                `이미 같은 주제의 글이 있습니다: ${collision.slug} ("${collision.title}").\n` +
+                `slug "${newTopicSlug}"가 기존 주제슬러그 "${collision.topicSlug}"와 겹칩니다. ` +
+                `다른 주제를 고르거나, 그 글의 심화 후속이면 겹치지 않는 slug를 쓰고 follows로 이어 주세요.`,
+            },
           ],
         };
       }

@@ -25,3 +25,20 @@ export function nowIso(): string {
 export function yamlString(value: string): string {
   return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
+
+/**
+ * 두 slug가 같은 주제를 가리키는지 — 같거나, 한쪽의 토큰열이 다른 쪽에 연속으로 들어가면 true.
+ * `bfs-dfs` ⊂ `graph-traversal-bfs-dfs`, `page-replacement` ⊂ `virtual-memory-page-replacement`.
+ * 짧은 쪽이 토큰 1개면(`mcp`, `db`) 거의 모든 글과 겹치므로 판정하지 않는다.
+ */
+export function slugsOverlap(a: string, b: string): boolean {
+  if (a === b) return true;
+  const ta = a.split("-").filter(Boolean);
+  const tb = b.split("-").filter(Boolean);
+  const [short, long] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
+  if (short.length < 2) return false;
+  for (let i = 0; i + short.length <= long.length; i++) {
+    if (short.every((t, j) => t === long[i + j])) return true;
+  }
+  return false;
+}
