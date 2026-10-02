@@ -70,3 +70,9 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+      # 배포된 최근 글을 IndexNow로 제출(#75) — 빙·네이버가 즉시 크롤. 실패해도 배포는 성공.
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: site/public site/scripts
+      - run: node site/scripts/indexnow.mjs
+        continue-on-error: true

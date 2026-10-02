@@ -35,10 +35,13 @@ export default defineConfig({
   base,
   integrations: [
     sitemap({
-      // 태그 목록은 얇은 페이지라 noindex(페이지 쪽 meta)와 짝 맞춰 사이트맵에서도 뺀다.
-      // 태그 목록과 옛 주소 리다이렉트 페이지는 사이트맵에서 뺀다.
+      // noindex 페이지(태그 목록, 2쪽 이후 페이지네이션)와 옛 주소 리다이렉트 페이지는
+      // 사이트맵에서도 뺀다 — 페이지 쪽 meta와 짝을 맞춘다(#75).
       filter: (page) =>
-        !page.includes(`${base}/tags/`) && !page.includes(`${base}${LEGACY}/`),
+        !page.includes(`${base}/tags/`) &&
+        !page.includes(`${base}${LEGACY}/`) &&
+        !page.includes(`${base}/posts/page/`) &&
+        !/\/categories\/[^/]+\/\d+\/$/.test(page),
       // 글 URL은 파일명 날짜 프리픽스(YYYY-MM-DD-slug)가 발행일 — lastmod로 실어
       // 크롤러가 새 글을 우선 가져가게 한다. 날짜 없는 페이지는 lastmod 생략.
       serialize(item) {
@@ -55,6 +58,12 @@ export default defineConfig({
   redirects: {
     "/archive": `${base}/topics`,
     "/tags/jeongcheogi": `${base}/tags/jeongbocheorigisa/`,
+    // 2026-10-02 중복 주제 통합(#75) — 자동 발행이 시드 주제를 자유 주제로 다시 쓴 4편을
+    // 원글로 합쳤다. 신호가 갈리지 않도록 옛 주소는 원글로 보낸다.
+    "/2026-09-18-db-normalization": `${base}/2026-07-17-db-normalization/`,
+    "/2026-09-03-graph-traversal-bfs-dfs": `${base}/2026-08-02-bfs-dfs/`,
+    "/2026-09-23-virtual-memory-page-replacement": `${base}/2026-08-10-page-replacement/`,
+    "/2026-09-27-mcp-sampling-capability": `${base}/2026-08-13-mcp-sampling/`,
     ...legacyRedirects,
   },
   // 개발 중 하단에 뜨는 Astro 개발 툴바 비활성화(배포본엔 원래 없음)

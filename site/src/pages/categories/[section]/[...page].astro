@@ -22,7 +22,8 @@ const pageHref = (n: number) =>
   n <= 1 ? `${base}/categories/${section}/` : `${base}/categories/${section}/${n}/`;
 ---
 
-<Base title={label} description={`${label} 카테고리의 글 목록`}>
+{/* 2쪽 이후는 얇은 목록 페이지 — 색인 대신 링크 추적만(크롤 예산 보존, #75) */}
+<Base title={label} description={`${label} 카테고리의 글 목록`} noindex={page.currentPage > 1}>
   <h1>{label}</h1>
   <p class="muted">
     {page.total}개의 글{page.lastPage > 1 && ` · ${page.currentPage} / ${page.lastPage} 페이지`}
