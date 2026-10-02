@@ -73,6 +73,9 @@ jobs:
       # 배포된 최근 글을 IndexNow로 제출(#75) — 빙·네이버가 즉시 크롤. 실패해도 배포는 성공.
       - uses: actions/checkout@v7
         with:
-          sparse-checkout: site/public site/scripts
+          # 패턴은 줄바꿈 구분 — 한 줄에 공백으로 적으면 하나의 패턴으로 읽어 아무것도 안 받는다
+          sparse-checkout: |
+            site/public
+            site/scripts
       - run: node site/scripts/indexnow.mjs
         continue-on-error: true
