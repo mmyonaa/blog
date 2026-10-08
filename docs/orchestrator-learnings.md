@@ -80,3 +80,4 @@
 | 2026-10-05 | 성공 | mcp-trend | 1/3 | 0.2693244 | 12 | 51393 | 0 | 2026-10-05-uber-mcp-gateway-registry-discovery.md |
 | 2026-10-06 | 성공 | boangisa | 1/3 | 0.1181384 | 5 | 20474 | 0 | 2026-10-06-buffer-overflow.md |
 | 2026-10-07 | 성공 | mcp | 1/3 | 0.14487860000000002 | 7 | 27969 | 0 | 2026-10-07-mcp-progress-and-cancellation.md |
+| 2026-10-08 | 성공 | jeongcheogi | 1/3 | 0.1340074 | 6 | 28854 | 0 | 2026-10-08-disk-scheduling.md |
