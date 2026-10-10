@@ -82,3 +82,4 @@
 | 2026-10-07 | 성공 | mcp | 1/3 | 0.14487860000000002 | 7 | 27969 | 0 | 2026-10-07-mcp-progress-and-cancellation.md |
 | 2026-10-08 | 성공 | jeongcheogi | 1/3 | 0.1340074 | 6 | 28854 | 0 | 2026-10-08-disk-scheduling.md |
 | 2026-10-09 | 성공 | security | 1/3 | 0.32308279999999995 | 12 | 46647 | 0 | 2026-10-09-atlassian-cve-2026-21589-webresource-path-traversal.md |
+| 2026-10-10 | 성공 | mcp-trend | 1/3 | 0.41021119999999994 | 18 | 54291 | 0 | 2026-10-10-mcp-clean-scan-cosai-assurance-levels.md |
