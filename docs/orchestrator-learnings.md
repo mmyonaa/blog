@@ -84,3 +84,4 @@
 | 2026-10-09 | 성공 | security | 1/3 | 0.32308279999999995 | 12 | 46647 | 0 | 2026-10-09-atlassian-cve-2026-21589-webresource-path-traversal.md |
 | 2026-10-10 | 성공 | mcp-trend | 1/3 | 0.41021119999999994 | 18 | 54291 | 0 | 2026-10-10-mcp-clean-scan-cosai-assurance-levels.md |
 | 2026-10-11 | 성공 | boangisa | 1/3 | 0.1151584 | 5 | 24450 | 0 | 2026-10-11-firewall-ids-ips-waf.md |
+| 2026-10-12 | 성공 | mcp | 1/3 | 0.1280231 | 8 | 34698 | 0 | 2026-10-12-mcp-resource-templates.md |
