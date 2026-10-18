@@ -215,6 +215,33 @@ export const SEED_TOPICS: Topic[] = [
   { id: "greedy-intro", area: "IMP", title: "그리디 알고리즘 — 언제 최적이 보장되나", tags: ["알고리즘", "그리디"] },
   { id: "brute-force", area: "IMP", title: "완전 탐색 — 모든 경우를 다 해보기", tags: ["알고리즘", "완전탐색"] },
   { id: "simulation", area: "IMP", title: "구현·시뮬레이션 문제 접근법", tags: ["알고리즘", "구현", "시뮬레이션"] },
+  // ── 2026-10-16 보충 — mcp·jeongcheogi 시드 소진으로 추가 ──
+  // mcp (C: 해설)
+  { id: "mcp-tasks-extension", area: "C", title: "MCP Tasks 확장 — 오래 걸리는 작업을 작업 객체로 다루기", tags: ["mcp", "tasks", "확장"] },
+  { id: "mcp-meta-field", area: "C", title: "MCP _meta 필드 — 스펙 밖 메타데이터를 충돌 없이 싣는 법", tags: ["mcp", "meta", "스펙"] },
+  { id: "mcp-extensions-negotiation", area: "C", title: "MCP 확장 협상 — capabilities.extensions로 기능 더하기", tags: ["mcp", "extensions", "capability"] },
+  { id: "mcp-server-icons", area: "C", title: "MCP 아이콘 — 서버·도구에 시각 식별자 달기", tags: ["mcp", "icons", "ux"] },
+  { id: "streamable-http-resumability", area: "C", title: "Streamable HTTP — 끊긴 연결을 이벤트 ID로 이어 붙이기", tags: ["mcp", "streamable-http", "sse"] },
+  { id: "mcp-registry-publish", area: "C", title: "MCP Registry에 서버 등록하기 — server.json 쓰기", tags: ["mcp", "registry", "server.json"] },
+  // mcp (A: 프로젝트 개발기)
+  { id: "mcp-inspector-debugging", area: "A", title: "MCP Inspector로 내 서버 들여다보기", tags: ["mcp", "inspector", "디버깅"] },
+  { id: "mcp-server-unit-testing", area: "A", title: "MCP 서버 핸들러를 테스트로 묶어 두기", tags: ["mcp", "테스트", "typescript"] },
+  { id: "remote-mcp-deploy", area: "A", title: "stdio 서버를 원격 HTTP 서버로 올리기", tags: ["mcp", "배포", "http"] },
+  // jeongcheogi (DB)
+  { id: "sql-join-types", area: "DB", title: "SQL 조인 — 내부·외부·교차 조인 구분하기", tags: ["정보처리기사", "데이터베이스", "sql", "조인"] },
+  { id: "db-recovery", area: "DB", title: "데이터베이스 회복 기법 — REDO·UNDO·체크포인트", tags: ["정보처리기사", "데이터베이스", "회복"] },
+  // jeongcheogi (NET)
+  { id: "network-devices", area: "NET", title: "네트워크 장비 — 리피터·브리지·라우터·게이트웨이", tags: ["정보처리기사", "네트워크", "장비"] },
+  { id: "routing-protocols", area: "NET", title: "라우팅 프로토콜 — RIP·OSPF·BGP", tags: ["정보처리기사", "네트워크", "라우팅"] },
+  // jeongcheogi (OS)
+  { id: "memory-allocation-fragmentation", area: "OS", title: "메모리 배치 전략과 단편화 — 최초·최적·최악 적합", tags: ["정보처리기사", "운영체제", "메모리"] },
+  { id: "file-system-structure", area: "OS", title: "파일 시스템 구조 — i-node와 FAT", tags: ["정보처리기사", "운영체제", "파일시스템"] },
+  // jeongcheogi (SE)
+  { id: "requirements-engineering", area: "SE", title: "요구사항 공학 — 도출·분석·명세·확인", tags: ["정보처리기사", "소프트웨어공학", "요구사항"] },
+  { id: "architecture-patterns", area: "SE", title: "소프트웨어 아키텍처 패턴 — 레이어·MVC·파이프필터", tags: ["정보처리기사", "소프트웨어공학", "아키텍처"] },
+  { id: "configuration-management", area: "SE", title: "형상 관리 — 베이스라인과 변경 통제", tags: ["정보처리기사", "소프트웨어공학", "형상관리"] },
+  // jeongcheogi (SEC)
+  { id: "secure-coding-guide", area: "SEC", title: "시큐어 코딩 — 입력 검증부터 에러 처리까지", tags: ["정보처리기사", "정보보안", "시큐어코딩"] },
 ];
 
 /** topicId(시드 id) → area. 시드 밖 id면 undefined. publish_post가 area를 자동 도출할 때 쓴다. */
