@@ -4,7 +4,7 @@ import Base from "../../../layouts/Base.astro";
 import PostViews from "../../../components/PostViews.astro";
 import Pagination from "../../../components/Pagination.astro";
 import BlogFilterLinks from "../../../components/BlogFilterLinks.astro";
-import { getSectionMap, sectionLabel } from "../../../lib/sections.ts";
+import { getSectionMap, sectionLabel, introOf, blurbOf } from "../../../lib/sections.ts";
 import { PAGE_SIZE } from "../../../lib/pagination.ts";
 
 export const getStaticPaths = (async ({ paginate }) => {
@@ -20,11 +20,20 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const label = sectionLabel(section);
 const pageHref = (n: number) =>
   n <= 1 ? `${base}/categories/${section}/` : `${base}/categories/${section}/${n}/`;
+
+// 머리말은 1쪽에만. 2쪽 이후는 noindex라 같은 문단을 되풀이할 이유가 없고,
+// 읽는 쪽에서도 목록을 넘기는 중에 소개를 다시 보는 건 군더더기다.
+const intro = page.currentPage === 1 ? introOf(section) : "";
+// meta description은 섹션 소개 한 줄로. 전엔 "{라벨} 카테고리의 글 목록"이라
+// 라벨만 바뀌는 템플릿이었다 — 문자열은 달라도 내용이 없어 검색엔진이 대개
+// 무시하고 제 식으로 다시 쓴다. blurb는 섹션마다 실제 소재가 담긴 한 줄이다.
+const description = blurbOf(section) || `${label} 카테고리의 글 목록`;
 ---
 
 {/* 2쪽 이후는 얇은 목록 페이지 — 색인 대신 링크 추적만(크롤 예산 보존, #75) */}
-<Base title={label} description={`${label} 카테고리의 글 목록`} noindex={page.currentPage > 1}>
+<Base title={label} description={description} noindex={page.currentPage > 1}>
   <h1>{label}</h1>
+  {intro && <p class="lead">{intro}</p>}
   <p class="muted">
     {page.total}개의 글{page.lastPage > 1 && ` · ${page.currentPage} / ${page.lastPage} 페이지`}
   </p>
@@ -35,3 +44,23 @@ const pageHref = (n: number) =>
   <PostViews posts={page.data} toggle={false} />
   <Pagination currentPage={page.currentPage} lastPage={page.lastPage} hrefFor={pageHref} />
 </Base>
+
+<style>
+  /* about 페이지의 머리말과 같은 조판 — 본문보다 한 단 크고 넉넉한 행간. */
+  .lead {
+    font-size: var(--fs-lg);
+    line-height: 1.7;
+    color: var(--c-text);
+    max-width: 68ch;
+    margin: var(--space-3) 0 var(--space-4);
+  }
+  /* 모바일에선 본문 크기로. about과 달리 여기선 머리말이 주인공이 아니라
+     목록이 주인공이라, 큰 글씨 그대로면 첫 글이 화면 밖으로 밀린다. */
+  @media (max-width: 640px) {
+    .lead {
+      font-size: var(--fs-base);
+      line-height: 1.65;
+      margin: var(--space-2) 0 var(--space-3);
+    }
+  }
+</style>
