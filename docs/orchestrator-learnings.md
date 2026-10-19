@@ -88,3 +88,4 @@
 | 2026-10-13 | 실패 | jeongcheogi | 3/3 | 0 | 1 | 369 | 0 | - |
 | 2026-10-15 | 실패 | mcp-trend | 3/3 | 0 | 1 | 482 | 0 | - |
 | 2026-10-18 | 성공 | jeongcheogi | 1/3 | 0.11475439999999999 | 5 | 22866 | 0 | 2026-10-18-network-devices.md |
+| 2026-10-19 | 성공 | security | 1/3 | 0.3114668 | 13 | 59966 | 1 | 2026-10-19-gitlab-ai-gateway-template-sandbox-escape.md |
