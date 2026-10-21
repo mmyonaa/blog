@@ -90,3 +90,4 @@
 | 2026-10-18 | 성공 | jeongcheogi | 1/3 | 0.11475439999999999 | 5 | 22866 | 0 | 2026-10-18-network-devices.md |
 | 2026-10-19 | 성공 | security | 1/3 | 0.3114668 | 13 | 59966 | 1 | 2026-10-19-gitlab-ai-gateway-template-sandbox-escape.md |
 | 2026-10-20 | 성공 | mcp-trend | 1/3 | 0.3225948 | 16 | 82091 | 1 | 2026-10-20-rea-reverse-engineering-mcp-server.md |
+| 2026-10-21 | 성공 | boangisa | 1/3 | 0.1133183 | 5 | 23470 | 0 | 2026-10-21-malware-types.md |
