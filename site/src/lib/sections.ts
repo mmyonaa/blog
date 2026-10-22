@@ -12,12 +12,13 @@ export const SECTION_LABELS: Record<string, string> = {
   web: "블로그·웹 만들기",
   jeongcheogi: "정보처리기사",
   boangisa: "정보보안기사",
+  bigdata: "빅데이터분석기사",
   algo: "알고리즘",
   security: "보안",
 };
 
 /** 노출 순서. 여기 없는 섹션은 뒤에 이름순으로 붙는다. */
-const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "boangisa", "algo", "security"];
+const SECTION_ORDER = ["mcp", "web", "jeongcheogi", "boangisa", "bigdata", "algo", "security"];
 
 /**
  * area id → 한국어 라벨. 서버(server/src/topics.ts)의 AREAS와 맞춘다(사이트는 서버를
@@ -42,6 +43,11 @@ export const AREA_LABELS: Record<string, string> = {
   ISEC: "정보보안 일반",
   LAW: "관리·법규",
   SPRAC: "실기 문제",
+  BDPLAN: "분석 기획",
+  BDEXP: "데이터 탐색",
+  BDMODEL: "모델링",
+  BDEVAL: "결과 해석",
+  BDPRAC: "실기 작업형",
   DS: "자료구조",
   SRT: "정렬·탐색",
   GRP: "그래프",
@@ -64,6 +70,7 @@ export const SECTION_HUE: Record<string, string> = {
   web: "#22beb0", // 틸
   jeongcheogi: "#7b6fe6", // 퍼플
   boangisa: "#2fa36b", // 그린
+  bigdata: "#73992c", // 올리브
   algo: "#e05f86", // 로즈
   security: "#f2994a", // 앰버
 };
@@ -79,6 +86,7 @@ export const SECTION_BLURB: Record<string, string> = {
   web: "이 블로그를 포함한 웹·프론트엔드 만들기",
   jeongcheogi: "정보처리기사 필기 개념과 실기 문제 정리",
   boangisa: "정보보안기사 필기 개념과 실기 문제 정리",
+  bigdata: "빅데이터분석기사 필기 개념과 실기 작업형 정리",
   algo: "코딩테스트를 위한 알고리즘·자료구조 정리",
   security: "웹·시스템 보안과 취약점 파고들기",
 };
@@ -99,6 +107,7 @@ export const SECTION_INTRO: Record<string, string> = {
   web: "이 블로그를 Astro로 만들며 배운 웹 기술을 정리합니다. SSG·SSR·CSR이 각각 언제 HTML을 만드는가 하는 렌더링 개념, Content Collection·아일랜드 아키텍처·RSS 같은 Astro 실무, 그리고 nginx·pm2로 실제 서버에 올리는 배포까지 이어집니다.",
   jeongcheogi: "정보처리기사 필기 개념과 실기 문제를 시험에 나오는 형태로 정리합니다. 데이터베이스 정규화, OSI 7계층, 프로세스와 스레드, 결합도와 응집도처럼 과목별 핵심 개념을 정의와 원리부터 짚습니다. 실기는 C·Java·Python 코딩 문제를 출력 추적 중심으로 풉니다.",
   boangisa: "정보보안기사 필기 5과목 개념을 과목 순서대로 정리합니다. 시스템 보안의 리눅스 권한과 SetUID, 네트워크 보안의 ARP 스푸핑과 DDoS, 애플리케이션 보안의 SQL 인젝션과 XSS·CSRF, 정보보안 일반의 블록 암호 운영 모드와 RSA·PKI, 그리고 관리·법규의 위험 관리를 다룹니다.",
+  bigdata: "빅데이터분석기사 필기 4과목 개념과 실기 작업형을 정리합니다. 분석 기획의 데이터 유형과 과제 도출, 데이터 탐색의 결측값·이상값 처리와 가설검정, 모델링의 회귀·의사결정나무·앙상블·군집분석, 결과 해석의 혼동행렬과 ROC·교차검증을 다룹니다. 실기는 pandas·scikit-learn·scipy로 작업형 세 유형을 코드로 풉니다.",
   algo: "코딩테스트에서 쓰는 알고리즘과 자료구조를 구현 중심으로 정리합니다. Big-O로 비용을 따지는 법에서 시작해 이진 탐색·BFS와 DFS·동적 계획법까지, 개념을 말로만 설명하지 않고 코드로 남깁니다.",
   security: "실제로 터진 보안 사고와 새로 공개된 취약점을 찾아 읽고, 개발자 입장에서 무엇을 해야 하는지로 정리합니다. CVE 하나를 놓고 원리·영향 범위·대응을 따지는 글이 많습니다. MCP 서버에 생기는 커맨드 인젝션·SSRF처럼 직접 만드는 것과 맞닿은 주제도 함께 다룹니다.",
 };
@@ -107,14 +116,16 @@ export const introOf = (id: string): string => SECTION_INTRO[id] ?? "";
 
 /**
  * 섹션 id → 카드 배지에 넣을 대문자 이니셜 한 글자.
- * 한국어 라벨 대신 영문 id의 머리글자를 써서 M/W/J/S로 축약한다(중복 없음).
- * 목록에 없는 섹션은 id 첫 글자를 대문자로 폴백.
+ * 한국어 라벨 대신 영문 id의 머리글자를 써서 M/W/J/B/A/S로 축약한다.
+ * 머리글자가 이미 쓰인 섹션은 겹치지 않는 다른 글자를 쓴다 — bigdata는 B가 boangisa와
+ * 겹쳐 Data의 D를 쓴다. 목록에 없는 섹션은 id 첫 글자를 대문자로 폴백.
  */
 export const SECTION_INITIAL: Record<string, string> = {
   mcp: "M",
   web: "W",
   jeongcheogi: "J",
   boangisa: "B",
+  bigdata: "D",
   algo: "A",
   security: "S",
 };

@@ -15,7 +15,7 @@
 
 ## 발행 불변 규칙 (publish_post)
 
-- **section 필수**: `mcp` | `web` | `jeongcheogi` | `boangisa` | `algo` | `security`. 유효 값의 단일 출처는 `server/src/topics.ts`의 `SECTIONS` 레지스트리 — 어디에도 하드코딩하지 않는다.
+- **section 필수**: `mcp` | `web` | `jeongcheogi` | `boangisa` | `bigdata` | `algo` | `security`. 유효 값의 단일 출처는 `server/src/topics.ts`의 `SECTIONS` 레지스트리 — 어디에도 하드코딩하지 않는다.
 - **slug 필수, 영문 kebab-case**: 시드 주제면 그 `id`를 그대로 slug로. 비워두면 한글 슬러그가 되어 URL이 깨진다.
 - **slug는 기존 글과 겹치면 거부**: 기존 글의 주제슬러그와 같거나 토큰 단위로 포함 관계면 발행이 거부된다(같은 주제 재발행 방지). 심화 후속은 겹치지 않는 slug + `follows`로 잇는다.
 - **tags 3~5개, 구체적 소재 우선**: 제품·기술·기법·고유명사를 태그로. 섹션 포괄어(예: 보안 섹션의 `보안`·`취약점`)만으로 채우지 않는다. 같은 대상은 기존 글의 표기를 재사용한다(`typescript`/`ts` 흔들림 금지).
@@ -31,7 +31,7 @@
 ## 섹션 선택
 
 - 대화형: 사용자가 지정한 섹션을 따른다. 지정이 없으면 물어본다.
-- 무인 실행(Phase 3): 로테이션 규칙은 래퍼(#10)에서 확정한다. 기본 가정은 `mcp` → `jeongcheogi` → `security` → `mcp-trend` → `boangisa` 순환 (`mcp-trend`는 mcp 섹션의 Mode R 생태계 동향 리서치, #71).
+- 무인 실행(Phase 3): 로테이션 규칙은 래퍼(#10)에서 확정한다. 기본 가정은 `mcp` → `jeongcheogi` → `security` → `mcp-trend` → `boangisa` → `bigdata` 순환 (`mcp-trend`는 mcp 섹션의 Mode R 생태계 동향 리서치, #71).
 
 ## 작업 관리
 

@@ -7,7 +7,7 @@
 // 섹션 포괄어 — 이것"만"으로 태그를 채우면 차단. 구체 소재 태그가 하나라도 섞이면 통과.
 const BROAD_TAGS = new Set([
   "보안", "취약점", "다이제스트",
-  "정보처리기사", "알고리즘", "코딩테스트",
+  "정보처리기사", "정보보안기사", "빅데이터분석기사", "알고리즘", "코딩테스트",
   "mcp", "개념", "블로그", "웹", "자동발행",
 ]);
 
@@ -26,7 +26,9 @@ process.stdin.on("end", () => {
   const errors = [];
 
   if (!t.section || String(t.section).trim() === "") {
-    errors.push("section이 없다 — mcp | web | jeongcheogi | algo | security 중 하나를 반드시 넘겨라");
+    errors.push(
+      "section이 없다 — mcp | web | jeongcheogi | boangisa | bigdata | algo | security 중 하나를 반드시 넘겨라",
+    );
   }
 
   const slug = String(t.slug ?? "").trim();
