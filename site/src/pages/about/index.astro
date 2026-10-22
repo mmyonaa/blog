@@ -330,11 +330,12 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
     border-color: var(--c-accent);
   }
 
+  /* 읽기 폭(68ch) 제한을 두지 않는다 — about은 셸 폭(1240px)을 쓰는 페이지라
+     이 문단만 중간에서 끊기면 오른쪽이 비어 보인다. 아래 본문 문단들과 같은 폭으로 흐른다. */
   .lead {
     font-size: var(--fs-lg);
     line-height: 1.7;
     color: var(--c-text);
-    max-width: 68ch;
   }
   .lead strong {
     color: var(--c-accent);
@@ -585,9 +586,18 @@ const daysJson = JSON.stringify(dayPosts).replace(/</g, "\\u003c");
   /* ── 카테고리: 사전식 정의 리스트. 색은 카테고리명 글씨에만, 장식(점·바·카드) 없음 ── */
   .ab-gloss {
     margin: var(--space-5) 0 0;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
     gap: var(--space-4);
+  }
+  /* PC에선 한 줄에 두 갈래씩 — 한 줄 설명이라 세로로만 쌓으면 목록이 과하게 길어진다.
+     카테고리 수가 홀수면 마지막 항목만 왼쪽 열에 남는다(채우지 않는다).
+     열 간격은 행 간격보다 넓게 — 좁으면 두 열의 설명문이 한 문단처럼 붙어 읽힌다. */
+  @media (min-width: 901px) {
+    .ab-gloss {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4) var(--space-6);
+    }
   }
   .gl-item {
     --hue-on: var(--hue, var(--c-accent));
