@@ -39,6 +39,7 @@ export const SECTIONS = {
   web: { label: "블로그·웹 만들기", desc: "Astro·TypeScript 등 블로그 사이트를 만들며 배운 웹 기술" },
   jeongcheogi: { label: "정보처리기사", desc: "정보처리기사 필기 개념과 실기 문제 정리", exam: "정보처리기사" },
   boangisa: { label: "정보보안기사", desc: "정보보안기사 필기 개념과 실기 문제 정리", exam: "정보보안기사" },
+  bigdata: { label: "빅데이터분석기사", desc: "빅데이터분석기사 필기 개념과 실기 작업형 정리", exam: "빅데이터분석기사" },
   algo: { label: "알고리즘", desc: "코딩테스트를 위한 알고리즘·자료구조를 구현 중심으로 정리" },
   security: {
     label: "보안",
@@ -77,6 +78,12 @@ export const AREAS = {
   ISEC: { section: "boangisa", label: "정보보안 일반", desc: "암호 알고리즘·인증·PKI 등" },
   LAW: { section: "boangisa", label: "관리·법규", desc: "위험관리·ISMS-P·개인정보보호법 등" },
   SPRAC: { section: "boangisa", label: "실기 문제", desc: "로그 분석·설정 점검 등 서술형 실기 문제 풀이" },
+  // ── bigdata 섹션 (빅데이터분석기사 필기 4과목 + 실기 작업형) ──
+  BDPLAN: { section: "bigdata", label: "분석 기획", desc: "빅데이터 이해·분석 과제 도출·수집과 저장 계획" },
+  BDEXP: { section: "bigdata", label: "데이터 탐색", desc: "전처리·EDA·기초 통계와 가설검정" },
+  BDMODEL: { section: "bigdata", label: "모델링", desc: "회귀·분류·군집·앙상블 등 분석 기법" },
+  BDEVAL: { section: "bigdata", label: "결과 해석", desc: "평가지표·교차검증·시각화와 활용" },
+  BDPRAC: { section: "bigdata", label: "실기 작업형", desc: "pandas·scikit-learn·scipy로 푸는 작업형 3유형" },
   // ── algo 섹션 ──
   DS: { section: "algo", label: "자료구조", desc: "배열·스택·큐·해시·트리·힙" },
   SRT: { section: "algo", label: "정렬·탐색", desc: "이진탐색·정렬 비교·투 포인터" },
@@ -242,6 +249,46 @@ export const SEED_TOPICS: Topic[] = [
   { id: "configuration-management", area: "SE", title: "형상 관리 — 베이스라인과 변경 통제", tags: ["정보처리기사", "소프트웨어공학", "형상관리"] },
   // jeongcheogi (SEC)
   { id: "secure-coding-guide", area: "SEC", title: "시큐어 코딩 — 입력 검증부터 에러 처리까지", tags: ["정보처리기사", "정보보안", "시큐어코딩"] },
+
+  // ── 빅데이터분석기사 섹션 (bigdata) ──
+  // BDPLAN — 빅데이터 분석 기획
+  { id: "bigdata-3v-data-types", area: "BDPLAN", title: "빅데이터란 무엇인가 — 3V와 정형·반정형·비정형 데이터", tags: ["빅데이터분석기사", "분석기획", "빅데이터"] },
+  { id: "analysis-task-topdown-bottomup", area: "BDPLAN", title: "분석 과제 도출 — 하향식 접근과 상향식 접근", tags: ["빅데이터분석기사", "분석기획", "분석과제"] },
+  { id: "analysis-masterplan-maturity", area: "BDPLAN", title: "분석 마스터플랜과 분석 성숙도 모델", tags: ["빅데이터분석기사", "분석기획", "분석성숙도"] },
+  { id: "hdfs-mapreduce", area: "BDPLAN", title: "분산 저장과 처리 — HDFS와 맵리듀스", tags: ["빅데이터분석기사", "분석기획", "hdfs", "맵리듀스"] },
+  { id: "data-de-identification", area: "BDPLAN", title: "개인정보 비식별 조치 — 가명처리·총계처리·범주화·마스킹", tags: ["빅데이터분석기사", "분석기획", "비식별조치"] },
+  { id: "rdb-nosql-datawarehouse", area: "BDPLAN", title: "데이터 저장 선택 — RDB·NoSQL·데이터 웨어하우스와 마트", tags: ["빅데이터분석기사", "분석기획", "nosql", "데이터웨어하우스"] },
+  // BDEXP — 빅데이터 탐색
+  { id: "missing-value-handling", area: "BDEXP", title: "결측값 처리 — 삭제·단순 대치·다중 대치", tags: ["빅데이터분석기사", "데이터전처리", "결측값"] },
+  { id: "outlier-detection", area: "BDEXP", title: "이상값 탐지 — IQR·Z-점수·ESD", tags: ["빅데이터분석기사", "데이터전처리", "이상값"] },
+  { id: "pca-dimension-reduction", area: "BDEXP", title: "차원 축소 — 주성분분석(PCA)은 무엇을 버리고 무엇을 남기나", tags: ["빅데이터분석기사", "데이터전처리", "차원축소", "pca"] },
+  { id: "feature-scaling", area: "BDEXP", title: "스케일링 — 표준화와 정규화는 어디서 갈리나", tags: ["빅데이터분석기사", "데이터전처리", "스케일링"] },
+  { id: "imbalanced-data-sampling", area: "BDEXP", title: "불균형 데이터 — 과대표집·과소표집과 SMOTE", tags: ["빅데이터분석기사", "데이터전처리", "불균형데이터", "smote"] },
+  { id: "eda-correlation", area: "BDEXP", title: "탐색적 데이터 분석(EDA)과 상관계수 읽기", tags: ["빅데이터분석기사", "데이터탐색", "eda", "상관분석"] },
+  { id: "probability-distributions", area: "BDEXP", title: "확률분포 정리 — 정규·이항·포아송·t·카이제곱", tags: ["빅데이터분석기사", "통계", "확률분포"] },
+  { id: "hypothesis-testing-basics", area: "BDEXP", title: "가설검정의 뼈대 — 귀무가설·유의수준·p-값·제1종 오류", tags: ["빅데이터분석기사", "통계", "가설검정", "p값"] },
+  // BDMODEL — 빅데이터 모델링
+  { id: "linear-regression-assumptions", area: "BDMODEL", title: "회귀분석 — 최소제곱법과 네 가지 가정", tags: ["빅데이터분석기사", "모델링", "회귀분석"] },
+  { id: "logistic-regression-odds", area: "BDMODEL", title: "로지스틱 회귀 — 오즈비와 시그모이드", tags: ["빅데이터분석기사", "모델링", "로지스틱회귀"] },
+  { id: "decision-tree-impurity", area: "BDMODEL", title: "의사결정나무 — 지니 불순도·엔트로피와 가지치기", tags: ["빅데이터분석기사", "모델링", "의사결정나무"] },
+  { id: "ensemble-bagging-boosting", area: "BDMODEL", title: "앙상블 — 배깅·부스팅·랜덤 포레스트", tags: ["빅데이터분석기사", "모델링", "앙상블", "랜덤포레스트"] },
+  { id: "svm-knn-naive-bayes", area: "BDMODEL", title: "분류기 세 갈래 — SVM·KNN·나이브 베이즈", tags: ["빅데이터분석기사", "모델링", "svm", "knn"] },
+  { id: "kmeans-hierarchical-clustering", area: "BDMODEL", title: "군집분석 — K-평균과 계층적 군집", tags: ["빅데이터분석기사", "모델링", "군집분석", "k-means"] },
+  { id: "association-rule-mining", area: "BDMODEL", title: "연관성 분석 — 지지도·신뢰도·향상도", tags: ["빅데이터분석기사", "모델링", "연관분석"] },
+  { id: "time-series-arima", area: "BDMODEL", title: "시계열 분석 — 정상성과 ARIMA", tags: ["빅데이터분석기사", "모델링", "시계열", "arima"] },
+  { id: "text-mining-sna", area: "BDMODEL", title: "비정형 데이터 분석 — 텍스트 마이닝과 사회연결망 분석", tags: ["빅데이터분석기사", "모델링", "텍스트마이닝", "sna"] },
+  { id: "neural-network-backpropagation", area: "BDMODEL", title: "인공신경망 — 퍼셉트론에서 역전파까지", tags: ["빅데이터분석기사", "모델링", "인공신경망", "역전파"] },
+  // BDEVAL — 빅데이터 결과 해석
+  { id: "confusion-matrix-metrics", area: "BDEVAL", title: "혼동행렬 — 정확도·정밀도·재현율·F1", tags: ["빅데이터분석기사", "모형평가", "혼동행렬"] },
+  { id: "roc-curve-auc", area: "BDEVAL", title: "ROC 곡선과 AUC — 임계값을 움직이면 무엇이 바뀌나", tags: ["빅데이터분석기사", "모형평가", "roc", "auc"] },
+  { id: "regression-eval-metrics", area: "BDEVAL", title: "회귀 모형 평가 — RMSE·MAE·결정계수", tags: ["빅데이터분석기사", "모형평가", "rmse", "결정계수"] },
+  { id: "overfitting-cross-validation", area: "BDEVAL", title: "과대적합과 교차검증 — 홀드아웃·k-겹·LOOCV", tags: ["빅데이터분석기사", "모형평가", "과대적합", "교차검증"] },
+  { id: "hyperparameter-tuning", area: "BDEVAL", title: "매개변수 최적화 — 초매개변수와 그리드 서치", tags: ["빅데이터분석기사", "모형평가", "초매개변수", "그리드서치"] },
+  { id: "visualization-four-types", area: "BDEVAL", title: "분석 결과 시각화 — 시간·공간·관계·비교", tags: ["빅데이터분석기사", "결과해석", "시각화"] },
+  // BDPRAC — 실기 작업형
+  { id: "bdprac-type1-preprocessing", area: "BDPRAC", title: "실기 제1유형 — pandas로 전처리하고 답만 뽑기", tags: ["빅데이터분석기사", "실기", "pandas"] },
+  { id: "bdprac-type2-classification", area: "BDPRAC", title: "실기 제2유형 — scikit-learn으로 예측값 제출하기", tags: ["빅데이터분석기사", "실기", "scikit-learn"] },
+  { id: "bdprac-type3-hypothesis", area: "BDPRAC", title: "실기 제3유형 — scipy로 가설검정 수행하기", tags: ["빅데이터분석기사", "실기", "scipy", "가설검정"] },
 ];
 
 /** topicId(시드 id) → area. 시드 밖 id면 undefined. publish_post가 area를 자동 도출할 때 쓴다. */
