@@ -91,3 +91,4 @@
 | 2026-10-19 | 성공 | security | 1/3 | 0.3114668 | 13 | 59966 | 1 | 2026-10-19-gitlab-ai-gateway-template-sandbox-escape.md |
 | 2026-10-20 | 성공 | mcp-trend | 1/3 | 0.3225948 | 16 | 82091 | 1 | 2026-10-20-rea-reverse-engineering-mcp-server.md |
 | 2026-10-21 | 성공 | boangisa | 1/3 | 0.1133183 | 5 | 23470 | 0 | 2026-10-21-malware-types.md |
+| 2026-10-23 | 성공 | security | 1/3 | 0.3219042 | 14 | 69735 | 0 | 2026-10-23-php2shell-php-core-rce-cve-2026-109618.md |
