@@ -37,13 +37,27 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 </ol>
 
 <style>
-  /* 컴팩트 리스트(썸네일 대신 카테고리 색 배지) — 참고의 Top Reads 열. */
+  /* 컴팩트 리스트(썸네일 대신 카테고리 색 배지).
+     좁은 폭에선 한 줄씩, 넓어지면 2열 — 제목이 짧아 1열로 두면 오른쪽이 비고
+     세로로만 길어진다. 항목은 행 우선으로 흘러 왼→오른쪽으로 읽힌다. */
   .top-reads {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
+  }
+  @media (min-width: 700px) {
+    .top-reads {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-6);
+    }
+    /* 2열에선 첫 '행'(앞의 두 항목)에서 상단 룰을 뗀다. */
+    .top-reads > .tr-item:nth-child(-n + 2) {
+      border-top: none;
+      padding-top: 0;
+    }
   }
   .tr-item {
     /* 카테고리 색. 다크 그라운드에선 어두운 hue가 안 보여 밝게 보정한다. */

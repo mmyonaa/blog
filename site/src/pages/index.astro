@@ -6,9 +6,11 @@ import Hero from "../components/home/HeroV2.astro";
 import PostCard from "../components/home/PostCard.astro";
 import SectionNav from "../components/home/SectionNav.astro";
 import PopularTags from "../components/home/PopularTags.astro";
+import TopReads from "../components/home/TopReads.astro";
 import OutroBanner from "../components/home/OutroBanner.astro";
 import { getTagCounts } from "../lib/tags.ts";
 import { getSectionCounts } from "../lib/sections.ts";
+import { hubPosts } from "../lib/hubs.ts";
 
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -25,6 +27,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 // 8개: 2 + 1×7 = 9유닛 = 3열×3행이 딱 맞는다(칸이 붕 뜨지 않게).
 const RECENT_MAX = 8;
 const rest = posts.slice(0, RECENT_MAX);
+
+// 출발점 섹션: 다른 글이 선행·관련으로 가장 많이 지목한 글(피인용 허브).
+// '최근 글'이 시간 축을 맡으므로 여기선 구조 축 — 처음 온 사람이 어디부터 읽을지.
+const hubs = hubPosts(posts, 6).map((h) => h.post);
 
 // ── 히어로 통계 ──
 // 로컬 날짜 키(YYYY-MM-DD). '연속 발행'은 가장 최근 글 날짜부터 하루씩 거슬러
@@ -85,6 +91,16 @@ const stats = [
               <a class="more" href={`${base}/topics/#tags`}>태그 전체 →</a>
             </div>
             <PopularTags tags={topTags} base={base} />
+          </>
+        )}
+
+        {hubs.length > 0 && (
+          <>
+            <div class="section-head">
+              <h2 class="section-title">기초가 되는 글</h2>
+              <a class="more" href={`${base}/topics/#graph`}>관계 그래프 →</a>
+            </div>
+            <TopReads posts={hubs} />
           </>
         )}
 
