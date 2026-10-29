@@ -97,3 +97,4 @@
 | 2026-10-26 | 성공 | bigdata | 1/3 | 0.109642 | 5 | 22264 | 0 | 2026-10-26-confusion-matrix-metrics.md |
 | 2026-10-27 | 성공 | mcp | 1/3 | 0.1193296 | 5 | 33067 | 0 | 2026-10-27-mcp-inspector-debugging.md |
 | 2026-10-28 | 성공 | jeongcheogi | 1/3 | 0.11342540000000001 | 5 | 34320 | 0 | 2026-10-28-sql-join-types.md |
+| 2026-10-29 | 성공 | security | 1/3 | 0.25725869999999995 | 11 | 47429 | 1 | 2026-10-29-php2shell-php-rce-embargo.md |
