@@ -46,12 +46,14 @@ const description = blurbOf(section) || `${label} 카테고리의 글 목록`;
 </Base>
 
 <style>
-  /* about 페이지의 머리말과 같은 조판 — 본문보다 한 단 크고 넉넉한 행간. */
+  /* 본문보다 한 단 크고 넉넉한 행간. 읽기 폭(68ch) 제한은 두지 않는다 —
+     카테고리는 셸 폭(1240px)을 쓰는 페이지라, 아래 목록·필터는 컨테이너
+     전체를 쓰는데 이 문단만 좁히면 같은 좌측 기준선에서 폭이 절반이라
+     중간에 끊겨 보인다. about 페이지도 같은 이유로 제한을 뺐다. */
   .lead {
     font-size: var(--fs-lg);
     line-height: 1.7;
     color: var(--c-text);
-    max-width: 68ch;
     margin: var(--space-3) 0 var(--space-4);
   }
   /* 모바일에선 본문 크기로. about과 달리 여기선 머리말이 주인공이 아니라
