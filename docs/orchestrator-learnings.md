@@ -98,3 +98,4 @@
 | 2026-10-27 | 성공 | mcp | 1/3 | 0.1193296 | 5 | 33067 | 0 | 2026-10-27-mcp-inspector-debugging.md |
 | 2026-10-28 | 성공 | jeongcheogi | 1/3 | 0.11342540000000001 | 5 | 34320 | 0 | 2026-10-28-sql-join-types.md |
 | 2026-10-29 | 성공 | security | 1/3 | 0.25725869999999995 | 11 | 47429 | 1 | 2026-10-29-php2shell-php-rce-embargo.md |
+| 2026-10-30 | 성공 | mcp-trend | 1/3 | 0.21355690000000002 | 13 | 54306 | 0 | 2026-10-30-github-verified-mcp-copilot-connectors.md |
