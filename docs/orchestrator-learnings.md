@@ -100,3 +100,4 @@
 | 2026-10-29 | 성공 | security | 1/3 | 0.25725869999999995 | 11 | 47429 | 1 | 2026-10-29-php2shell-php-rce-embargo.md |
 | 2026-10-30 | 성공 | mcp-trend | 1/3 | 0.21355690000000002 | 13 | 54306 | 0 | 2026-10-30-github-verified-mcp-copilot-connectors.md |
 | 2026-10-31 | 성공 | boangisa | 1/3 | 0.111278 | 5 | 21946 | 0 | 2026-10-31-vpn-ipsec-ssl.md |
+| 2026-11-01 | 성공 | bigdata | 1/3 | 0.1051457 | 5 | 21920 | 0 | 2026-11-01-missing-value-handling.md |
