@@ -101,3 +101,4 @@
 | 2026-10-30 | 성공 | mcp-trend | 1/3 | 0.21355690000000002 | 13 | 54306 | 0 | 2026-10-30-github-verified-mcp-copilot-connectors.md |
 | 2026-10-31 | 성공 | boangisa | 1/3 | 0.111278 | 5 | 21946 | 0 | 2026-10-31-vpn-ipsec-ssl.md |
 | 2026-11-01 | 성공 | bigdata | 1/3 | 0.1051457 | 5 | 21920 | 0 | 2026-11-01-missing-value-handling.md |
+| 2026-11-02 | 성공 | mcp | 1/3 | 0.1135342 | 5 | 37597 | 0 | 2026-11-02-mcp-server-unit-testing.md |
