@@ -102,3 +102,4 @@
 | 2026-10-31 | 성공 | boangisa | 1/3 | 0.111278 | 5 | 21946 | 0 | 2026-10-31-vpn-ipsec-ssl.md |
 | 2026-11-01 | 성공 | bigdata | 1/3 | 0.1051457 | 5 | 21920 | 0 | 2026-11-01-missing-value-handling.md |
 | 2026-11-02 | 성공 | mcp | 1/3 | 0.1135342 | 5 | 37597 | 0 | 2026-11-02-mcp-server-unit-testing.md |
+| 2026-11-03 | 성공 | jeongcheogi | 1/3 | 0.1135567 | 5 | 33398 | 0 | 2026-11-03-requirements-engineering.md |
