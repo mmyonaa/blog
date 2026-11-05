@@ -104,3 +104,4 @@
 | 2026-11-02 | 성공 | mcp | 1/3 | 0.1135342 | 5 | 37597 | 0 | 2026-11-02-mcp-server-unit-testing.md |
 | 2026-11-03 | 성공 | jeongcheogi | 1/3 | 0.1135567 | 5 | 33398 | 0 | 2026-11-03-requirements-engineering.md |
 | 2026-11-04 | 성공 | security | 1/3 | 0.23403569999999999 | 9 | 39969 | 0 | 2026-11-04-node2shell-brotli-rce.md |
+| 2026-11-05 | 성공 | mcp-trend | 1/3 | 0.5032247000000001 | 20 | 93767 | 1 | 2026-11-05-claude-code-dynamic-workflows.md |
