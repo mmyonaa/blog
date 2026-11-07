@@ -106,3 +106,4 @@
 | 2026-11-04 | 성공 | security | 1/3 | 0.23403569999999999 | 9 | 39969 | 0 | 2026-11-04-node2shell-brotli-rce.md |
 | 2026-11-05 | 성공 | mcp-trend | 1/3 | 0.5032247000000001 | 20 | 93767 | 1 | 2026-11-05-claude-code-dynamic-workflows.md |
 | 2026-11-06 | 성공 | boangisa | 1/3 | 0.11129399999999999 | 5 | 29007 | 0 | 2026-11-06-file-upload-vuln.md |
+| 2026-11-07 | 성공 | bigdata | 1/3 | 0.1094282 | 5 | 18818 | 0 | 2026-11-07-linear-regression-assumptions.md |
