@@ -31,7 +31,7 @@
 ## 섹션 선택
 
 - 대화형: 사용자가 지정한 섹션을 따른다. 지정이 없으면 물어본다.
-- 무인 실행(Phase 3): 로테이션 규칙은 래퍼(#10)에서 확정한다. 기본 가정은 `mcp` → `jeongcheogi` → `security` → `mcp-trend` → `boangisa` → `bigdata` 순환 (`mcp-trend`는 mcp 섹션의 Mode R 생태계 동향 리서치, #71).
+- 무인 실행(Phase 3): 로테이션 규칙은 래퍼(#10)에서 확정한다. 기본 가정은 `mcp` → `jeongcheogi` → `security` → `mcp-trend` → `boangisa` → `bigdata` → `algo` 순환 (`mcp-trend`는 mcp 섹션의 Mode R 생태계 동향 리서치, #71).
 
 ## 작업 관리
 

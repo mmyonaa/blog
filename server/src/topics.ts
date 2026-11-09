@@ -203,13 +203,10 @@ export const SEED_TOPICS: Topic[] = [
   // DS — 자료구조
   { id: "big-o-notation", area: "DS", title: "시간복잡도와 Big-O 표기법", tags: ["알고리즘", "시간복잡도", "Big-O"] },
   { id: "array-vs-linked-list", area: "DS", title: "배열 vs 연결 리스트", tags: ["알고리즘", "자료구조", "배열"] },
-  { id: "stack-queue", area: "DS", title: "스택과 큐 — LIFO와 FIFO", tags: ["알고리즘", "자료구조", "스택"] },
   { id: "hash-table", area: "DS", title: "해시 테이블은 어떻게 O(1)로 찾나", tags: ["알고리즘", "자료구조", "해시"] },
   { id: "heap-priority-queue", area: "DS", title: "힙과 우선순위 큐", tags: ["알고리즘", "자료구조", "힙"] },
-  { id: "binary-tree-traversal", area: "DS", title: "이진 트리 순회 — 전위·중위·후위", tags: ["알고리즘", "자료구조", "트리"] },
   // SRT — 정렬·탐색
   { id: "binary-search", area: "SRT", title: "이진 탐색 — 정렬된 배열에서 O(log n)", tags: ["알고리즘", "이진탐색", "탐색"] },
-  { id: "sorting-algorithms", area: "SRT", title: "정렬 알고리즘 비교 — 버블·병합·퀵", tags: ["알고리즘", "정렬"] },
   { id: "two-pointers", area: "SRT", title: "투 포인터로 O(n)에 훑기", tags: ["알고리즘", "투포인터", "탐색"] },
   // GRP — 그래프
   { id: "bfs-dfs", area: "GRP", title: "BFS와 DFS — 그래프 탐색의 두 축", tags: ["알고리즘", "그래프", "완전탐색"] },
