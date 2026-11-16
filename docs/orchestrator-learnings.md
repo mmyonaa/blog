@@ -115,3 +115,4 @@
 | 2026-11-13 | 성공 | security | 1/3 | 0.36512269999999997 | 16 | 48548 | 3 | 2026-11-13-npm-12-install-scripts-off-by-default.md |
 | 2026-11-14 | 성공 | mcp-trend | 1/3 | 0.289916 | 14 | 41980 | 0 | 2026-11-14-aaif-agent-skills-donation-ten-projects.md |
 | 2026-11-15 | 성공 | boangisa | 1/3 | 0.11877510000000001 | 5 | 23736 | 0 | 2026-11-15-system-log-audit.md |
+| 2026-11-16 | 성공 | bigdata | 1/3 | 0.1186357 | 6 | 23429 | 0 | 2026-11-16-roc-curve-auc.md |
